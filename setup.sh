@@ -58,7 +58,7 @@ cd ${tools_root}
 for f in editscenario xmlstore xmlplot gotmgui
 do
     # check if installed
-    if [[ $(if_python_module ${f}) ]]; then
+    if [[ $(if_python_module ${f}) == 1 ]]; then
         echo "${f} installed. Skip."
     else
         # clone source code from github
@@ -70,7 +70,7 @@ do
         # install tool
         cd ${f}
         pip wheel .
-        pip install ${f}.*.whl
+        pip install ${f}-*.whl
         cd ${tools_root}
     fi
 done
