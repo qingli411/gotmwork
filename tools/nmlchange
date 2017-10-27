@@ -2,8 +2,6 @@
 '''
 Qing Li, 20171026
 '''
-import sys
-import os
 import re
 import argparse
 
