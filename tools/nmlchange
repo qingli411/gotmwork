@@ -2,6 +2,7 @@
 '''
 Qing Li, 20171026
 '''
+import sys
 import re
 import argparse
 
@@ -9,7 +10,10 @@ def main():
     # process the input arguments
     parser = argparse.ArgumentParser(description='''
             Change the value of an entry in a namelist. If OUTFILE is not
-            set, modifications will be applied to the input namelist file.''')
+            set, modifications will be applied to the input namelist file.
+            Exit status 0 if ENTRYID is found and different from VALUE.
+            Exit status 1 if ENTRYID is found but the same as VALUE.
+            Exit status 2 if ENTRYID is not found in the input namelist.''')
     parser.add_argument('-f', '--file', action='store', dest='nml_in', \
             metavar='FILENAME', required=True, help='Input namelist file name')
     parser.add_argument('-e', '--entry', action='store', dest='nml_entry', \
@@ -32,6 +36,10 @@ def main():
     re_cmt = r'^\!.*'
     # save the content of namelist file
     rec_info = ''
+    # True if entry is found
+    l_found = False
+    # True if entry value different from input
+    l_diff = False
     with open(args.nml_in, 'r') as infile:
         for line in infile:
             # skip if commented out
@@ -39,16 +47,36 @@ def main():
                 # modify the value if match the entry ID
                 if re.search(re_var, line):
                     [head, str_val] = line.split(' = ')
-                    line = '   '+head.strip()+' = '+new_nmlvalue+',\n'
+                    l_found = True
+                    if str_val.strip(',\n') == new_nmlvalue:
+                        # the value of entry is already updated
+                        break
+                    else:
+                        # the value of entry needs to be updated
+                        line = '   '+head.strip()+' = '+new_nmlvalue+',\n'
+                        l_diff = True
             rec_info += line
 
     # overwrite the input namelist file if OUTFILE is not set
-    if args.nml_out:
-        nmlout = args.nml_out
+    if l_found:
+        if l_diff:
+            if args.nml_out:
+                nmlout = args.nml_out
+            else:
+                nmlout = args.nml_in
+            print('Changing the entry \'{}\' in namelist \'{}\' to {}.'\
+                    .format(args.nml_entry, args.nml_in, new_nmlvalue))
+            with open(nmlout, 'w') as outfile:
+                outfile.write(rec_info)
+            sys.exit(0)
+        else:
+            print('Entry \'{}\' in namelist \'{}\' is already updated.'\
+                    .format(args.nml_entry, args.nml_in))
+            sys.exit(1)
     else:
-        nmlout = args.nml_in
-    with open(nmlout, 'w') as outfile:
-        outfile.write(rec_info)
+        print('Entry \'{}\' not found in namelist \'{}\'.'\
+                .format(args.nml_entry, args.nml_in))
+        sys.exit(2)
 
     # test string_nmlvalue
     if args.nml_test:
