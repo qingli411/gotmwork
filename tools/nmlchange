@@ -5,53 +5,62 @@ Qing Li, 20171026
 import sys
 import os
 import re
+import argparse
 
 def main():
+    # process the input arguments
+    parser = argparse.ArgumentParser(description='''
+            Change the value of an entry in a namelist. If OUTFILE is not
+            set, modifications will be applied to the input namelist file.''')
+    parser.add_argument('-f', '--file', action='store', dest='nml_in', \
+            metavar='FILENAME', required=True, help='Input namelist file name')
+    parser.add_argument('-e', '--entry', action='store', dest='nml_entry', \
+            metavar='ENTRYID', required=True, help='Namelist entry ID')
+    parser.add_argument('-v', '--value', action='store', dest='nml_value', \
+            metavar='VALUE', required=True, help='New value for entry ID')
+    parser.add_argument('-o','--output', action='store', dest='nml_out', \
+            metavar='OUTFILE', required=False, help='Output namelist file name')
+    parser.add_argument('-t', '--test', action='store_true', dest='nml_test', \
+            required=False, help='Test parsing entry value')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args=parser.parse_args()
 
-    usage_str = '''Usage:
-    {} [Namelist File] [Output File] [Namelist Name] [Variable] [Value]
-
-    Query a variable in a namelist file and change its value.
-    '''
-    l_test = False
-    scriptname = os.path.basename(sys.argv[0])
-    # process input arguments
-    nargs = len(sys.argv)
-    if nargs != 6:
-        print(usage_str.format(scriptname))
-        sys.exit(1)
-    nmlin = sys.argv[1]
-    nmlout = sys.argv[2]
-    nmlname = sys.argv[3]
-    nmlvar = sys.argv[4]
-    nmlvalue = sys.argv[5]
-
-    # process input variable
-    new_nmlvalue = string_nmlvalue(nmlvalue)
-    # find if namelist in file
-    re_var = nmlvar.strip()+' ='
+    # process new value for the entry
+    new_nmlvalue = string_nmlvalue(args.nml_value)
+    # pattern of the entry
+    re_var = args.nml_entry.strip()+' ='
+    # pattern of the comments
+    re_cmt = r'^\!.*'
+    # save the content of namelist file
     rec_info = ''
-    with open(nmlin, 'r') as infile:
+    with open(args.nml_in, 'r') as infile:
         for line in infile:
-            #if line.strip() == '&'+nmlname:
-            #    nmlname_found = line.strip()
-            if re.search(re_var, line):
-                [head, eq, str_val] = line.split()
-                line = '   '+head+' '+eq+' '+new_nmlvalue+',\n'
+            # skip if commented out
+            if not re.search(re_cmt, line):
+                # modify the value if match the entry ID
+                if re.search(re_var, line):
+                    [head, str_val] = line.split(' = ')
+                    line = '   '+head.strip()+' = '+new_nmlvalue+',\n'
             rec_info += line
 
-    # write file
+    # overwrite the input namelist file if OUTFILE is not set
+    if args.nml_out:
+        nmlout = args.nml_out
+    else:
+        nmlout = args.nml_in
     with open(nmlout, 'w') as outfile:
         outfile.write(rec_info)
 
-    # test
-    if l_test:
+    # test string_nmlvalue
+    if args.nml_test:
+        print('Testing the funtion of parsing entry value')
         alltest = ['2', '2.', '2.45', '2e3', '2e-10', 'T', 'false', '.ture.', \
-                   'Test', 'Flow', '2001-03-25 00:00:00', './']
+                   'False', 'Test', 'Flow', '2001-03-25 00:00:00', './']
         for stest in alltest:
             print('{} -> {}'.format(stest, string_nmlvalue(stest)))
 
-def string_nmlvalue(data):
+def string_nmlvalue(value):
     '''
     This function process the input namelist value and return the formatted
     string for the namelist.
@@ -63,18 +72,18 @@ def string_nmlvalue(data):
     re_true = r'^[Tt]rue$|^\.true\.$'
     bool_str = {True: '.true.', False: '.false.'}
 
-    if re.search(re_int, data):
-        return data
-    elif re.search(re_float, data):
-        return data
-    elif re.search(re_exp, data):
-        return data
-    elif re.search(re_true, data):
+    if re.search(re_int, value):
+        return value
+    elif re.search(re_float, value):
+        return value
+    elif re.search(re_exp, value):
+        return value
+    elif re.search(re_true, value):
         return bool_str[True]
-    elif re.search(re_false, data):
+    elif re.search(re_false, value):
         return bool_str[False]
     else:
-        return '\''+data+'\''
+        return '\''+value+'\''
 
 if __name__ == "__main__":
     main()
