@@ -1,0 +1,41 @@
+#!/usr/bin/env python3
+'''
+Qing Li, 20171103
+'''
+import sys
+import os
+import re
+import argparse
+
+def main():
+    # # process the input arguments
+    # parser = argparse.ArgumentParser(description='''
+    #         Query the value of an entry in a namelist.''')
+    # parser.add_argument('-f', '--file', action='store', dest='nml_in', \
+    #         metavar='FILENAME', required=True, help='Input namelist file name')
+    # parser.add_argument('-e', '--entry', action='store', dest='nml_entry', \
+    #         metavar='ENTRYID', required=True, help='Namelist entry ID')
+    # parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # # parsing arguments and save to args
+    # args=parser.parse_args()
+
+    home = os.environ.get('HOME')
+    obsdir = home+'/data/OCSPapa/2016'
+    print(obsdir)
+    # outstr = ''
+    # with open(args.nml_in, 'r') as infile:
+    #     for line in infile:
+    #         # skip if commented out
+    #         if not re.search(re_cmt, line):
+    #             # modify the value if match the entry ID
+    #             if re.search(re_var, line):
+    #                 [head, str_val] = line.split(' = ')
+    #                 outstr = line
+    #                 break
+    # if outstr:
+    #     print(outstr.strip(',\n'))
+    # else:
+    #     print('Entry \'{}\' not found.'.format(args.nml_entry))
+
+if __name__ == "__main__":
+    main()
