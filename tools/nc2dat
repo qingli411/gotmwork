@@ -1,22 +1,25 @@
 #!/usr/bin/env python3
-'''
+"""
 Qing Li, 20171103
-'''
+"""
 import argparse
 import datetime
 from netCDF4 import Dataset, num2date, date2index
+import numpy as np
 
 def main():
     # process the input arguments
-    parser = argparse.ArgumentParser(description='''
-            Read netCDF file and output variables in a GOTM input data file.''')
+    parser = argparse.ArgumentParser(description="""
+            Read a netCDF file and output variables in a text file in the GOTM
+            input file format. Currently support time series of surface fluxes
+            and time series of vertical profiles.""")
     parser.add_argument('-i', '--input', action='store', dest='fname_in',
-            metavar='NCFILENAME', required=True, help='Input netCDF file name')
+            metavar='NCFILENAME', required=True, help='Input netCDF filename')
     parser.add_argument('-v', '--variable', action='store', dest='vname_in',
             metavar='VARNAME', required=True, nargs='+',
-            help='Variable name in netCDF file, could be multiple variables')
+            help='Variable name in netCDF file, support multiple variables')
     parser.add_argument('-o', '--output', action='store', dest='fname_out',
-            metavar='DATFILENAME', required=True, help='output file name')
+            metavar='DATFILENAME', required=True, help='Output filename')
     parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
             metavar='STARTDATE', required=True,
             help='Starting date of input data, in the format of YYYYMMDD')
@@ -27,9 +30,12 @@ def main():
     # parsing arguments and save to args
     args=parser.parse_args()
 
+    # read netCDF file
+    infile = Dataset(args.fname_in, 'r')
+
     # read time dimension
-    nctime = ncread(args.fname_in, 'time', valueonly=False)
-    dttime = convert_nctime(nctime) # time in datetime format
+    nctime = infile.variables['time']
+    dttime = nctime2datetime(nctime) # time in datetime format
 
     # get time range indices
     dt_start = datetime.datetime.strptime(args.date_start, '%Y%m%d')
@@ -37,52 +43,137 @@ def main():
     tidx_start, tidx_end = date2index([dt_start, dt_end], nctime)
     tdat = [dttime[i].isoformat(' ', 'seconds')
             for i in range(tidx_start, tidx_end)] # truncated to seconds
-    nt = len(tdat[:])   # size of output time
+
+    # get depth
+    ddat = infile.variables['depth'][:]
+    if ddat[0]>0.0:
+        ddat = -ddat
+    nd = len(ddat)
 
     # read variables
-    dat = []    # a list of arrays, an array for each variable
+    vdat = []    # a list of arrays, an array for each variable
     for vname in args.vname_in:
-        dat.append(ncread(args.fname_in, vname,
+        vdat.append(ncread(infile, vname,
             tidxstart=tidx_start, tidxend=tidx_end))
 
+    # get missing value
+    mvalue = infile.missing_value
+
     # write to output file
-    with open(args.fname_out, 'w') as fout:
-        for i in range(0, nt):
+    if nd == 1:
+        # write time series
+        write_ts(args.fname_out, tdat, vdat)
+    else:
+        # write profiles
+        write_pfl(args.fname_out, tdat, ddat, vdat, mask=mvalue)
+
+def write_ts(fnout, tdat, vdat):
+    """Write time series.
+
+    :fnout: (str) filename of output file
+    :tdat: (list) array of time
+    :vdat: (list) array of variables
+    :returns: none
+
+    """
+    nt = len(tdat)   # size of time
+    with open(fnout, 'w') as fout:
+        for i in range(nt):
             # time
             out_str = '{}'.format(tdat[i])
             # variables
-            for vdat in dat:
-                out_str = out_str+'  {:6.2f}'.format(vdat[i])
+            for var in vdat:
+                out_str += '  {:6.2f}'.format(var[i])
             # newline
-            out_str = out_str+'\n'
+            out_str += '\n'
             fout.write(out_str)
 
-def convert_nctime(nctime):
-    '''
-    Convert from nctime object to datetime object.
-    '''
+def write_pfl(fnout, tdat, ddat, vdat, mask=None):
+    """Write time series of profile.
+
+    :fnout: (str) filename of output file
+    :tdat: (list) array of time
+    :ddat: (list) array of depth
+    :vdat: (list) array of variables
+    :mask: (float, optional) value in vdat to skip
+    :returns: none
+
+    """
+    nt = len(tdat[:]) # size of time
+    nd = len(ddat[:]) # size of depth
+    nv = len(vdat[:]) # number of variables
+    with open(fnout, 'w') as fout:
+        if mask is None:
+            # no mask is applied
+            for i in range(nt):
+                # time and dimension size
+                out_str = '{}  {}  {}\n'.format(tdat[i], nd, nv+1)
+                fout.write(out_str)
+                for j in range(nd):
+                    # depth
+                    out_str = '{:7.1f}'.format(ddat[j])
+                    # variables
+                    for var in vdat:
+                        out_str += '  {:10.6f}'.format(var[i,j])
+                    # newline
+                    out_str += '\n'
+                    fout.write(out_str)
+        else:
+            # skip the depth if the value of any variable matches the mask value
+            for i in range(nt):
+                fidx = []   # indices of filtered depth
+                for j in range(nd):
+                    if any(var[i,j] == mask for var in vdat):
+                        fidx.append(j)
+                nskip = len(fidx) # number of skipped depth
+                # time and dimension size
+                out_str = '{}  {}  {}\n'.format(tdat[i], nd-nskip, nv+1)
+                fout.write(out_str)
+                for j in range(nd):
+                    if j not in fidx:
+                        # depth
+                        out_str = '{:7.1f}'.format(ddat[j])
+                        # variables
+                        for var in vdat:
+                            out_str += '  {:10.6f}'.format(var[i,j])
+                        # newline
+                        out_str += '\n'
+                        fout.write(out_str)
+
+
+def nctime2datetime(nctime):
+    """Convert from nctime object to datetime object.
+
+    :nctime: (netCDF time object) nctime object
+    :returns: (datetime object) datetime object
+
+    """
     t_units = nctime.units
     try :
         t_cal = nctime.calendar
     except AttributeError : # gregorian if attribute doesn't exist
         t_cal = 'gregorian'
-    return num2date(nctime[:], units = t_units, calendar = t_cal)
+    return num2date(nctime[:], units=t_units, calendar=t_cal)
 
-def ncread(ncfile, *argv, valueonly=True, tidxstart=0, tidxend=-1):
-    '''
-    Read variables from a netCDF file.
-    '''
-    infile = Dataset(ncfile, 'r')
+def ncread(infile, *argv, tidxstart=None, tidxend=None):
+    """Read variables from a netCDF file.
+
+    :infile: (netCDF4 Dateset) input netCDF file
+    :*argv: (str) name of variables to read
+    :tidxstart: (int) start time index
+    :tidxend: (int) end time index
+    :returns: (list) value or netCDF object of requested variable
+
+    """
     nargv = len(argv)
     rdat = []
-    if valueonly:
-        for vname in argv:
-            dat = infile.variables[vname]
-            rdat.append(dat[tidxstart:tidxend,0,0,0])
-    else:
-        for vname in argv:
-            dat = infile.variables[vname]
-            rdat.append(dat)
+    for vname in argv:
+        dat = infile.variables[vname]
+        if tidxstart is not None and tidxend is not None:
+            odat = dat[tidxstart:tidxend,:,:,:]
+        else:
+            odat = dat[:]
+        rdat.append(np.squeeze(odat))
 
     # return a list of arrays if more than one variable are requested
     if len(rdat) == 1:
