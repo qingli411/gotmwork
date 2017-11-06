@@ -11,6 +11,9 @@ nmldir="${workdir}/namelist"
 #                         Prepare input data                          #
 #######################################################################
 datadir="${HOME}/data/OCSPapa/2016"
+lat=50.0
+lon=325.0
+title="OCSPapa"
 
 # momentum flux (N/m2)
 fname_tau="tau50n145w_hr.cdf"
@@ -51,6 +54,18 @@ oname_sprof="sprof.dat"
 # start and end date
 datestart="20160325"
 dateend="20160411"
+datefmt="+%Y-%m-%d 00:00:00"
+echo "date -j -f "%Y%m%d" "${dateend}" "${datefmt}""
+if [ $(uname) == "Linux" ]; then
+    datestart_str="$(date -d "${datestart}" "${datefmt}")"
+    dateend_str="$(date -d "${dateend}" "${datefmt}")"
+elif [ $(uname) == "Darwin" ]; then
+    datestart_str="$(date -j -f "%Y%m%d" "${datestart}" "${datefmt}")"
+    dateend_str="$(date -j -f "%Y%m%d" "${dateend}" "${datefmt}")"
+fi
+echo ${datestart_str}
+echo ${dateend_str}
+exit 1
 
 # nc2dat
 ${tooldir}/nc2dat -i ${datadir}/${fname_tau} -v ${vname_taux} ${vname_tauy} \
@@ -68,13 +83,21 @@ ${tooldir}/nc2dat -i ${datadir}/${fname_sprof} -v ${vname_sprof} \
 #                          Prepare namelist                           #
 #######################################################################
 cp ${nmldir}/*.nml ./
+# airsea.nml
 ${tooldir}/nmlchange -f airsea.nml -e momentumflux_file -v ${oname_tau}
 ${tooldir}/nmlchange -f airsea.nml -e heatflux_file -v ${oname_hf}
 ${tooldir}/nmlchange -f airsea.nml -e swr_file -v ${oname_swr}
 ${tooldir}/nmlchange -f airsea.nml -e sst_file -v ${oname_sst}
 ${tooldir}/nmlchange -f airsea.nml -e sss_file -v ${oname_sss}
+# obs.nml
 ${tooldir}/nmlchange -f obs.nml -e t_prof_file -v ${oname_tprof}
 ${tooldir}/nmlchange -f obs.nml -e s_prof_file -v ${oname_sprof}
+# gotmrun.nml
+${tooldir}/nmlchange -f gotmrun.nml -e title -v ${title}
+${tooldir}/nmlchange -f gotmrun.nml -e latitude -v ${lat}
+${tooldir}/nmlchange -f gotmrun.nml -e longitude -v ${lon}
+${tooldir}/nmlchange -f gotmrun.nml -e start -v "${datestart_str}"
+${tooldir}/nmlchange -f gotmrun.nml -e stop -v "${dateend_str}"
 
 #######################################################################
 #                              Run GOTM                               #

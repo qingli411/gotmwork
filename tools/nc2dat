@@ -46,6 +46,7 @@ def main():
     tidx_start, tidx_end = date2index([dt_start, dt_end], nctime)
     tdat = [dttime[i].isoformat(' ', 'seconds')
             for i in range(tidx_start, tidx_end)] # truncated to seconds
+    # TODO isoformat() takes only one arguments in py35:  <06-11-17, Qing Li> #
 
     # get depth
     ddat = infile.variables['depth'][:]
