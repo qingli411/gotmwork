@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
-'''
+"""
 Qing Li, 20171026
-'''
+"""
 import sys
 import re
 import argparse
 
 def main():
     # process the input arguments
-    parser = argparse.ArgumentParser(description='''
+    parser = argparse.ArgumentParser(description="""
             Change the value of an entry in a namelist. If OUTFILE is not
             set, modifications will be applied to the input namelist file.
             Exit status 0 if ENTRYID is found and different from VALUE.
             Exit status 1 if ENTRYID is found but the same as VALUE.
-            Exit status 2 if ENTRYID is not found in the input namelist.''')
+            Exit status 2 if ENTRYID is not found in the input namelist.""")
     parser.add_argument('-f', '--file', action='store', dest='nml_in', \
             metavar='FILENAME', required=True, help='Input namelist file name')
     parser.add_argument('-e', '--entry', action='store', dest='nml_entry', \
@@ -87,10 +87,14 @@ def main():
             print('{} -> {}'.format(stest, string_nmlvalue(stest)))
 
 def string_nmlvalue(value):
-    '''
+    """
+
     This function process the input namelist value and return the formatted
     string for the namelist.
-    '''
+
+    :value: (str) input namelist value
+
+    """
     re_int = r'^[0-9]+$'
     re_float = r'^[0-9]+\.[0-9]*$'
     re_exp = r'^[0-9]e[+-]*[0-9]+$'

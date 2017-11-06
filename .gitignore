@@ -3,3 +3,5 @@
 *.log
 timestamp
 log.*
+*.dat
+cases/*/*.nml
