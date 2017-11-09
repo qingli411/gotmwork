@@ -27,8 +27,9 @@ vname_swr="SWN_1495"
 oname_swr="swr.dat"
 
 # heat flux except shortwave (W/m2)
-fname_hf=""
-vname_hf=""
+# This file is generated using ocspapa_heatflux.ncl
+fname_hf="heatflux_hr.nc"
+vname_hf="HFLUX"
 oname_hf="heatflux.dat"
 
 # sst (degC)
@@ -55,7 +56,7 @@ oname_sprof="sprof.dat"
 datestart="20160325"
 dateend="20160411"
 datefmt="+%Y-%m-%d 00:00:00"
-echo "date -j -f "%Y%m%d" "${dateend}" "${datefmt}""
+
 if [ $(uname) == "Linux" ]; then
     datestart_str="$(date -d "${datestart}" "${datefmt}")"
     dateend_str="$(date -d "${dateend}" "${datefmt}")"
@@ -63,15 +64,14 @@ elif [ $(uname) == "Darwin" ]; then
     datestart_str="$(date -j -f "%Y%m%d" "${datestart}" "${datefmt}")"
     dateend_str="$(date -j -f "%Y%m%d" "${dateend}" "${datefmt}")"
 fi
-echo ${datestart_str}
-echo ${dateend_str}
-exit 1
 
 # nc2dat
 ${tooldir}/nc2dat -i ${datadir}/${fname_tau} -v ${vname_taux} ${vname_tauy} \
     -o ${oname_tau} -ds ${datestart} -de ${dateend}
 ${tooldir}/nc2dat -i ${datadir}/${fname_swr} -v ${vname_swr} \
     -o ${oname_swr} -ds ${datestart} -de ${dateend}
+${tooldir}/nc2dat -i ${datadir}/${fname_hf} -v ${vname_hf} \
+    -o ${oname_hf} -ds ${datestart} -de ${dateend}
 ${tooldir}/nc2dat -i ${datadir}/${fname_sst} -v ${vname_sst} \
     -o ${oname_sst} -ds ${datestart} -de ${dateend}
 ${tooldir}/nc2dat -i ${datadir}/${fname_tprof} -v ${vname_tprof} \
