@@ -26,7 +26,7 @@ def main():
     parser.add_argument('-de', '--date_end', action='store', dest='date_end',
             metavar='ENDDATE', required=True,
             help='Ending date of input data, in the format of YYYYMMDD')
-    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
     # parsing arguments and save to args
     args=parser.parse_args()
 
@@ -45,9 +45,8 @@ def main():
     dt_end = datetime.datetime.strptime(args.date_end, '%Y%m%d')
     tidx_start, tidx_end = date2index([dt_start, dt_end], nctime)
     tdat = [dttime[i].isoformat(' ', 'seconds')
-            for i in range(tidx_start, tidx_end)] # truncated to seconds
+            for i in range(tidx_start, tidx_end+1)] # truncated to seconds
     # TODO isoformat() takes only one arguments in py35:  <06-11-17, Qing Li> #
-
     # get depth
     ddat = infile.variables['depth'][:]
     if ddat[0]>0.0:
@@ -58,7 +57,7 @@ def main():
     vdat = []    # a list of arrays, an array for each variable
     for vname in args.vname_in:
         vdat.append(ncread(infile, vname,
-            tidxstart=tidx_start, tidxend=tidx_end))
+            tidxstart=tidx_start, tidxend=tidx_end+1))
 
     # get missing value
     mvalue = infile.missing_value

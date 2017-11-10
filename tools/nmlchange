@@ -11,22 +11,37 @@ def main():
     parser = argparse.ArgumentParser(description="""
             Change the value of an entry in a namelist. If OUTFILE is not
             set, modifications will be applied to the input namelist file.
-            Exit status 0 if ENTRYID is found and different from VALUE.
-            Exit status 1 if ENTRYID is found but the same as VALUE.
-            Exit status 2 if ENTRYID is not found in the input namelist.""")
-    parser.add_argument('-f', '--file', action='store', dest='nml_in', \
-            metavar='FILENAME', required=True, help='Input namelist file name')
-    parser.add_argument('-e', '--entry', action='store', dest='nml_entry', \
-            metavar='ENTRYID', required=True, help='Namelist entry ID')
-    parser.add_argument('-v', '--value', action='store', dest='nml_value', \
-            metavar='VALUE', required=True, help='New value for entry ID')
-    parser.add_argument('-o','--output', action='store', dest='nml_out', \
-            metavar='OUTFILE', required=False, help='Output namelist file name')
-    parser.add_argument('-t', '--test', action='store_true', dest='nml_test', \
-            required=False, help='Test parsing entry value')
-    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+            FILENAME, ENTRYID and VALUE are required.""")
+    parser.add_argument('-f', '--file', action='store', dest='nml_in',
+            metavar='FILENAME', help='Input namelist file name')
+    parser.add_argument('-e', '--entry', action='store', dest='nml_entry',
+            metavar='ENTRYID', help='Namelist entry ID')
+    parser.add_argument('-v', '--value', action='store', dest='nml_value',
+            metavar='VALUE', help='New value for entry ID')
+    parser.add_argument('-o','--output', action='store', dest='nml_out',
+            metavar='OUTFILE', help='Output namelist file name')
+    parser.add_argument('-q', '--quiet', action='store_true', dest='nml_quiet',
+            help='Suppress all messages, only returns exit code')
+    parser.add_argument('-t', '--test', action='store_true', dest='nml_test',
+            help='Test parsing entry value')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
     # parsing arguments and save to args
-    args=parser.parse_args()
+    args = parser.parse_args()
+
+    # test string_nmlvalue
+    if args.nml_test:
+        print('Testing the funtion of parsing entry value')
+        alltest = ['2', '2.', '2.45', '2e3', '2e-10', 'T', 'false', '.true.',
+                   'False', 'Test', 'Flow', '2001-03-25 00:00:00', './']
+        for stest in alltest:
+            print('{} -> {}'.format(stest, string_nmlvalue(stest)))
+        sys.exit(0)
+    else:
+        if args.nml_in is None or args.nml_entry is None or args.nml_value is None:
+            # print help and exit
+            if not args.nml_quiet:
+                parser.print_help()
+            sys.exit(2)
 
     # process new value for the entry
     new_nmlvalue = string_nmlvalue(args.nml_value)
@@ -64,27 +79,21 @@ def main():
                 nmlout = args.nml_out
             else:
                 nmlout = args.nml_in
-            print('Changing the entry \'{}\' in namelist \'{}\' to {}.'\
+            if not args.nml_quiet:
+                print('Changing the entry \'{}\' in namelist \'{}\' to {}.'
                     .format(args.nml_entry, args.nml_in, new_nmlvalue))
             with open(nmlout, 'w') as outfile:
                 outfile.write(rec_info)
-            sys.exit(0)
         else:
-            print('Entry \'{}\' in namelist \'{}\' is already updated.'\
+            if not args.nml_quiet:
+                print('Entry \'{}\' in namelist \'{}\' is already updated.'
                     .format(args.nml_entry, args.nml_in))
-            sys.exit(1)
+        sys.exit(0)
     else:
-        print('Entry \'{}\' not found in namelist \'{}\'.'\
+        if not args.nml_quiet:
+            print('Entry \'{}\' not found in namelist \'{}\'.'
                 .format(args.nml_entry, args.nml_in))
-        sys.exit(2)
-
-    # test string_nmlvalue
-    if args.nml_test:
-        print('Testing the funtion of parsing entry value')
-        alltest = ['2', '2.', '2.45', '2e3', '2e-10', 'T', 'false', '.ture.', \
-                   'False', 'Test', 'Flow', '2001-03-25 00:00:00', './']
-        for stest in alltest:
-            print('{} -> {}'.format(stest, string_nmlvalue(stest)))
+        sys.exit(1)
 
 def string_nmlvalue(value):
     """
@@ -98,10 +107,9 @@ def string_nmlvalue(value):
     re_int = r'^[0-9]+$'
     re_float = r'^[0-9]+\.[0-9]*$'
     re_exp = r'^[0-9]e[+-]*[0-9]+$'
-    re_false = r'^[Ff]alse$|^\.false\.&'
+    re_false = r'^[Ff]alse$|^\.false\.$'
     re_true = r'^[Tt]rue$|^\.true\.$'
     bool_str = {True: '.true.', False: '.false.'}
-
     if re.search(re_int, value):
         return value
     elif re.search(re_float, value):

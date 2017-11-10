@@ -3,21 +3,30 @@
 Qing Li, 20171026
 '''
 import sys
-import os
 import re
 import argparse
 
 def main():
     # process the input arguments
     parser = argparse.ArgumentParser(description='''
-            Query the value of an entry in a namelist.''')
-    parser.add_argument('-f', '--file', action='store', dest='nml_in', \
-            metavar='FILENAME', required=True, help='Input namelist file name')
-    parser.add_argument('-e', '--entry', action='store', dest='nml_entry', \
-            metavar='ENTRYID', required=True, help='Namelist entry ID')
-    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+            Query the value of an entry in a namelists. FILENAME and
+            ENTRYID are required. Exit 0 if found, 1 if not found and
+            2 if error in input.''')
+    parser.add_argument('-f', '--file', action='store', dest='nml_in',
+            metavar='FILENAME', help='Input namelist file name')
+    parser.add_argument('-e', '--entry', action='store', dest='nml_entry',
+            metavar='ENTRYID', help='Namelist entry ID')
+    parser.add_argument('-q', '--quiet', action='store_true', dest='nml_quiet',
+            help='Suppress messages, only returns exit code')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
     # parsing arguments and save to args
     args=parser.parse_args()
+
+    if args.nml_in is None or args.nml_entry is None:
+        # print help and exit
+        if not args.nml_quiet:
+            parser.print_help()
+        sys.exit(2)
 
     # pattern of the entry
     re_var = args.nml_entry.strip()+' ='
@@ -29,15 +38,19 @@ def main():
         for line in infile:
             # skip if commented out
             if not re.search(re_cmt, line):
-                # modify the value if match the entry ID
+                # save to outstr and break if match the entry ID
                 if re.search(re_var, line):
-                    [head, str_val] = line.split(' = ')
                     outstr = line
                     break
     if outstr:
-        print(outstr.strip(',\n'))
+        if not args.nml_quiet:
+            print(outstr.strip(',\n'))
+        sys.exit(0)
     else:
-        print('Entry \'{}\' not found.'.format(args.nml_entry))
+        if not args.nml_quiet:
+            print('Entry \'{}\' not found in \'{}\'.'
+                    .format(args.nml_entry, args.nml_in))
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

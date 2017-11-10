@@ -12,8 +12,13 @@ nmldir="${workdir}/namelist"
 #######################################################################
 datadir="${HOME}/data/OCSPapa/2016"
 lat=50.0
-lon=325.0
+lon=215.0
+maxdepth=200.0
 title="OCSPapa"
+outname="ocspapa"
+# start and end date
+datestart="20160325"
+dateend="20160411"
 
 # momentum flux (N/m2)
 fname_tau="tau50n145w_hr.cdf"
@@ -52,11 +57,8 @@ fname_sprof="s50n145w_hr.cdf"
 vname_sprof="S_41"
 oname_sprof="sprof.dat"
 
-# start and end date
-datestart="20160325"
-dateend="20160411"
+# set date
 datefmt="+%Y-%m-%d 00:00:00"
-
 if [ $(uname) == "Linux" ]; then
     datestart_str="$(date -d "${datestart}" "${datefmt}")"
     dateend_str="$(date -d "${dateend}" "${datefmt}")"
@@ -74,6 +76,8 @@ ${tooldir}/nc2dat -i ${datadir}/${fname_hf} -v ${vname_hf} \
     -o ${oname_hf} -ds ${datestart} -de ${dateend}
 ${tooldir}/nc2dat -i ${datadir}/${fname_sst} -v ${vname_sst} \
     -o ${oname_sst} -ds ${datestart} -de ${dateend}
+${tooldir}/nc2dat -i ${datadir}/${fname_sss} -v ${vname_sss} \
+    -o ${oname_sss} -ds ${datestart} -de ${dateend}
 ${tooldir}/nc2dat -i ${datadir}/${fname_tprof} -v ${vname_tprof} \
     -o ${oname_tprof} -ds ${datestart} -de ${dateend}
 ${tooldir}/nc2dat -i ${datadir}/${fname_sprof} -v ${vname_sprof} \
@@ -84,22 +88,33 @@ ${tooldir}/nc2dat -i ${datadir}/${fname_sprof} -v ${vname_sprof} \
 #######################################################################
 cp ${nmldir}/*.nml ./
 # airsea.nml
+${tooldir}/nmlchange -f airsea.nml -e calc_fluxes -v .false.
+${tooldir}/nmlchange -f airsea.nml -e momentum_method -v 2
 ${tooldir}/nmlchange -f airsea.nml -e momentumflux_file -v ${oname_tau}
+${tooldir}/nmlchange -f airsea.nml -e heat_method -v 2
 ${tooldir}/nmlchange -f airsea.nml -e heatflux_file -v ${oname_hf}
+${tooldir}/nmlchange -f airsea.nml -e swr_method -v 2
 ${tooldir}/nmlchange -f airsea.nml -e swr_file -v ${oname_swr}
+${tooldir}/nmlchange -f airsea.nml -e sst_method -v 2
 ${tooldir}/nmlchange -f airsea.nml -e sst_file -v ${oname_sst}
+${tooldir}/nmlchange -f airsea.nml -e sss_method -v 2
 ${tooldir}/nmlchange -f airsea.nml -e sss_file -v ${oname_sss}
 # obs.nml
+${tooldir}/nmlchange -f obs.nml -e t_prof_method -v 2
 ${tooldir}/nmlchange -f obs.nml -e t_prof_file -v ${oname_tprof}
+${tooldir}/nmlchange -f obs.nml -e s_prof_method -v 2
 ${tooldir}/nmlchange -f obs.nml -e s_prof_file -v ${oname_sprof}
 # gotmrun.nml
 ${tooldir}/nmlchange -f gotmrun.nml -e title -v ${title}
 ${tooldir}/nmlchange -f gotmrun.nml -e latitude -v ${lat}
 ${tooldir}/nmlchange -f gotmrun.nml -e longitude -v ${lon}
+${tooldir}/nmlchange -f gotmrun.nml -e depth -v ${maxdepth}
 ${tooldir}/nmlchange -f gotmrun.nml -e start -v "${datestart_str}"
 ${tooldir}/nmlchange -f gotmrun.nml -e stop -v "${dateend_str}"
+${tooldir}/nmlchange -f gotmrun.nml -e out_fn -v ${outname}
+${tooldir}/nmlchange -f gotmrun.nml -e name -v ${outname}
 
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-
+gotm 2> log.${outname}
