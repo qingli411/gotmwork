@@ -1,0 +1,23 @@
+!-------------------------------------------------------------------------------
+! KPP namelist
+!-------------------------------------------------------------------------------
+! kpp_sbl      [bool]
+!                compute surface boundary layer mixing
+! kpp_bbl      [bool]
+!                compute bottom boundary layer mixing
+! kpp_interior [bool]
+!                compute internal mixing
+! clip_mld     [bool]
+!                use clipping of MLD at Ekman and Monin-Oboukhov scale
+! Ric          [float]
+!                critical bulk Richardson number
+!-------------------------------------------------------------------------------
+
+&kpp
+   kpp_sbl = .true.,
+   kpp_bbl = .true.,
+   kpp_interior = .true.,
+   clip_mld = .false.,
+   Ric = 0.3,
+/
+

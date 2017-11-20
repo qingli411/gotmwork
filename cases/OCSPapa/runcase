@@ -113,6 +113,9 @@ ${tooldir}/nmlchange -f gotmrun.nml -e start -v "${datestart_str}"
 ${tooldir}/nmlchange -f gotmrun.nml -e stop -v "${dateend_str}"
 ${tooldir}/nmlchange -f gotmrun.nml -e out_fn -v ${outname}
 ${tooldir}/nmlchange -f gotmrun.nml -e name -v ${outname}
+# gotmturb.nml
+${tooldir}/nmlchange -f gotmturb.nml -e turb_method -v 99
+
 
 #######################################################################
 #                              Run GOTM                               #
