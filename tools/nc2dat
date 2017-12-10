@@ -6,6 +6,7 @@ import argparse
 import datetime
 from netCDF4 import Dataset, num2date, date2index
 import numpy as np
+import sys
 
 def main():
     # process the input arguments
@@ -35,9 +36,18 @@ def main():
 
     # read netCDF file
     infile = Dataset(args.fname_in, 'r')
+    varlist = infile.variables.keys()
+    attlist = infile.ncattrs()
 
     # read time dimension
-    nctime = infile.variables['time']
+    if 'time' in varlist:
+        nctime = infile.variables['time']
+    elif 'TIME' in varlist:
+        nctime = infile.variables['TIME']
+    else:
+        print('Time dimension is required and should have the name \"time\" or \"TIME\"')
+        sys.exit(1)
+
     dttime = nctime2datetime(nctime) # time in datetime format
 
     # get time range indices
@@ -48,10 +58,26 @@ def main():
             for i in range(tidx_start, tidx_end+1)] # truncated to seconds
     # TODO isoformat() takes only one arguments in py35:  <06-11-17, Qing Li> #
     # get depth
-    ddat = infile.variables['depth'][:]
+    if 'depth' in varlist:
+        ddat = infile.variables['depth'][:]
+    elif 'DEPTH' in varlist:
+        ddat = infile.variables['DEPTH'][:]
+    else:
+        ddat = 0.0
+
     if ddat[0]>0.0:
         ddat = -ddat
     nd = len(ddat)
+
+    # get global missing value
+    if 'missing_value' in attlist:
+        gmvalue = infile.missing_value
+    elif '_FillValue' in attlist:
+        gmvalue = infile._FillValue
+    else:
+        # turn off auto mask, handled in write_pfl()
+        infile.set_auto_mask(False)
+        gmvalue = np.nan
 
     # read variables
     vdat = []    # a list of arrays, an array for each variable
@@ -59,16 +85,13 @@ def main():
         vdat.append(ncread(infile, vname,
             tidxstart=tidx_start, tidxend=tidx_end+1))
 
-    # get missing value
-    mvalue = infile.missing_value
-
     # write to output file
     if nd == 1:
         # write time series
         write_ts(args.fname_out, tdat, vdat)
     else:
         # write profiles
-        write_pfl(args.fname_out, tdat, ddat, vdat, mask=mvalue)
+        write_pfl(args.fname_out, tdat, ddat, vdat, mask=gmvalue)
 
 def write_ts(fnout, tdat, vdat):
     """Write time series.
@@ -123,10 +146,11 @@ def write_pfl(fnout, tdat, ddat, vdat, mask=None):
                     fout.write(out_str)
         else:
             # skip the depth if the value of any variable matches the mask value
+            # or is NaN
             for i in range(nt):
                 fidx = []   # indices of filtered depth
                 for j in range(nd):
-                    if any(var[i,j] == mask for var in vdat):
+                    if any(var[i,j] == mask or np.isnan(var[i,j]) for var in vdat):
                         fidx.append(j)
                 nskip = len(fidx) # number of skipped depth
                 # time and dimension size
@@ -152,7 +176,7 @@ def nctime2datetime(nctime):
 
     """
     t_units = nctime.units
-    try :
+    try:
         t_cal = nctime.calendar
     except AttributeError : # gregorian if attribute doesn't exist
         t_cal = 'gregorian'
@@ -172,10 +196,19 @@ def ncread(infile, *argv, tidxstart=None, tidxend=None):
     rdat = []
     for vname in argv:
         dat = infile.variables[vname]
+        nsize = len(dat.shape)
         if tidxstart is not None and tidxend is not None:
-            odat = dat[tidxstart:tidxend,:,:,:]
+            if nsize == 4:
+                odat = dat[tidxstart:tidxend,:,:,:]
+            elif nsize == 2:
+                odat = dat[tidxstart:tidxend,:]
+            else:
+                print('The variable to read has {} dimension, not supported'
+                        .format(nsize))
+                sys.exit(1)
         else:
             odat = dat[:]
+        # append to var list
         rdat.append(np.squeeze(odat))
 
     # return a list of arrays if more than one variable are requested
