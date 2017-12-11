@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data name="OCSPapa" lat="50.0" lon="215.0" maxdepth="200.0">
+    <var name="momentum">
+        <longname>Momentum flux (N/m2)</longname>
+        <filename>tau50n145w_hr.cdf</filename>
+        <vartype>vector</vartype>
+        <varnamex>TX_442</varnamex>
+        <varnamey>TY_443</varnamey>
+        <outname>tau.dat</outname>
+    </var>
+    <var name="heat">
+        <longname>Heat flux excluding shortwave radiation (W/m2)</longname>
+        <filename>heatflux_hr.nc</filename>
+        <vartype>scalar</vartype>
+        <varname>HFLUX</varname>
+        <outname>heatflux.dat</outname>
+    </var>
+    <var name="swr">
+        <longname>Shortwave radiation (W/m2)</longname>
+        <filename>swnet50n145w_hr.cdf</filename>
+        <vartype>scalar</vartype>
+        <varname>SWN_1495</varname>
+        <outname>swr.dat</outname>
+    </var>
+    <var name="sst">
+        <longname>Sea surface temperature (degC)</longname>
+        <filename>sst50n145w_hr.cdf</filename>
+        <vartype>scalar</vartype>
+        <varname>T_25</varname>
+        <outname>sst.dat</outname>
+    </var>
+    <var name="sss">
+        <longname>Sea surface salinity (psu)</longname>
+        <filename>sss50n145w_hr.cdf</filename>
+        <vartype>scalar</vartype>
+        <varname>S_41</varname>
+        <outname>sss.dat</outname>
+    </var>
+    <var name="t_prof">
+        <longname>Temperature profile (degC)</longname>
+        <filename>t50n145w_hr.cdf</filename>
+        <vartype>scalar</vartype>
+        <varname>T_20</varname>
+        <outname>tprof.dat</outname>
+    </var>
+    <var name="s_prof">
+        <longname>Salinity profile (psu)</longname>
+        <filename>s50n145w_hr.cdf</filename>
+        <vartype>scalar</vartype>
+        <varname>S_41</varname>
+        <outname>sprof.dat</outname>
+    </var>
+</data>
+

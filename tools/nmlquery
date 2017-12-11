@@ -48,8 +48,8 @@ def main():
         sys.exit(0)
     else:
         if not args.nml_quiet:
-            print('Entry \'{}\' not found in \'{}\'.'
-                    .format(args.nml_entry, args.nml_in))
+            print('Namelist \'{}\': \'{}\' not found.'
+                    .format(args.nml_in, args.nml_entry))
         sys.exit(1)
 
 if __name__ == "__main__":

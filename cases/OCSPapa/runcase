@@ -3,121 +3,42 @@
 #
 # Qing Li, 20171105
 
+#######################################################################
+#                              Set path                               #
+#######################################################################
+
 workdir="${HOME}/models/gotm/gotmwork"
 tooldir="${workdir}/tools"
 nmldir="${workdir}/namelist"
+xmldir="${workdir}/data"
 cmd_nc2dat="${tooldir}/nc2dat"
 cmd_nmlchange="${tooldir}/nmlchange"
+cmd_casepreproc="${tooldir}/casepreproc"
 
 #######################################################################
-#                         Prepare input data                          #
+#                           Set parameters                            #
 #######################################################################
+
 datadir="${HOME}/data/OCS/Papa/2016"
-lat=50.0
-lon=215.0
-maxdepth=200.0
 title="OCSPapa"
 outname="ocspapa"
 # start and end date
 datestart="20160325"
 dateend="20160411"
 
-# momentum flux (N/m2)
-fname_tau="tau50n145w_hr.cdf"
-vname_taux="TX_442"
-vname_tauy="TY_443"
-oname_tau="tau.dat"
-
-# shortwave radiation (W/m2)
-fname_swr="swnet50n145w_hr.cdf"
-vname_swr="SWN_1495"
-oname_swr="swr.dat"
-
-# heat flux except shortwave (W/m2)
-# This file is generated using ocspapa_heatflux.ncl
-fname_hf="heatflux_hr.nc"
-vname_hf="HFLUX"
-oname_hf="heatflux.dat"
-
-# sst (degC)
-fname_sst="sst50n145w_hr.cdf"
-vname_sst="T_25"
-oname_sst="sst.dat"
-
-# sss (psu)
-fname_sss="sss50n145w_hr.cdf"
-vname_sss="S_41"
-oname_sss="sss.dat"
-
-# temperature profile (degC)
-fname_tprof="t50n145w_hr.cdf"
-vname_tprof="T_20"
-oname_tprof="tprof.dat"
-
-# salinity profile (psu)
-fname_sprof="s50n145w_hr.cdf"
-vname_sprof="S_41"
-oname_sprof="sprof.dat"
-
-# set date
-datefmt="+%Y-%m-%d 00:00:00"
-if [ $(uname) == "Linux" ]; then
-    datestart_str="$(date -d "${datestart}" "${datefmt}")"
-    dateend_str="$(date -d "${dateend}" "${datefmt}")"
-elif [ $(uname) == "Darwin" ]; then
-    datestart_str="$(date -j -f "%Y%m%d" "${datestart}" "${datefmt}")"
-    dateend_str="$(date -j -f "%Y%m%d" "${dateend}" "${datefmt}")"
-fi
-
-# nc2dat
-${cmd_nc2dat} -i ${datadir}/${fname_tau} -v ${vname_taux} ${vname_tauy} \
-    -o ${oname_tau} -ds ${datestart} -de ${dateend}
-${cmd_nc2dat} -i ${datadir}/${fname_swr} -v ${vname_swr} \
-    -o ${oname_swr} -ds ${datestart} -de ${dateend}
-${cmd_nc2dat} -i ${datadir}/${fname_hf} -v ${vname_hf} \
-    -o ${oname_hf} -ds ${datestart} -de ${dateend}
-${cmd_nc2dat} -i ${datadir}/${fname_sst} -v ${vname_sst} \
-    -o ${oname_sst} -ds ${datestart} -de ${dateend}
-${cmd_nc2dat} -i ${datadir}/${fname_sss} -v ${vname_sss} \
-    -o ${oname_sss} -ds ${datestart} -de ${dateend}
-${cmd_nc2dat} -i ${datadir}/${fname_tprof} -v ${vname_tprof} \
-    -o ${oname_tprof} -ds ${datestart} -de ${dateend}
-${cmd_nc2dat} -i ${datadir}/${fname_sprof} -v ${vname_sprof} \
-    -o ${oname_sprof} -ds ${datestart} -de ${dateend}
-
 #######################################################################
-#                          Prepare namelist                           #
+#                        Preprocess input data                        #
 #######################################################################
 cp ${nmldir}/*.nml ./
-# airsea.nml
-${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .false.
-${cmd_nmlchange} -f airsea.nml -e momentum_method -v 2
-${cmd_nmlchange} -f airsea.nml -e momentumflux_file -v ${oname_tau}
-${cmd_nmlchange} -f airsea.nml -e heat_method -v 2
-${cmd_nmlchange} -f airsea.nml -e heatflux_file -v ${oname_hf}
-${cmd_nmlchange} -f airsea.nml -e swr_method -v 2
-${cmd_nmlchange} -f airsea.nml -e swr_file -v ${oname_swr}
-${cmd_nmlchange} -f airsea.nml -e sst_method -v 2
-${cmd_nmlchange} -f airsea.nml -e sst_file -v ${oname_sst}
-${cmd_nmlchange} -f airsea.nml -e sss_method -v 2
-${cmd_nmlchange} -f airsea.nml -e sss_file -v ${oname_sss}
-# obs.nml
-${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
-${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${oname_tprof}
-${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
-${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${oname_sprof}
-# gotmrun.nml
-${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
-${cmd_nmlchange} -f gotmrun.nml -e latitude -v ${lat}
-${cmd_nmlchange} -f gotmrun.nml -e longitude -v ${lon}
-${cmd_nmlchange} -f gotmrun.nml -e depth -v ${maxdepth}
-${cmd_nmlchange} -f gotmrun.nml -e start -v "${datestart_str}"
-${cmd_nmlchange} -f gotmrun.nml -e stop -v "${dateend_str}"
-${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
-${cmd_nmlchange} -f gotmrun.nml -e name -v ${outname}
-# gotmturb.nml
-${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+# read data.xml
+xmlfile=${title}.xml
+cp ${xmldir}/${xmlfile} ./
+${cmd_casepreproc} -i ${xmlfile} -root ${workdir} -data ${datadir} \
+    -ds ${datestart} -de ${dateend}
 
+${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
 
 #######################################################################
 #                              Run GOTM                               #

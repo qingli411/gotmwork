@@ -2,11 +2,11 @@
 """
 Qing Li, 20171103
 """
+import sys
 import argparse
 import datetime
 from netCDF4 import Dataset, num2date, date2index
 import numpy as np
-import sys
 
 def main():
     # process the input arguments
@@ -32,7 +32,7 @@ def main():
     args=parser.parse_args()
 
     # print out some message
-    print('Converting {} to {}...\n'.format(args.fname_in, args.fname_out))
+    print('Converting {} to {}...'.format(args.fname_in, args.fname_out))
 
     # read netCDF file
     infile = Dataset(args.fname_in, 'r')

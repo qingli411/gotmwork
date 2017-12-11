@@ -46,7 +46,7 @@ def main():
 
     # check if namelist exists
     if not os.path.isfile(args.nml_in):
-        print('Input namelist \'{}\' not exist. Stop.'.format(args.nml_in))
+        print('Namelist \'{}\' not exist. Stop.'.format(args.nml_in))
         sys.exit(1)
 
     # process new value for the entry
@@ -86,19 +86,19 @@ def main():
             else:
                 nmlout = args.nml_in
             if not args.nml_quiet:
-                print('Changing the entry \'{}\' in namelist \'{}\' to {}.'
-                    .format(args.nml_entry, args.nml_in, new_nmlvalue))
+                print('Namelist \'{}\': \'{}\' -> {}.'
+                    .format(args.nml_in, args.nml_entry, new_nmlvalue))
             with open(nmlout, 'w') as outfile:
                 outfile.write(rec_info)
         else:
             if not args.nml_quiet:
-                print('Entry \'{}\' in namelist \'{}\' is already updated.'
-                    .format(args.nml_entry, args.nml_in))
+                print('Namelist \'{}\': \'{}\' updated.'
+                    .format(args.nml_in, args.nml_entry))
         sys.exit(0)
     else:
         if not args.nml_quiet:
-            print('Entry \'{}\' not found in namelist \'{}\'.'
-                .format(args.nml_entry, args.nml_in))
+            print('Namelist \'{}\': \'{}\' not found.'
+                .format(args.nml_in, args.nml_entry))
         sys.exit(1)
 
 def string_nmlvalue(value):
