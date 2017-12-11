@@ -1,0 +1,122 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Set up and run GOTM
+#
+#  Qing Li, 20171210
+
+import os
+import sys
+import datetime
+import argparse
+import xml.etree.ElementTree as et
+import subprocess as sp
+
+def main():
+
+    # process the input arguments
+    parser = argparse.ArgumentParser(description="""
+            Preprocess the input data for GOTM and modify the namelist
+            accordingly.""")
+    parser.add_argument('-i', '--input', action='store', dest='fname_in',
+            metavar='XMLFILENAME', required=True, help='Input XML filename')
+    parser.add_argument('-root', '--root', action='store', dest='rootdir',
+            metavar='ROOTDIR', required=True,
+            help='Root directory of GOTMWORK')
+    parser.add_argument('-data', '--data', action='store', dest='datadir',
+            metavar='DATADIR', required=True, help='Input data directory')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE', required=True,
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE', required=True,
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args=parser.parse_args()
+
+    # set paths
+    datadir = args.datadir
+    datestart = args.date_start
+    dateend = args.date_end
+    xmlfile = args.fname_in
+
+    # check if XML file exists
+    if not os.path.isfile(xmlfile):
+        print('Input XML file \'{}\' not exist. Stop.'.format(xmlfile))
+        sys.exit(1)
+
+    # set tools
+    tooldir = args.rootdir+'/tools'
+    nc2dat  = tooldir+'/nc2dat'
+    nmlchange = tooldir+'/nmlchange'
+
+    # read in data.xml
+    tree = et.parse(xmlfile)
+    root = tree.getroot()
+
+    # get data info
+    dname = root.attrib['name']
+    lat = root.attrib['lat']
+    lon = root.attrib['lon']
+    maxdepth = root.attrib['maxdepth']
+    dstart_str = datetime.datetime.strptime(datestart, '%Y%m%d').strftime('%Y-%m-%d 00:00:00')
+    dend_str = datetime.datetime.strptime(dateend, '%Y%m%d').strftime('%Y-%m-%d 00:00:00')
+
+    # set 'gotmrun.nml'
+    nml = 'gotmrun.nml'
+    sp.run([nmlchange, '-f', nml, '-e', 'name', '-v', dname])
+    sp.run([nmlchange, '-f', nml, '-e', 'latitude', '-v', lat])
+    sp.run([nmlchange, '-f', nml, '-e', 'longitude', '-v', lon])
+    sp.run([nmlchange, '-f', nml, '-e', 'depth', '-v', maxdepth])
+    sp.run([nmlchange, '-f', nml, '-e', 'start', '-v', dstart_str])
+    sp.run([nmlchange, '-f', nml, '-e', 'stop', '-v', dend_str])
+
+    # set 'airsea.nml'
+    sp.run([nmlchange, '-f', 'airsea.nml', '-e', 'calc_fluxes', '-v', '.false.'])
+
+    # observation profiles in 'obs.nml'
+    obsvarlist = ['t_prof', 's_prof', 'ext_press', 'int_press', 'w_adv', 'zeta',
+                  'wave', 'vel_prof', 'e_prof', 'o2_prof']
+
+    # loop over all variables
+    for child in root:
+        # prepare input data
+        var   = child.attrib['name']
+        fname = child.find('filename').text
+        vtype = child.find('vartype').text
+        oname = child.find('outname').text
+        if vtype == 'scalar':
+            # scalar variable
+            vname = child.find('varname').text
+            # nc2dat
+            sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vname, '-o', oname,
+                    '-ds', datestart, '-de', dateend])
+        elif vtype == 'vector':
+            # vector variable
+            vnamex = child.find('varnamex').text
+            vnamey = child.find('varnamey').text
+            # nc2dat
+            sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey, '-o', oname,
+                    '-ds', datestart, '-de', dateend])
+        #
+        # change namelist accordingly
+        # choose namelist
+        if var in obsvarlist:
+            nml = 'obs.nml'
+        else:
+            nml = 'airsea.nml'
+        #
+        # set entry name
+        nml_method = var+'_method'
+        if var in ['momentum', 'heat']:
+            # special name for momentum flux and heat flux
+            nml_file = var+'flux_file'
+        else:
+            nml_file = var+'_file'
+        #
+        # change values in namelist
+        sp.run([nmlchange, '-f', nml, '-e', nml_method, '-v', '2'])
+        sp.run([nmlchange, '-f', nml, '-e', nml_file, '-v', oname])
+
+if __name__ == "__main__":
+    main()

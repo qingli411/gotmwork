@@ -5,6 +5,7 @@ Qing Li, 20171026
 import sys
 import re
 import argparse
+import os
 
 def main():
     # process the input arguments
@@ -42,6 +43,11 @@ def main():
             if not args.nml_quiet:
                 parser.print_help()
             sys.exit(2)
+
+    # check if namelist exists
+    if not os.path.isfile(args.nml_in):
+        print('Input namelist \'{}\' not exist. Stop.'.format(args.nml_in))
+        sys.exit(1)
 
     # process new value for the entry
     new_nmlvalue = string_nmlvalue(args.nml_value)
