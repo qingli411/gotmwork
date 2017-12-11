@@ -65,9 +65,8 @@ def main():
     else:
         ddat = 0.0
 
-    if ddat[0]>0.0:
-        ddat = -ddat
-    nd = len(ddat)
+    nd = ddat.size
+    ddat = -abs(ddat)
 
     # get global missing value
     if 'missing_value' in attlist:
@@ -196,15 +195,17 @@ def ncread(infile, *argv, tidxstart=None, tidxend=None):
     rdat = []
     for vname in argv:
         dat = infile.variables[vname]
-        nsize = len(dat.shape)
+        nsize = dat.ndim
         if tidxstart is not None and tidxend is not None:
             if nsize == 4:
                 odat = dat[tidxstart:tidxend,:,:,:]
             elif nsize == 2:
                 odat = dat[tidxstart:tidxend,:]
+            elif nsize == 1:
+                odat = dat[tidxstart:tidxend]
             else:
-                print('The variable to read has {} dimension, not supported'
-                        .format(nsize))
+                print('The variable {} has {} dimension, not supported'
+                        .format(vname, nsize))
                 sys.exit(1)
         else:
             odat = dat[:]
