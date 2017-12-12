@@ -5,12 +5,12 @@
 ; Qing Li, 20171108
 
 begin
-    ; dataDir = "/Users/qingli/data/OCS/Papa/2016/"
-    ; loc_str = "50n145w"
+    dataDir = "/Users/qingli/data/OCS/Papa/2016/"
+    loc_str = "50n145w"
     ; dataDir = "/Users/qingli/data/OCS/KEO/2016/"
     ; loc_str = "32n145e"
-    dataDir = "/Users/qingli/data/OCS/ARC/2016/"
-    loc_str = "39s30e"
+    ; dataDir = "/Users/qingli/data/OCS/ARC/2016/"
+    ; loc_str = "39s30e"
     qlatfile = "qlat"+loc_str+"_hr.cdf"
     qsenfile = "qsen"+loc_str+"_hr.cdf"
     lwnetfile = "lwnet"+loc_str+"_hr.cdf"
@@ -25,8 +25,15 @@ begin
     qsen = f_qsen->QS_138
     f_lwnet = addfile(dataDir+lwnetfile, "r")
     lwnet = f_lwnet->LWN_1136
+    missingvalue = f_qlat@missing_value
 
     HFLUX = -lwnet-qsen-qlat
+    lwnet@_FillValue = missingvalue
+    qsen@_FillValue = missingvalue
+    qlat@_FillValue = missingvalue
+    HFLUX = where(ismissing(lwnet), missingvalue, HFLUX)
+    HFLUX = where(ismissing(qsen),  missingvalue, HFLUX)
+    HFLUX = where(ismissing(qlat),  missingvalue, HFLUX)
     HFLUX!0 = "time"
     HFLUX&time = time
     HFLUX!1 = "depth"
@@ -38,14 +45,13 @@ begin
     HFLUX@long_name = "Heat flux (Sum of sensible, latent and longwave, negative for net outgoing)"
     HFLUX@units = "W m-2"
 
-    vmissing = 1.e+35
     system("rm -rf "+dataDir+outFile)
     out = addfile(dataDir+outFile, "c")
     out@history = "Generated from "+lwnetfile+", "+qsenfile+" and "+qlatfile
     out@author = "Qing Li"
     out@code = "ocs_heatflux.ncl"
-    out@missing_value = f_qlat@missing_value
-    out@_FillValue = f_qlat@_FillValue
+    out@missing_value = missingvalue
+    out@_FillValue = missingvalue
     out->HFLUX = HFLUX
     out->time = time
     out->depth = depth

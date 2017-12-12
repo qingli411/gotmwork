@@ -87,31 +87,47 @@ def main():
     # write to output file
     if nd == 1:
         # write time series
-        write_ts(args.fname_out, tdat, vdat)
+        write_ts(args.fname_out, tdat, vdat, mask=gmvalue)
     else:
         # write profiles
         write_pfl(args.fname_out, tdat, ddat, vdat, mask=gmvalue)
 
-def write_ts(fnout, tdat, vdat):
+def write_ts(fnout, tdat, vdat, mask=None):
     """Write time series.
 
     :fnout: (str) filename of output file
     :tdat: (list) array of time
     :vdat: (list) array of variables
+    :mask: (float, optional) value in vdat to skip
     :returns: none
 
     """
     nt = len(tdat)   # size of time
     with open(fnout, 'w') as fout:
-        for i in range(nt):
-            # time
-            out_str = '{}'.format(tdat[i])
-            # variables
-            for var in vdat:
-                out_str += '  {:6.2f}'.format(var[i])
-            # newline
-            out_str += '\n'
-            fout.write(out_str)
+        if mask is None:
+            # no mask is applied
+            for i in range(nt):
+                # time
+                out_str = '{}'.format(tdat[i])
+                # variables
+                for var in vdat:
+                    out_str += '  {:6.2f}'.format(var[i])
+                # newline
+                out_str += '\n'
+                fout.write(out_str)
+        else:
+            # skip if the value of any variable matches the mask value
+            # or is NaN
+            for i in range(nt):
+                if not any(var[i] == mask or np.isnan(var[i]) for var in vdat):
+                    # time
+                    out_str = '{}'.format(tdat[i])
+                    # variables
+                    for var in vdat:
+                        out_str += '  {:6.2f}'.format(var[i])
+                    # newline
+                    out_str += '\n'
+                    fout.write(out_str)
 
 def write_pfl(fnout, tdat, ddat, vdat, mask=None):
     """Write time series of profile.
@@ -152,19 +168,21 @@ def write_pfl(fnout, tdat, ddat, vdat, mask=None):
                     if any(var[i,j] == mask or np.isnan(var[i,j]) for var in vdat):
                         fidx.append(j)
                 nskip = len(fidx) # number of skipped depth
-                # time and dimension size
-                out_str = '{}  {}  {}\n'.format(tdat[i], nd-nskip, nv+1)
-                fout.write(out_str)
-                for j in range(nd):
-                    if j not in fidx:
-                        # depth
-                        out_str = '{:7.1f}'.format(ddat[j])
-                        # variables
-                        for var in vdat:
-                            out_str += '  {:10.6f}'.format(var[i,j])
-                        # newline
-                        out_str += '\n'
-                        fout.write(out_str)
+                if nd-nskip > 0:
+                    # skip if there is no available data to write
+                    # time and dimension size
+                    out_str = '{}  {}  {}\n'.format(tdat[i], nd-nskip, nv+1)
+                    fout.write(out_str)
+                    for j in range(nd):
+                        if j not in fidx:
+                            # depth
+                            out_str = '{:7.1f}'.format(ddat[j])
+                            # variables
+                            for var in vdat:
+                                out_str += '  {:10.6f}'.format(var[i,j])
+                            # newline
+                            out_str += '\n'
+                            fout.write(out_str)
 
 
 def nctime2datetime(nctime):
