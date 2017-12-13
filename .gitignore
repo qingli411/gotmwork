@@ -6,3 +6,4 @@ log.*
 *.dat
 cases/*/*.nml
 *.pdf
+__pycache__
