@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# Set up and run GOTM
+#
+# Set up input data and modify the namelist accordingly
+# for GOTM
 #
 #  Qing Li, 20171210
 

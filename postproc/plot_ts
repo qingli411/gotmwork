@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+
+import matplotlib.pyplot as plt
+import numpy as np
+import datetime
+from netCDF4 import Dataset, num2date, date2index
+import argparse
+import sys
+
+def main():
+
+    # process input arguments
+    parser = argparse.ArgumentParser(description="""
+        Plot time series from GOTM output. Accept multiple variables.""")
+    parser.add_argument('-f', '--file', action='store', dest='fname',
+            metavar='FILENAME', help='Input GOTM data')
+    parser.add_argument('-v', '--variable', action='store', dest='vname',
+            metavar='VARNAME', nargs='+', help='Variable name')
+    parser.add_argument('-o', '--output', action='store', dest='fname_out',
+            metavar='FIGNAME', help='Output figure name')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE',
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE',
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args = parser.parse_args()
+
+    # check input
+    if not args.fname or not args.vname or not args.fname_out:
+        print('GOTM netCDF data, variable name, and output figure name are required. Stop.\n')
+        parser.print_help()
+        sys.exit(1)
+
+    # read data
+    fin = Dataset(args.fname, 'r')
+
+    # read time
+    nctime = fin.variables['time']
+    dim_time = len(nctime[:])
+
+    # get time range indices
+    if args.date_start and args.date_end:
+        print('Plotting time series from {} to {}.'
+                .format(args.date_start, args.date_end))
+        dt_start = datetime.datetime.strptime(args.date_start, '%Y%m%d')
+        dt_end = datetime.datetime.strptime(args.date_end, '%Y%m%d')
+        tidx_start, tidx_end = date2index([dt_start, dt_end], nctime)
+    else:
+        print('Plotting the full time series.')
+        tidx_start = 1  # skip the first data point
+        tidx_end = dim_time
+
+   # nctime -> datetime
+    dttime = num2date(nctime[tidx_start:tidx_end], units=nctime.units,
+            calendar=nctime.calendar)
+
+    # number of subfigure
+    nv = len(args.vname)
+    # set figure size
+    fig_width = 6
+    fig_height = 4+0.8*(nv-1)
+    if nv == 1:
+        # single figure
+        # read data
+        varname = args.vname[0]
+        dat = fin.variables[varname][tidx_start:tidx_end,0,0]
+        plt.plot(dttime, dat, '-k', linewidth=1.5)
+        f = plt.gcf()
+        f.set_size_inches(fig_width, fig_height)
+        plt.ylabel(varname)
+        # use scientific notation in y-axis label
+        ax = plt.gca()
+        ax.ticklabel_format(axis='y', style='sci', scilimits=(-2,2))
+        # make the exponent labels cleaner
+        ax.yaxis.offsetText.set_fontsize(8)
+        ax.yaxis.offsetText.set_x(-0.02)
+    else:
+        # subplot, share x axis
+        f, axarr = plt.subplots(nv, sharex=True)
+        f.set_size_inches(fig_width, fig_height)
+        for i in range(nv):
+            # read data
+            varname = args.vname[i]
+            dat = fin.variables[varname][tidx_start:tidx_end,0,0]
+            # skip the first data point
+            ax = axarr[i]
+            ax.plot(dttime, dat, '-k', linewidth=1.5)
+            ax.set_ylabel(varname)
+            # use scientific notation in y-axis label
+            ax.ticklabel_format(axis='y', style='sci', scilimits=(-2,2))
+            # make the exponent labels cleaner
+            ax.yaxis.offsetText.set_fontsize(8)
+            ax.yaxis.offsetText.set_x(-0.02)
+    # x label date
+    plt.gcf().autofmt_xdate()
+
+    # save figure
+    figname = args.fname_out
+    plt.savefig(figname)
+
+if __name__ == "__main__":
+    main()
