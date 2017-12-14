@@ -138,6 +138,24 @@
 !                         0: use absolute wind speed
 !                         1: use relative wind speed
 !                         This variable is only used if calc_fluxes = True
+! u10_method            [integer]
+!                         type of 10-meter wind
+!                         0: none
+!                         1: constant 10-meter wind given
+!                         2: 10-meter wind given from file u10_file
+!                         This variable is only used if calc_fluxes = False
+! const_u10             [float, minimum = -100, maximum = 100, unit = m/s]
+!                         x-component of 10-meter wind
+!                         This variable is only used if (calc_fluxes = False and
+!                           u10_method = 1)
+! const_v10             [float, minimum = -100, maximum = 100, unit = m/s]
+!                         y-component of 10-meter wind
+!                         This variable is only used if (calc_fluxes = False and
+!                           u10_method = 1)
+! u10_file              [file path]
+!                         file with u10 and v10 given in m/s
+!                         This variable is only used if (calc_fluxes = False and
+!                           u10_method = 2)
 !-------------------------------------------------------------------------------
 
 &airsea
@@ -172,5 +190,9 @@
    sss_method = 0,
    sss_file = '',
    ssuv_method = 0,
+   u10_method = 0,
+   const_u10 = 10,
+   const_v10 = 0.0,
+   u10_file = '',
 /
 
