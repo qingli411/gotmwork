@@ -114,8 +114,7 @@ def main():
     c_max = levels[-1]
     # plot figure
     if ptype == 'contourf':
-        im = plt.contourf(dttime, z, np.transpose(mdl), levels, extend='both',
-                    vmin=c_min, vmax=c_max)
+        im = plt.contourf(dttime, z, np.transpose(mdl), levels, extend='both')
     elif ptype == 'scatter':
         nz = len(z)
         nt = len(dttime)
@@ -145,9 +144,9 @@ def main():
 
     # save figure
     if args.fname_out:
-        figname = args.fname_out+'.pdf'
+        figname = args.fname_out
     else:
-        figname = args.vname+'.pdf'
+        figname = args.vname
 
     plt.savefig(figname)
 

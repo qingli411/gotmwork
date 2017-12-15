@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""
+Qing Li, 20171215
+"""
+
+import matplotlib.pyplot as plt
+import numpy as np
+import argparse
+import sys
+import datetime
+from netCDF4 import Dataset, num2date
+from gotmtool import nctime_indices
+
+def main():
+    # process input arguments
+    parser = argparse.ArgumentParser(description="""
+        Plot time series of profile or timeseries from observation.""")
+    parser.add_argument('-f', '--file', action='store', dest='fname',
+            metavar='FILENAME', help='Input GOTM data')
+    parser.add_argument('-v', '--variable', action='store', dest='vname',
+            metavar='VARNAME', help='Variable name')
+    parser.add_argument('-o', '--output', action='store', dest='fname_out',
+            metavar='FIGNAME', help='Output figure name')
+    parser.add_argument('-obs', '--obs', action='store_true', dest='lobs',
+            help='Also plot data from the observation.')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE',
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE',
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args = parser.parse_args()
+
+    # check input
+    if not args.fname or not args.vname:
+        print('GOTM netCDF data, variable name, and output figure name are required. Stop.\n')
+        parser.print_help()
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
