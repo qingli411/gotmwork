@@ -7,49 +7,122 @@ Qing Li, 20171213
 import datetime
 from netCDF4 import num2date, date2index
 
-def get_start_end_indices(nctime, date_start, date_end):
+def nctime_indices(nctime, date_start, date_end):
     """Returns indices corresponding to the starting and ending date & time.
 
     :nctime: (netCDF time object) nctime object
-    :date_start: (str) starting date
-    :date_end: (str) ending date
+    :date_start: (str) starting date YYYYMMDD
+    :date_end: (str) ending date YYYYMMDD
     :return: ([int,int]) starting and ending indices
 
-    Returns 1 for the starting index if date_start is earlier than the first
-    date & time in nctime, and dim_time for the ending index if date_end is
-    later than the last date & time in nctime.
+    Returns [0, iend] if date_start is earlier than the first
+    date & time in nctime, and [istart, ntime-1] if date_end is
+    later than the last date & time in nctime. Returns [0, ntime-1]
+    if no date_start or date_end is specified.
 
     """
 
-    dim_time = len(nctime[:])
+    ntime = len(nctime[:])
+    dtformat = '%Y%m%d'
     # get time range indices
     if date_start and date_end:
-        dt_start = datetime.datetime.strptime(date_start, '%Y%m%d')
-        dt_end = datetime.datetime.strptime(date_end, '%Y%m%d')
-        dt_in_start = num2date(nctime[1], units=nctime.units,
-                calendar=nctime.calendar)
-        dt_in_end = num2date(nctime[dim_time-1], units=nctime.units,
-                calendar=nctime.calendar)
-        # check starting time
-        if dt_start < dt_in_start:
-            tidx_start = 1  # skip the first data point
-            date_start_str = datetime.datetime.strftime(dt_in_start, '%Y%m%d')
-        else:
-            tidx_start = date2index(dt_start, nctime)
-            date_start_str = date_start
-        # check ending time
-        if dt_end > dt_in_end:
-            tidx_end = dim_time
-            date_end_str = datetime.datetime.strftime(dt_in_end, '%Y%m%d')
-        else:
-            tidx_end = date2index(dt_end, nctime)
-            date_end_str = date_end
-        # print some message
-        print('Plotting time series from {} to {}.'
-                .format(date_start_str, date_end_str))
+        dt_start = datetime.datetime.strptime(date_start, dtformat)
+        dt_end = datetime.datetime.strptime(date_end, dtformat)
+        tidx_start, tidx_end = date2index([dt_start, dt_end], nctime,
+                calendar=None, select='nearest')
     else:
-        print('Plotting the full time series.')
-        tidx_start = 1  # skip the first data point
-        tidx_end = dim_time
+        tidx_start = 0
+        tidx_end = ntime-1
     # return the indices
     return [tidx_start, tidx_end]
+
+def nctime_to_datetime(nctime, tidx_start=None, tidx_end=None):
+    """Convert from nctime object to datetime object.
+
+    :nctime: (netCDF time object) nctime object
+    :tidx_start: (int) starting index
+    :tidx_end: (int) ending index
+    :returns: (datetime object) datetime object
+
+    """
+    # get time slice
+    if tidx_start is None or tidx_end is None:
+        istart = 0
+        iend = len(nctime[:])
+    else:
+        istart = tidx_start
+        iend = tidx_end+1
+    # check if attribute exist
+    t_units = nctime.units
+    try:
+        t_cal = nctime.calendar
+    except AttributeError : # gregorian if attribute doesn't exist
+        t_cal = 'gregorian'
+    # return sliced datetime
+    return num2date(nctime[istart:iend], units=t_units, calendar=t_cal)
+
+def print_dttime_range(dttime):
+    """Print the range of dttime.
+
+    :dttime: (datetime object)
+    :returns: none
+
+    """
+    dt_format = '%Y%m%d'
+    str_start = datetime.datetime.strftime(dttime[0], dt_format)
+    str_end   = datetime.datetime.strftime(dttime[-1],   dt_format)
+    print('Timeseries from {} to {}...'.format(str_start, str_end))
+
+def ncread_pfl(ncvar, tidx_start=None, tidx_end=None):
+    """Read in profile data [ntime, ndepth] from a netCDF variable.
+
+    :ncvar: (netCDF variable) input variable
+    :tidx_start: (int) starting index
+    :tidx_end: (int) ending index
+    :returns: (numpy array) profile data
+
+    """
+    # get time slice
+    if tidx_start is None or tidx_end is None:
+        istart = 0
+        iend = -1
+    else:
+        istart = tidx_start
+        iend = tidx_end+1
+    # read in profile
+    nsize = ncvar.ndim
+    if nsize == 4:
+        dat = ncvar[istart:iend,:,0,0]
+    elif nsize == 2:
+        dat = ncvar[istart:iend,:]
+    else:
+        dat = None
+    return dat
+
+def ncread_ts(ncvar, tidx_start=None, tidx_end=None):
+    """Read in timeseries [ntime] from a netCDF variable.
+
+    :ncvar: (netCDF variable) input variable
+    :tidx_start: (int) starting index
+    :tidx_end: (int) ending index
+    :returns: (numpy array) timeseries data
+
+    """
+    # get time slice
+    if tidx_start is None or tidx_end is None:
+        istart = 0
+        iend = -1
+    else:
+        istart = tidx_start
+        iend = tidx_end+1
+    # read in profile
+    nsize = ncvar.ndim
+    if nsize == 4:
+        dat = ncvar[istart:iend,0,0,0]
+    elif nsize == 3:
+        dat = ncvar[istart:iend,0,0]
+    elif nsize == 1:
+        dat = ncvar[istart:iend]
+    else:
+        dat = None
+    return dat

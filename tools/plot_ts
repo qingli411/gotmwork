@@ -5,10 +5,11 @@ Qing Li, 20171213
 
 import matplotlib.pyplot as plt
 import numpy as np
-from netCDF4 import Dataset, num2date
 import argparse
 import sys
-from gotmtool import get_start_end_indices
+import datetime
+from netCDF4 import Dataset, num2date
+from gotmtool import *
 
 def main():
 
@@ -39,17 +40,25 @@ def main():
 
     # read data
     fin = Dataset(args.fname, 'r')
+    varlist = fin.variables.keys()
 
     # read time
-    nctime = fin.variables['time']
+    if 'time' in varlist:
+        nctime = fin.variables['time']
+    elif 'TIME' in varlist:
+        nctime = fin.variables['TIME']
+    else:
+        print('Time dimension is required and should have the name \"time\" or \"TIME\"')
 
     # get starting and ending indices
-    tidx_start, tidx_end = get_start_end_indices(nctime, args.date_start,
+    tidx_start, tidx_end = nctime_indices(nctime, args.date_start,
             args.date_end)
 
     # nctime -> datetime
-    dttime = num2date(nctime[tidx_start:tidx_end], units=nctime.units,
-            calendar=nctime.calendar)
+    dttime = nctime_to_datetime(nctime, tidx_start, tidx_end)
+
+    # print some message
+    print_dttime_range(dttime)
 
     # number of subfigure
     nv = len(args.vname)
@@ -60,8 +69,10 @@ def main():
         # single figure
         # read data
         varname = args.vname[0]
-        dat = fin.variables[varname][tidx_start:tidx_end,0,0]
-        plt.plot(dttime, dat, '-k', linewidth=1.5)
+        ncvar = fin.variables[varname]
+        dat = ncread_ts(ncvar, tidx_start, tidx_end)
+        # skip the first data point
+        plt.plot(dttime[1:], dat[1:], '-k', linewidth=1.5)
         f = plt.gcf()
         f.set_size_inches(fig_width, fig_height)
         plt.ylabel(varname)
@@ -78,10 +89,11 @@ def main():
         for i in range(nv):
             # read data
             varname = args.vname[i]
-            dat = fin.variables[varname][tidx_start:tidx_end,0,0]
+            ncvar = fin.variables[varname]
+            dat = ncread_ts(ncvar, tidx_start, tidx_end)
             # skip the first data point
             ax = axarr[i]
-            ax.plot(dttime, dat, '-k', linewidth=1.5)
+            ax.plot(dttime[1:], dat[1:], '-k', linewidth=1.5)
             ax.set_ylabel(varname)
             # use scientific notation in y-axis label
             ax.ticklabel_format(axis='y', style='sci', scilimits=(-2,2))

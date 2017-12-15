@@ -5,8 +5,9 @@ Qing Li, 20171103
 import sys
 import argparse
 import datetime
-from netCDF4 import Dataset, num2date, date2index
 import numpy as np
+from netCDF4 import Dataset, num2date, date2index
+from gotmtool import nctime_to_datetime
 
 def main():
     # process the input arguments
@@ -48,7 +49,7 @@ def main():
         print('Time dimension is required and should have the name \"time\" or \"TIME\"')
         sys.exit(1)
 
-    dttime = nctime2datetime(nctime) # time in datetime format
+    dttime = nctime_to_datetime(nctime) # time in datetime format
 
     # get time range indices
     dt_start = datetime.datetime.strptime(args.date_start, '%Y%m%d')
@@ -184,20 +185,6 @@ def write_pfl(fnout, tdat, ddat, vdat, mask=None):
                             out_str += '\n'
                             fout.write(out_str)
 
-
-def nctime2datetime(nctime):
-    """Convert from nctime object to datetime object.
-
-    :nctime: (netCDF time object) nctime object
-    :returns: (datetime object) datetime object
-
-    """
-    t_units = nctime.units
-    try:
-        t_cal = nctime.calendar
-    except AttributeError : # gregorian if attribute doesn't exist
-        t_cal = 'gregorian'
-    return num2date(nctime[:], units=t_units, calendar=t_cal)
 
 def ncread(infile, *argv, tidxstart=None, tidxend=None):
     """Read variables from a netCDF file.

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<data name="OCSPapa" lat="50.1" lon="215.1" maxdepth="200.0">
+<data name="OCSPapa" lat="50.1" lon="215.1" maxdepth="300.0">
     <var name="momentum">
         <longname>Momentum flux (N/m2)</longname>
         <filename>tau50n145w_hr.cdf</filename>

@@ -1,9 +1,14 @@
 *.nc
+*.cdf
 *.swp
 *.log
 timestamp
 log.*
 *.dat
 cases/*/*.nml
+cases/*/*.xml
 *.pdf
+*.png
+*.eps
+*.ps
 __pycache__
