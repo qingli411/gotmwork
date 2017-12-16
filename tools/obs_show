@@ -1,0 +1,97 @@
+#!/usr/bin/env python3
+"""
+Qing Li, 20171215
+"""
+
+import os
+import sys
+import argparse
+import subprocess as sp
+import xml.etree.ElementTree as et
+
+def main():
+    # process input arguments
+    parser = argparse.ArgumentParser(description="""
+            Plot time series of observations.""")
+    parser.add_argument('-xml', '--xml', action='store', dest='fname_xml',
+            metavar='XMLFILENAME', required=True, help='Input XML filename')
+    parser.add_argument('-root', '--root', action='store', dest='rootdir',
+            metavar='ROOTDIR', required=True,
+            help='Root directory of GOTMWORK')
+    parser.add_argument('-data', '--data', action='store', dest='datadir',
+            metavar='DATADIR', required=True, help='Input data directory')
+    parser.add_argument('-out', '--out', action='store', dest='outdir',
+            metavar='OUTDIR', help='Output figure directory')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE', required=True,
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE', required=True,
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args=parser.parse_args()
+
+    # set paths
+    datadir = args.datadir
+    datestart = args.date_start
+    dateend = args.date_end
+    xmlfile = args.fname_xml
+
+    # check if XML file exists
+    if not os.path.isfile(xmlfile):
+        print('Input XML file \'{}\' not exist. Stop.'.format(xmlfile))
+        sys.exit(1)
+
+    # set output figure directory
+    if not args.outdir:
+        outdir = './'
+    else:
+        outdir = args.outdir
+        sp.run(['mkdir', '-p', outdir])
+
+    # set tools
+    tooldir  = args.rootdir+'/tools'
+    plotpfl = tooldir+'/plotpfl'
+    plotts  = tooldir+'/plotts'
+
+    # read in data.xml
+    tree = et.parse(xmlfile)
+    root = tree.getroot()
+
+    # observation profiles in 'obs.nml'
+    obsvarlist = ['t_prof', 's_prof', 'ext_press', 'int_press', 'w_adv', 'zeta',
+                  'wave', 'vel_prof', 'e_prof', 'o2_prof']
+
+    # loop over all variables
+    for child in root:
+        # prepare input data
+        var   = child.attrib['name']
+        fname = child.find('filename').text
+        vtype = child.find('vartype').text
+        if vtype == 'scalar':
+            # scalar variable
+            vname = child.find('varname').text
+            # plot
+            if var in obsvarlist:
+                sp.run([plotpfl, '-f', datadir+'/'+fname, '-v', vname,
+                    '-o', outdir+'/'+var+'.pdf', '-ptype', 'scatter',
+                    '-ds', datestart, '-de', dateend])
+            else:
+                sp.run([plotts, '-f', datadir+'/'+fname, '-v', vname,
+                    '-o', outdir+'/'+var+'.pdf',
+                    '-ds', datestart, '-de', dateend])
+        elif vtype == 'vector':
+            # vector variable
+            vnamex = child.find('varnamex').text
+            vnamey = child.find('varnamey').text
+            # plot
+            sp.run([plotts, '-f', datadir+'/'+fname, '-v', vnamex, vnamey,
+                    '-o', outdir+'/'+var+'.pdf',
+                    '-ds', datestart, '-de', dateend])
+        else:
+            print('Variable type {} not supported.'.format(vtype))
+            sys.exit(1)
+        #
+if __name__ == "__main__":
+    main()

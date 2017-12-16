@@ -13,7 +13,7 @@ nmldir="${workdir}/namelist"
 xmldir="${workdir}/data"
 cmd_nc2dat="${tooldir}/nc2dat"
 cmd_nmlchange="${tooldir}/nmlchange"
-cmd_casepreproc="${tooldir}/casepreproc"
+cmd_case_preproc="${tooldir}/case_preproc"
 
 #######################################################################
 #                           Set parameters                            #
@@ -33,7 +33,7 @@ cp ${nmldir}/*.nml ./
 # read data.xml
 xmlfile=${title}.xml
 cp ${xmldir}/${xmlfile} ./
-${cmd_casepreproc} -i ${xmlfile} -root ${workdir} -data ${datadir} \
+${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
     -ds ${datestart} -de ${dateend}
 
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}

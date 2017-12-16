@@ -21,17 +21,24 @@ A set of tools to preprocess observational data for input and postprocess GOTM o
 
   `nc2dat`
 
-- Preprocess the input data for GOTM and modify the namelist accordingly.
-
-  `casepreproc`
-
 - Plot time series from GOTM output. Accept multiple variables.
 
-  `plot_ts`
+  `plotts`
 
 - Plot time series of profile from GOTM.
 
-  `plot_pfl`
+  `plotpfl`
+
+- Preprocess the input data for GOTM and modify the namelist accordingly.
+
+  `case_preproc`
+
+- Show timeseries in the observation.
+
+  `obs_show`
+
+- Shared functions
+  `gotmtool.py`
 
 - NCL script to prepare the net heat flux (excluding shortwave) data from longwave, sensible and latent heat fluxes for GOTM.
 

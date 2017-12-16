@@ -20,7 +20,7 @@ def main():
     parser = argparse.ArgumentParser(description="""
             Preprocess the input data for GOTM and modify the namelist
             accordingly.""")
-    parser.add_argument('-i', '--input', action='store', dest='fname_in',
+    parser.add_argument('-xml', '--xml', action='store', dest='fname_xml',
             metavar='XMLFILENAME', required=True, help='Input XML filename')
     parser.add_argument('-root', '--root', action='store', dest='rootdir',
             metavar='ROOTDIR', required=True,
@@ -41,7 +41,7 @@ def main():
     datadir = args.datadir
     datestart = args.date_start
     dateend = args.date_end
-    xmlfile = args.fname_in
+    xmlfile = args.fname_xml
 
     # check if XML file exists
     if not os.path.isfile(xmlfile):
@@ -65,8 +65,10 @@ def main():
     lat = root.attrib['lat']
     lon = root.attrib['lon']
     maxdepth = root.attrib['maxdepth']
-    dstart_str = datetime.datetime.strptime(datestart, '%Y%m%d').strftime('%Y-%m-%d 00:00:00')
-    dtend = datetime.datetime.strptime(dateend, '%Y%m%d')
+    dt_format = '%Y%m%d'
+    dt_format_l = '%Y-%m-%d %H:%M:%S'
+    dstart_str = datetime.datetime.strptime(datestart, dt_format).strftime(dt_format_l)
+    dtend = datetime.datetime.strptime(dateend, dt_format)
 
     # set 'gotmrun.nml'
     nml = 'gotmrun.nml'
@@ -100,8 +102,11 @@ def main():
             vnamex = child.find('varnamex').text
             vnamey = child.find('varnamey').text
             # nc2dat
-            sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey, '-o', oname,
-                    '-ds', datestart, '-de', dateend])
+            sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey,
+                '-o', oname, '-ds', datestart, '-de', dateend])
+        else:
+            print('Variable type {} not supported.'.format(vtype))
+            sys.exit(1)
         #
         # change namelist accordingly
         # choose namelist
@@ -129,12 +134,12 @@ def main():
                 if re.search(keyre_datetime, line):
                     break
         sp_str = line.split()
-        dtnew = datetime.datetime.strptime(sp_str[0]+' '+sp_str[1], '%Y-%m-%d %H:%M:%S')
+        dtnew = datetime.datetime.strptime(sp_str[0]+' '+sp_str[1], dt_format_l)
         if dtnew < dtend:
             dtend = dtnew
 
     # adjust run time based on the availability of input data
-    dend_str = dtend.strftime('%Y-%m-%d %H:%M:%S')
+    dend_str = dtend.strftime(dt_format_l)
     nml = 'gotmrun.nml'
     sp.run([nmlchange, '-f', nml, '-e', 'start', '-v', dstart_str])
     sp.run([nmlchange, '-f', nml, '-e', 'stop', '-v', dend_str])
