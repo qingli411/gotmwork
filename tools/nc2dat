@@ -143,13 +143,14 @@ def write_pfl(fnout, tdat, ddat, vdat, mask=None):
     """
     nt = len(tdat[:]) # size of time
     nd = len(ddat[:]) # size of depth
-    nv = len(vdat[:]) # number of variables
+    up_down = 2 # 1: data written from bottom to top (z<0 increasing)
+                # otherwise: data written from top to bottom (z<0 decreasing)
     with open(fnout, 'w') as fout:
         if mask is None:
             # no mask is applied
             for i in range(nt):
                 # time and dimension size
-                out_str = '{}  {}  {}\n'.format(tdat[i], nd, nv+1)
+                out_str = '{}  {}  {}\n'.format(tdat[i], nd, up_down)
                 fout.write(out_str)
                 for j in range(nd):
                     # depth
@@ -172,7 +173,7 @@ def write_pfl(fnout, tdat, ddat, vdat, mask=None):
                 if nd-nskip > 0:
                     # skip if there is no available data to write
                     # time and dimension size
-                    out_str = '{}  {}  {}\n'.format(tdat[i], nd-nskip, nv+1)
+                    out_str = '{}  {}  {}\n'.format(tdat[i], nd-nskip, up_down)
                     fout.write(out_str)
                     for j in range(nd):
                         if j not in fidx:

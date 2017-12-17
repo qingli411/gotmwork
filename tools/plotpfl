@@ -49,39 +49,39 @@ def main():
         ptype = args.ptype
 
     # read data
-    fin = Dataset(args.fname, 'r')
-    varlist = fin.variables.keys()
+    infile = Dataset(args.fname, 'r')
+    varlist = infile.variables.keys()
     if 'time' in varlist:
-        nctime = fin.variables['time']
+        nctime = infile.variables['time']
     elif 'TIME' in varlist:
-        nctime = fin.variables['TIME']
+        nctime = infile.variables['TIME']
     else:
         print('Time dimension is required and should have the name \"time\" or \"TIME\"')
 
     # try to read missing_value if it exists
     try:
-        mvalue = fin.missing_value
+        mvalue = infile.missing_value
     except AttributeError:
-        fin.set_auto_mask(False)
+        infile.set_auto_mask(False)
         mvalue = None
 
     # read variable
-    ncvar = fin.variables[args.vname]
+    ncvar = infile.variables[args.vname]
 
     # choose veritcal coordinate
     if 'z' in varlist:
         # GOTM output
         coord = ncvar.coordinates
         if 'zi' in coord:
-            z = fin.variables['zi'][0,:,0,0]
+            z = infile.variables['zi'][0,:,0,0]
         else:
-            z = fin.variables['z'][0,:,0,0]
+            z = infile.variables['z'][0,:,0,0]
     elif 'depth' in varlist:
         # observation
-        z = -abs(fin.variables['depth'][:])
+        z = -abs(infile.variables['depth'][:])
     elif 'DEPTH' in varlist:
         # observation
-        z = -abs(fin.variables['DEPTH'][:])
+        z = -abs(infile.variables['DEPTH'][:])
     else:
         print('Depth dimension is required and should have the name \"z\" or \"depth\" or \"DEPTH\"')
 

@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#  Qing Li, 20171217
+
+import argparse
+import datetime
+import numpy as np
+from netCDF4 import Dataset, num2date, date2index
+from gotmtool import nctime_to_datetime, nctime_indices
+
+def main():
+    # process the input arguments
+    parser = argparse.ArgumentParser(description="""
+            Read a netCDF file and output variables in a text file in the GOTM
+            input file format. Currently support time series of surface fluxes
+            and time series of vertical profiles.""")
+    parser.add_argument('-i', '--input', action='store', dest='fname_in',
+            metavar='NCFILENAME', required=True, help='Input netCDF filename')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE',
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE',
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args=parser.parse_args()
+
+    #  TODO: Check if input data exist <17-12-17, Qing Li> #
+    fname = args.fname_in
+    date_start = args.date_start
+    date_end = args.date_end
+
+    # read data
+    infile = Dataset(fname, 'r')
+    # wave time
+    nctime = infile.variables['waveTime']
+    dttime = nctime_to_datetime(nctime) # time in datetime format
+    # get starting and ending indices
+    tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
+    print(dttime[tidx_start])
+    print(dttime[tidx_end])
+    # band center frequency
+    freq = infile.variables['waveFrequency'][:]
+    # frequency bandwidth
+    dfreq = infile.variables['waveBandwidth'][:]
+    # band energy density
+    spec = infile.variables['waveEnergyDensity'][:]
+    # band mean direction that wave is coming from, in degree clockwise from the true North
+    mdir = infile.variables['waveMeanDirection'][:]
+    theta = (90.0-mdir)*np.pi/180.0 # angle in radian counterclockwise from East
+    xcmp = np.cos(theta)
+    ycmp = np.sin(theta)
+    # wave spectrum
+    print(dfreq.shape)
+    print(spec.shape)
+    spec_h2 = spec*dfreq
+    # Stokes drift spectrum
+    spec_ustokes = xcmp*spec_h2*freq**3
+    spec_vstokes = ycmp*spec_h2*freq**3
+    # surface Stokes drift
+    ustokes0 = np.sum(spec_ustokes,axis=1)
+    vstokes0 = np.sum(spec_vstokes,axis=1)
+    # significant wave height
+    hsc = 4.0*np.sqrt(np.sum(spec_h2, axis=1))
+    print(freq)
+    hs = infile.variables['waveHs'][:]
+    print(hs[0:11])
+    print(hsc[0:11])
+    print(ustokes0[0:11])
+    print(vstokes0[0:11])
+    #  TODO: probably use similar method as read profile to read spectrum <17-12-17, Qing Li> #
+
+if __name__ == "__main__":
+    main()
