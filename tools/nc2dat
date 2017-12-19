@@ -7,7 +7,7 @@ import argparse
 import datetime
 import numpy as np
 from netCDF4 import Dataset, num2date, date2index
-from gotmtool import nctime_to_datetime
+from gotmtool import nctime_to_datetime, nctime_indices
 
 def main():
     # process the input arguments
@@ -51,10 +51,9 @@ def main():
 
     dttime = nctime_to_datetime(nctime) # time in datetime format
 
-    # get time range indices
-    dt_start = datetime.datetime.strptime(args.date_start, '%Y%m%d')
-    dt_end = datetime.datetime.strptime(args.date_end, '%Y%m%d')
-    tidx_start, tidx_end = date2index([dt_start, dt_end], nctime)
+    # get starting and ending indices
+    tidx_start, tidx_end = nctime_indices(nctime, args.date_start,
+            args.date_end)
     tdat = [dttime[i].isoformat(' ', 'seconds')
             for i in range(tidx_start, tidx_end+1)] # truncated to seconds
     # TODO isoformat() takes only one arguments in py35:  <06-11-17, Qing Li> #
