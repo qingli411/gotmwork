@@ -17,6 +17,8 @@ def main():
             and time series of vertical profiles.""")
     parser.add_argument('-i', '--input', action='store', dest='fname_in',
             metavar='NCFILENAME', required=True, help='Input netCDF filename')
+    parser.add_argument('-o', '--output', action='store', dest='fname_out',
+            metavar='DATFILENAME', required=True, help='Output filename')
     parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
             metavar='STARTDATE',
             help='Starting date of input data, in the format of YYYYMMDD')
@@ -28,19 +30,24 @@ def main():
     args=parser.parse_args()
 
     #  TODO: Check if input data exist <17-12-17, Qing Li> #
-    fname = args.fname_in
+    fname_in = args.fname_in
+    fname_out = args.fname_out
     date_start = args.date_start
     date_end = args.date_end
 
     # read data
-    infile = Dataset(fname, 'r')
+    infile = Dataset(fname_in, 'r')
     # wave time
     nctime = infile.variables['waveTime']
     dttime = nctime_to_datetime(nctime) # time in datetime format
     # get starting and ending indices
     tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
+    tdat = [dttime[i].isoformat(' ', 'seconds')
+            for i in range(tidx_start, tidx_end+1)] # truncated to seconds
     print(dttime[tidx_start])
     print(dttime[tidx_end])
+    print(tdat[0])
+    print(tdat[-1])
     # band center frequency
     freq = infile.variables['waveFrequency'][:]
     # frequency bandwidth
@@ -49,9 +56,10 @@ def main():
     spec = infile.variables['waveEnergyDensity'][:]
     # band mean direction that wave is coming from, in degree clockwise from the true North
     mdir = infile.variables['waveMeanDirection'][:]
-    theta = (90.0-mdir)*np.pi/180.0 # angle in radian counterclockwise from East
-    xcmp = np.cos(theta)
-    ycmp = np.sin(theta)
+    theta = 90.0-mdir # angle in degree counterclockwise from East
+    d2r = np.pi/180.0
+    xcmp = np.cos(theta*d2r)
+    ycmp = np.sin(theta*d2r)
     # wave spectrum
     print(dfreq.shape)
     print(spec.shape)
@@ -65,12 +73,48 @@ def main():
     # significant wave height
     hsc = 4.0*np.sqrt(np.sum(spec_h2, axis=1))
     print(freq)
+    print(dfreq)
     hs = infile.variables['waveHs'][:]
     print(hs[0:11])
     print(hsc[0:11])
     print(ustokes0[0:11])
     print(vstokes0[0:11])
     #  TODO: probably use similar method as read profile to read spectrum <17-12-17, Qing Li> #
+    print(len(tdat[:]))
+    ddat = freq
+    vdat = spec[tidx_start:tidx_end+1,:]
+    vdat2 = theta[tidx_start:tidx_end+1,:]
+    print(vdat.shape)
+    write_spec(fname_out, tdat, ddat, [vdat, vdat2])
+
+def write_spec(fnout, tdat, ddat, vdat):
+    """Write wave spectrum for GOMT input.
+
+    :fnout: (str) filename of output file
+    :tdat: (list) array of time
+    :ddat: (list) array of depth
+    :vdat: (list) array of variables
+    :returns: none
+
+    """
+    nt = len(tdat[:]) # size of time
+    nd = len(ddat[:]) # size of depth
+    up_down = 2 # 1: data written from bottom to top (z<0 increasing)
+                # otherwise: data written from top to bottom (z<0 decreasing)
+    with open(fnout, 'w') as fout:
+        for i in range(nt):
+            # time and dimension size
+            out_str = '{}  {}  {}\n'.format(tdat[i], nd, up_down)
+            fout.write(out_str)
+            for j in range(nd):
+                # depth
+                out_str = '{:10.6f}'.format(ddat[j])
+                # variables
+                for var in vdat:
+                    out_str += '  {:10.6f}'.format(var[i,j])
+                # newline
+                out_str += '\n'
+                fout.write(out_str)
 
 if __name__ == "__main__":
     main()
