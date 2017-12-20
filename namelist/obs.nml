@@ -527,3 +527,26 @@
    o2_prof_file = '',
 /
 
+!-------------------------------------------------------------------------------
+! Wind induced wave spectrum can be specified. Used to include the effects
+! of Stokes drift and Langmuir turbulence
+!-------------------------------------------------------------------------------
+! spec_method [integer]
+!               method to prescribe the wave spectrum
+!               0: nothing is done - all variables equal 0
+!               1: constant values
+!               2: time varying variables read from file
+! nfreq       [integer]
+!               number of frequency bins in the spectrum
+!               This variable is only used if spec_method = 2
+! spec_file   [file path]
+!               filename for file wave spectrum
+!               This variable is only used if spec_method = 2
+!-------------------------------------------------------------------------------
+
+&wave_spec
+   spec_method = 0,
+   nfreq = 64,
+   spec_file = '',
+/
+

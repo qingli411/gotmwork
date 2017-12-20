@@ -11,7 +11,7 @@ workdir="${HOME}/models/gotm/gotmwork"
 tooldir="${workdir}/tools"
 nmldir="${workdir}/namelist"
 xmldir="${workdir}/data"
-cmd_nc2dat="${tooldir}/nc2dat"
+cmd_nc2dat_cdip="${tooldir}/nc2dat_cdip_spec"
 cmd_nmlchange="${tooldir}/nmlchange"
 cmd_case_preproc="${tooldir}/case_preproc"
 
@@ -20,6 +20,7 @@ cmd_case_preproc="${tooldir}/case_preproc"
 #######################################################################
 
 datadir="${HOME}/data/OCS/Papa/2016"
+specdata="${HOME}/data/CDIP/Papa/166p1_rt.nc"
 title="OCSPapa"
 outname="ocspapa"
 # start and end date
@@ -36,6 +37,11 @@ cp ${xmldir}/${xmlfile} ./
 ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
     -ds ${datestart} -de ${dateend}
 
+${cmd_nc2dat_cdip} -i ${specdata} -o "spec_file.dat" -ds ${datestart} \
+    -de ${dateend}
+
+${cmd_nmlchange} -f obs.nml -e spec_method -v 2
+${cmd_nmlchange} -f obs.nml -e spec_file -v 'spec_file.dat'
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
 ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99

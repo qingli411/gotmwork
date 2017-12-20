@@ -35,6 +35,9 @@ def main():
     date_start = args.date_start
     date_end = args.date_end
 
+    # print out some message
+    print('Converting {} to {}...'.format(fname_in, fname_out))
+
     # read data
     infile = Dataset(fname_in, 'r')
     # wave time
@@ -44,10 +47,7 @@ def main():
     tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
     tdat = [dttime[i].isoformat(' ', 'seconds')
             for i in range(tidx_start, tidx_end+1)] # truncated to seconds
-    print(dttime[tidx_start])
-    print(dttime[tidx_end])
-    print(tdat[0])
-    print(tdat[-1])
+
     # band center frequency
     freq = infile.variables['waveFrequency'][:]
     # frequency bandwidth
@@ -61,8 +61,6 @@ def main():
     xcmp = np.cos(theta*d2r)
     ycmp = np.sin(theta*d2r)
     # wave spectrum
-    print(dfreq.shape)
-    print(spec.shape)
     spec_h2 = spec*dfreq
     # Stokes drift spectrum
     spec_ustokes = xcmp*spec_h2*freq**3
@@ -70,22 +68,13 @@ def main():
     # surface Stokes drift
     ustokes0 = np.sum(spec_ustokes,axis=1)
     vstokes0 = np.sum(spec_vstokes,axis=1)
-    # significant wave height
-    hsc = 4.0*np.sqrt(np.sum(spec_h2, axis=1))
-    print(freq)
-    print(dfreq)
-    hs = infile.variables['waveHs'][:]
-    print(hs[0:11])
-    print(hsc[0:11])
-    print(ustokes0[0:11])
-    print(vstokes0[0:11])
-    #  TODO: probably use similar method as read profile to read spectrum <17-12-17, Qing Li> #
-    print(len(tdat[:]))
+
+    # write in file
     ddat = freq
-    vdat = spec[tidx_start:tidx_end+1,:]
-    vdat2 = theta[tidx_start:tidx_end+1,:]
-    print(vdat.shape)
-    write_spec(fname_out, tdat, ddat, [vdat, vdat2])
+    vdat = spec_h2[tidx_start:tidx_end+1,:]
+    vdat2 = spec_ustokes[tidx_start:tidx_end+1,:]
+    vdat3 = spec_vstokes[tidx_start:tidx_end+1,:]
+    write_spec(fname_out, tdat, ddat, [vdat, vdat2, vdat3])
 
 def write_spec(fnout, tdat, ddat, vdat):
     """Write wave spectrum for GOMT input.
@@ -99,8 +88,8 @@ def write_spec(fnout, tdat, ddat, vdat):
     """
     nt = len(tdat[:]) # size of time
     nd = len(ddat[:]) # size of depth
-    up_down = 2 # 1: data written from bottom to top (z<0 increasing)
-                # otherwise: data written from top to bottom (z<0 decreasing)
+    up_down = 1 # 1: freq increasing with indicies
+                # otherwise: freq decreasing with indicies
     with open(fnout, 'w') as fout:
         for i in range(nt):
             # time and dimension size
@@ -108,10 +97,10 @@ def write_spec(fnout, tdat, ddat, vdat):
             fout.write(out_str)
             for j in range(nd):
                 # depth
-                out_str = '{:10.6f}'.format(ddat[j])
+                out_str = '{:8.4e}'.format(ddat[j])
                 # variables
                 for var in vdat:
-                    out_str += '  {:10.6f}'.format(var[i,j])
+                    out_str += '  {:10.6e}'.format(var[i,j])
                 # newline
                 out_str += '\n'
                 fout.write(out_str)
