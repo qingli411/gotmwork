@@ -21,6 +21,8 @@ A set of tools to preprocess observational data for input and postprocess GOTM o
 
   `nc2dat`
 
+  `nc2dat_cdip_spec` Convert wave spectrum data of CDIP to text file.
+
 - Plot time series from GOTM output. Accept multiple variables.
 
   `plotts`

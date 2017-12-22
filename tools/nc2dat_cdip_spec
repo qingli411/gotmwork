@@ -72,8 +72,8 @@ def main():
     # write in file
     ddat = freq
     vdat = spec_h2[tidx_start:tidx_end+1,:]
-    vdat2 = spec_ustokes[tidx_start:tidx_end+1,:]
-    vdat3 = spec_vstokes[tidx_start:tidx_end+1,:]
+    vdat2 = xcmp[tidx_start:tidx_end+1,:]
+    vdat3 = ycmp[tidx_start:tidx_end+1,:]
     write_spec(fname_out, tdat, ddat, [vdat, vdat2, vdat3])
 
 def write_spec(fnout, tdat, ddat, vdat):
