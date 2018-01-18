@@ -11,6 +11,7 @@ from gotmtool import nctime_to_datetime, nctime_indices
 
 # constants
 gravity = 9.81 # m s**-2
+alpha_phil = 8.3e-3
 
 def main():
     # process the input arguments
@@ -94,6 +95,10 @@ def main():
     # # plot Stokes drift
     # plot_stokes_drift(z, ustokes, ustokes_nt)
 
+###############################################################################
+#                               Visualizations                                #
+###############################################################################
+
 def plot_spec(freq, spec, figname=None):
     """Plot spectrum
 
@@ -133,6 +138,10 @@ def plot_stokes_drift(z, ustokes, vstokes, figname=None):
         plt.savefig(figname)
     else:
         plt.show()
+
+###############################################################################
+#                             Stokes drift, etc.                              #
+###############################################################################
 
 def stokes_drift(freq, spec, xcmp, ycmp, z, tail=True, cellavg=True):
     """Calculate Stokes drift from spectrum. (Numerical integration)
@@ -203,6 +212,45 @@ def stokes_drift(freq, spec, xcmp, ycmp, z, tail=True, cellavg=True):
     # return Stokes drift
     return ustokes, vstokes
 
+###############################################################################
+#                             Empirical spectra                               #
+###############################################################################
+
+def spectrum_Phillips(f, fp):
+    """Returns the Phillips spectrum (Phillips, 1958) at given frequency.
+
+    :f: frequency
+    :fp: peak frequency
+    :returns: spectrum at given frequency
+
+    """
+    nf = np.size(f)
+    spec = np.zeros(nf)
+    pi2 = 2.*np.pi
+    spec[f>=fp] = alpha_phil*gravity**2./pi2**4./f[f>=fp]**5.
+    return spec
+
+def stokes_drift_Phillips(z, fp):
+    """Returns the Stokes drift calculated from the Phillips spectrum
+    (Analytical).
+
+    :z: depth
+    :fp: peak frequency
+    :returns: Stokes drift
+
+    """
+    omegap = 2.*np.pi*fp
+    us0 = 2.*alpha_phil*gravity/omegap
+    kp = omegap**2./gravity
+    T1 = np.exp(2.*kp*z)
+    T2 = np.sqrt(2.*np.pi*kp*np.abs(z))*ss.erfc(np.sqrt(2.*kp*np.abs(z)))
+    us = us0*(T1-T2)
+    return us
+
+###############################################################################
+#                                  Utilities                                  #
+###############################################################################
+
 def get_delta(x):
     """Get the intervals of the input array.
 
@@ -217,51 +265,24 @@ def get_delta(x):
     dx[-1] = dx[-2]
     return dx
 
-def spectrum_Phillips(f, fp):
-    """Returns the Phillips spectrum (Phillips, 1958) at given frequency.
-
-    :f: frequency
-    :fp: peak frequency
-    :returns: spectrum at given frequency
-
-    """
-    alpha = 8.3e-3
-    nf = np.size(f)
-    spec = np.zeros(nf)
-    pi2 = 2.*np.pi
-    spec[f>=fp] = alpha*gravity**2./pi2**4./f[f>=fp]**5.
-    return spec
-
-def stokes_drift_Phillips(z, fp):
-    """Returns the Stokes drift calculated from the Phillips spectrum
-    (Analytical).
-
-    :z: depth
-    :fp: peak frequency
-    :returns: Stokes drift
-
-    """
-    alpha = 8.3e-3
-    omegap = 2.*np.pi*fp
-    us0 = 2.*alpha*gravity/omegap
-    kp = omegap**2./gravity
-    T1 = np.exp(2.*kp*z)
-    T2 = np.sqrt(2.*np.pi*kp*np.abs(z))*ss.erfc(np.sqrt(2.*kp*np.abs(z)))
-    us = us0*(T1-T2)
-    return us
+###############################################################################
+#                                    Tests                                    #
+###############################################################################
 
 def _test():
     """A wrapper for all the tests.
     :returns: None
 
     """
-    # Test 1: Test the function stokes_drift() with Phillips spectrum
-    # with high resolution frequencies versus low resolution frequencies
-    _test_stokes_drift(dz=0.1, dfreq=0.005, label='LRes')
-    _test_stokes_drift(dz=0.1, dfreq=0.0005, label='HRes')
+    # Test 1: Test the integration along frequency in the function
+    # stokes_drift() with Phillips spectrum
+    # high resolution versus low resolution in frequency
+    _test_stokes_drift_freq(dz=0.1, dfreq=0.005, label='LRes')
+    _test_stokes_drift_freq(dz=0.1, dfreq=0.0005, label='HRes')
 
-def _test_stokes_drift(dz=0.1, dfreq=0.005, label='LRes', outdir='./'):
-    """Routine to test the function stokes_drift with Phillips spectrum.
+def _test_stokes_drift_freq(dz=0.1, dfreq=0.005, label='LRes', outdir='./'):
+    """Routine to test the integration along frequency in the function
+    stokes_drift() using Phillips spectrum.
 
     :dz: depth interval
     :dfreq: frequency interval
@@ -298,8 +319,7 @@ def _test_stokes_drift(dz=0.1, dfreq=0.005, label='LRes', outdir='./'):
     plt.savefig(outdir+'test_spectrum_'+suffix+'.pdf')
     # get Stokes drift
     us_phil = stokes_drift_Phillips(z, fp)
-    us_cal, vs_cal = stokes_drift(f, spec_phil*df, xcmp_phil, ycmp_phil, z,
-            cellavg = False)
+    us_cal, vs_cal = stokes_drift(f, spec_phil*df, xcmp_phil, ycmp_phil, z, cellavg = False)
     # plot Stokes drift
     plt.figure()
     plt.plot(us_phil, z, '-k', label='Analytical')
