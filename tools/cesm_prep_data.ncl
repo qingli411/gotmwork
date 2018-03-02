@@ -12,12 +12,13 @@ begin
     casen = "b1850_f19_gx1_vr12-ma_v2"
 
 ; define file names
-    diri = "/glade/u/home/qingli/pwork/data/"+casen+"/"
-    filocn = casen+".pop.h.nday1.0101.nc" 
+    dataroot = "/Volumes/Qing_work/data/"
+    diri = dataroot+"/yellowstone/"+casen+"/"
+    filocn = casen+".pop.h.nday1.0101.nc"
     filwav = casen+".ww3.daily.0101.gx16.nc"
     filo = casen+"_parSpace_daily_0101.nc"
 
-; input file    
+; input file
     focn = addfile(diri+filocn,"r")
     fwav = addfile(diri+filwav,"r")
     lat2d = focn->TLAT
@@ -45,7 +46,7 @@ begin
     fileAtt@src_data	= diri+filocn
     fileAtt@src_data2	= diri+filwav
     fileAtt@create_date	= systemfunc("date")
-    fileAtt@src_code	= "gatherData.ncl"
+    fileAtt@src_code	= "cesm_prep_data.ncl"
     fileAtt@author	= "Qing Li"
     fileattdef(out,fileAtt)
 
@@ -53,6 +54,8 @@ begin
     fmsg = default_fillvalue("float")
 
 ; save salinity and density
+    RHO = where(ismissing(RHO), fmsg, RHO)
+    SSS = where(ismissing(SSS), fmsg, SSS)
     RHO = where(ice .gt. 0.05, fmsg, RHO)
     SSS = where(ice .gt. 0.05, fmsg, SSS)
     out->RHO = RHO
@@ -60,18 +63,27 @@ begin
 ; loop over variables
 ;    vars = getfilevarnames(f)
     time = ispan(1,365,1)
-    varswav = (/"LaTurb","LaProj","LaSL","LaSLProj"/)
-    varsocn = (/"SST","SHF","SHF_QSW","TAUX","TAUY","EVAP_F","PREC_F","MELT_F","ROFF_F","HMXL_DR","HBLT"/) 
+    varswav = (/"LaTurb","LaProj","LaSL","LaSLProj","efactor"/)
+    varsocn = (/"SST","SHF","SHF_QSW","SHF_HEAT","TAUX","TAUY","EVAP_F","PREC_F","MELT_F","ROFF_F","HMXL_DR","HBLT"/)
     ;print(vars)
 	nvaro = dimsizes(varsocn)
 	nvarw = dimsizes(varswav)
 	do iv = 0,nvaro-1
         print(varsocn(iv))
-	    ; read variable
-	    var_in = varsocn(iv)
-	    dat = focn->$var_in$
+        if (varsocn(iv) .eq. "SHF_HEAT") then
+            dat = focn->SHF - focn->SHF_QSW
+            dat@longname = "Total Surface Heat Flux, excluding SW"
+            dat@units = "watt/m^2"
+        else
+	        ; read variable
+	        var_in = varsocn(iv)
+	        dat = focn->$var_in$
+        end if
+        dat = where(ismissing(dat), fmsg, dat)
         tmpdat = where(ice .gt. 0.05, fmsg, dat)
         dat = (/tmpdat/)
+        dat@_FillValue = fmsg
+        dat@missing_value = fmsg
 	    ; save variable
 	    out->$varsocn(iv)$ = dat
         delete(dat)
@@ -81,8 +93,11 @@ begin
 	    ; read variable
 	    var_in = varswav(iv)
 	    dat = fwav->$var_in$
+        dat = where(ismissing(dat), fmsg, dat)
         tmpdat = where(ice .gt. 0.05, fmsg, dat)
         dat = (/tmpdat/)
+        dat@_FillValue = fmsg
+        dat@missing_value = fmsg
 	    ; save variable
 	    out->$varswav(iv)$ = dat
         delete(dat)
@@ -97,4 +112,4 @@ begin
     out->TLAT = lat2d
     out->TLONG = lon2d
 
-end 
+end

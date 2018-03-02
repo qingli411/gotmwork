@@ -11,17 +11,17 @@ begin
     casen = "b1850_f19_gx1_vr12-ma_v2"
 
 ; define file names
-    diri = "/Volumes/Qing_Work/data/yellowstone/"+casen+"/"
+    dataroot = "/Volumes/Qing_work/data/"
+    diri = dataroot+"yellowstone/"+casen+"/"
     fili = "b1850_f19_gx1_vr12-ma_v2.ww3.daily.0101.nc"
     filo = "b1850_f19_gx1_vr12-ma_v2.ww3.daily.0101.gx16.nc"
-    wgtFileName = "/Volumes/Qing_Work/data/NCL_DATA/map_ww3a_TO_gx1v6_splice_150428.nc"
-    ;wgtFileName = "../NCL_DATA/map_ww3a_TO_gx1v6_neareststod.150325.nc"
+    wgtFileName = dataroot+"/NCL_DATA/map_ww3a_TO_gx1v6_splice_150428.nc"
 
 ; input file
     f = addfile(diri+fili,"r")
 
 ; read grid file
-    gdir    = "/Volumes/Qing_Work/data/yellowstone/grid/"
+    gdir    = dataroot+"/yellowstone/grid/"
     gfile   = "gx16.grids.nc"
     gf      = addfile(gdir+gfile,"r")
     lat2d   = gf->TLAT
@@ -42,7 +42,7 @@ begin
     fileAtt@title	= "WW3 output data on POP gx1v6 grid"
     fileAtt@src_data	= diri+fili
     fileAtt@create_date	= systemfunc("date")
-    fileAtt@src_code	= "ww3atogx1v6.ncl"
+    fileAtt@src_code	= "cesm_ww3a_to_gx1v6.ncl"
     fileAtt@author	= "Qing Li"
     fileattdef(out,fileAtt)
 
@@ -62,6 +62,7 @@ begin
             la = f->LaSLProj
             alpha = f->AlphaSL
             dat = abs(cos(alpha))*sqrt(1.0+(1.5*la)^(-2)+(5.4*la)^(-4))
+            dat = where(dat .gt. 5.0, 5.0, dat)
             dat@longname = "Enhancement factor"
             dat@units = "unitless"
             dat@_FillValue = la@_FillValue

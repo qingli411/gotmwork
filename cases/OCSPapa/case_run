@@ -24,8 +24,8 @@ specdata="${HOME}/data/CDIP/Papa/166p1_rt.nc"
 title="OCSPapa"
 outname="ocspapa"
 # start and end date
-datestart="20160325"
-dateend="20160411"
+datestart="20160329"
+dateend="20160330"
 
 #######################################################################
 #                        Preprocess input data                        #

@@ -9,7 +9,8 @@ mkdir -p ${blddir}
 cd ${blddir}
 
 # build
-cmake ${srcdir} -DGOTM_USE_FABM=false
+cmake ${srcdir} -DGOTM_USE_FABM=false \
+    -DGOTM_USE_CVMix=true
 
 # install
 make install
