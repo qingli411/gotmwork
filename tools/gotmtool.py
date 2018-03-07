@@ -5,6 +5,7 @@ Qing Li, 20171213
 """
 
 import datetime
+import numpy as np
 from netCDF4 import num2date, date2index
 
 def nctime_indices(nctime, date_start, date_end):
@@ -126,3 +127,97 @@ def ncread_ts(ncvar, tidx_start=None, tidx_end=None):
     else:
         dat = None
     return dat
+
+def write_ts(fnout, tdat, vdat, mask=None):
+    """Write time series in GOTMv5 format.
+
+    :fnout: (str) filename of output file
+    :tdat: (list) array of time
+    :vdat: (list) array of variables
+    :mask: (float, optional) value in vdat to skip
+    :returns: none
+
+    """
+    nt = len(tdat)   # size of time
+    with open(fnout, 'w') as fout:
+        if mask is None:
+            # no mask is applied
+            for i in range(nt):
+                # time
+                out_str = '{}'.format(tdat[i])
+                # variables
+                for var in vdat:
+                    out_str += '  {:6.2f}'.format(var[i])
+                # newline
+                out_str += '\n'
+                fout.write(out_str)
+        else:
+            # skip if the value of any variable matches the mask value
+            # or is NaN
+            for i in range(nt):
+                if not any(var[i] == mask or np.isnan(var[i]) for var in vdat):
+                    # time
+                    out_str = '{}'.format(tdat[i])
+                    # variables
+                    for var in vdat:
+                        out_str += '  {:6.2f}'.format(var[i])
+                    # newline
+                    out_str += '\n'
+                    fout.write(out_str)
+
+def write_pfl(fnout, tdat, ddat, vdat, mask=None):
+    """Write time series of profile in GOTMv5 format.
+
+    :fnout: (str) filename of output file
+    :tdat: (list) array of time
+    :ddat: (list) array of depth
+    :vdat: (list) array of variables
+    :mask: (float, optional) value in vdat to skip
+    :returns: none
+
+    """
+    nt = len(tdat[:]) # size of time
+    nd = len(ddat[:]) # size of depth
+    up_down = 2 # 1: data written from bottom to top (z<0 increasing)
+                # otherwise: data written from top to bottom (z<0 decreasing)
+    with open(fnout, 'w') as fout:
+        if mask is None:
+            # no mask is applied
+            for i in range(nt):
+                # time and dimension size
+                out_str = '{}  {}  {}\n'.format(tdat[i], nd, up_down)
+                fout.write(out_str)
+                for j in range(nd):
+                    # depth
+                    out_str = '{:7.1f}'.format(ddat[j])
+                    # variables
+                    for var in vdat:
+                        out_str += '  {:10.6f}'.format(var[i,j])
+                    # newline
+                    out_str += '\n'
+                    fout.write(out_str)
+        else:
+            # skip the depth if the value of any variable matches the mask value
+            # or is NaN
+            for i in range(nt):
+                fidx = []   # indices of filtered depth
+                for j in range(nd):
+                    if any(var[i,j] == mask or np.isnan(var[i,j]) for var in vdat):
+                        fidx.append(j)
+                nskip = len(fidx) # number of skipped depth
+                if nd-nskip > 0:
+                    # skip if there is no available data to write
+                    # time and dimension size
+                    out_str = '{}  {}  {}\n'.format(tdat[i], nd-nskip, up_down)
+                    fout.write(out_str)
+                    for j in range(nd):
+                        if j not in fidx:
+                            # depth
+                            out_str = '{:7.1f}'.format(ddat[j])
+                            # variables
+                            for var in vdat:
+                                out_str += '  {:10.6f}'.format(var[i,j])
+                            # newline
+                            out_str += '\n'
+                            fout.write(out_str)
+

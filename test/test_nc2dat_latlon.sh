@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+../tools/nc2dat_latlon -i "/Volumes/Qing_Work/data/yellowstone/b1850_f19_gx1_vr12-ma_v2/b1850_f19_gx1_vr12-ma_v2_STProfiles_monthly_0101.nc" -v "TEMP" -o "temp_file.dat" -lat 25 -lon 180 -ds 20160101 -de 20160111 -maxd 300
+
+../tools/nc2dat_latlon -i "/Volumes/Qing_Work/data/yellowstone/b1850_f19_gx1_vr12-ma_v2/b1850_f19_gx1_vr12-ma_v2_parSpace_daily_0101.nc" -v "SHF_HEAT" -o "cesm_file.dat" -lat 25 -lon 180 -ds 20160101 -de 20160111
+
+

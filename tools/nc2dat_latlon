@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+"""
+Qing Li, 20180307
+"""
+import sys
+import argparse
+import datetime
+import numpy as np
+from netCDF4 import Dataset, num2date, date2index
+from gotmtool import nctime_to_datetime, nctime_indices, write_ts, write_pfl
+from scipy.interpolate import griddata
+
+def main():
+    # process the input arguments
+    parser = argparse.ArgumentParser(description="""
+            Read a netCDF file containing the global surface fluxes data and
+            output timeseries of variables at a given location (latitude and
+            longitude) in a text file in the GOTM input file format.
+            Currently support CESM surface flux data.""")
+    parser.add_argument('-i', '--input', action='store', dest='fname_in',
+            metavar='NCFILENAME', required=True, help='Input netCDF filename')
+    parser.add_argument('-v', '--variable', action='store', dest='vname_in',
+            metavar='VARNAME', required=True, nargs='+',
+            help='Variable name in netCDF file, support multiple variables')
+    parser.add_argument('-o', '--output', action='store', dest='fname_out',
+            metavar='DATFILENAME', required=True, help='Output filename')
+    parser.add_argument('-lat', '--latitude', action='store', dest='lat',
+            metavar='LATITUDE', required=True,
+            help='Latitude of the requested location (-90, 90)')
+    parser.add_argument('-lon', '--longitude', action='store', dest='lon',
+            metavar='LONGITUDE', required=True,
+            help='Longitude of the requested location (0, 360)')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE', required=True,
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE', required=True,
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-maxd', '--max_depth', action='store', dest='max_depth',
+            metavar='MAXDEPTH', required=False,
+            help='Max depth of the profile data')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args=parser.parse_args()
+
+    # flag for testing
+    l_test = False
+
+    # flag for ignoring year
+    l_ignore_year = True
+
+    # print out some message
+    print('Converting {} to {}...'.format(args.fname_in, args.fname_out))
+
+    # read netCDF file
+    infile = Dataset(args.fname_in, 'r')
+    varlist = infile.variables.keys()
+    attlist = infile.ncattrs()
+
+    # read lat2d and lon2d
+    lat2d = ncread(infile, 'TLAT')
+    lon2d = ncread(infile, 'TLONG')
+
+    # check if valid sea point
+    region_mask = ncread(infile, 'REGION_MASK')
+    point_mask = get_value_lat_lon(region_mask, lat2d, lon2d, args.lat, args.lon)
+    if point_mask <= 0 or point_mask >=10:
+        print('Not valid sea point. Stop.')
+        sys.exit(2)
+
+    # read time dimension
+    if 'time' in varlist:
+        nctime = infile.variables['time']
+    elif 'TIME' in varlist:
+        nctime = infile.variables['TIME']
+    else:
+        print('Time dimension is required and should have the name \"time\" or \"TIME\"')
+        sys.exit(1)
+
+    # get time
+    if l_ignore_year:
+        # ignore year when matching the time
+        year_ref = nctime.units[11:15]
+        date_start_ref = year_ref+args.date_start[4:8]
+        date_end_ref = year_ref+args.date_end[4:8]
+        # get starting and ending indices
+        tidx_start, tidx_end = nctime_indices(nctime, date_start_ref, date_end_ref)
+        # time in datetime format
+        dttime = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end)
+        # correct the year
+        year_offset = int(args.date_start[0:4])-1
+        tdat = dttime + datetime.timedelta(days=365*year_offset)
+    else:
+        # get starting and ending indices
+        tidx_start, tidx_end = nctime_indices(nctime, args.date_start, args.date_end)
+        # time in datetime format
+        tdat = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end)
+
+    # --------
+    # TEST
+    if l_test:
+        ilat = 193
+        ilon = 248
+        lat_req = lat2d[ilat, ilon] + 0.005
+        lon_req = lon2d[ilat, ilon] - 0.005
+        shf = ncread(infile, 'SHF', tidxstart=0, tidxend=11)
+        lat_int = get_value_lat_lon(lat2d, lat2d, lon2d, lat_req, lon_req)
+        lon_int = get_value_lat_lon(lon2d, lat2d, lon2d, lat_req, lon_req)
+        shf_int = get_value_lat_lon(shf, lat2d, lon2d, lat_req, lon_req)
+        print('Requested coordinates')
+        print('    lat = {}'.format(lat_req))
+        print('    lon = {}'.format(lon_req))
+        print('Interpolated coordinates')
+        print('    lat = {}'.format(lat_int))
+        print('    lon = {}'.format(lon_int))
+        print('Original SHF')
+        print(np.asarray(shf[:,ilat,ilon]))
+        print('Interpolated SHF')
+        print(shf_int[:,0])
+        sys.exit(1)
+    # --------
+
+    # get global missing value
+    if 'missing_value' in attlist:
+        gmvalue = infile.missing_value
+    elif '_FillValue' in attlist:
+        gmvalue = infile._FillValue
+    else:
+        # turn off auto mask, handled in write_pfl()
+        infile.set_auto_mask(False)
+        gmvalue = np.nan
+
+    # get depth
+    if 'depth' in varlist:
+        ddat = infile.variables['depth'][:]
+    elif 'DEPTH' in varlist:
+        ddat = infile.variables['DEPTH'][:]
+    elif 'z_t' in varlist:
+        ddat = infile.variables['z_t'][:]
+    else:
+        ddat = np.asarray(0.0)
+    nd = ddat.size
+    ddat = -abs(ddat)
+    if args.max_depth:
+        max_d = abs(float(args.max_depth))
+        zidxend = np.argmin(abs(ddat+max_d))+1
+        ddat = ddat[0:zidxend]
+    else:
+        zidxend = nd
+
+    # output
+    vdat = []    # a list of arrays, an array for each variable
+    if nd == 1:
+        # timeseries of surface fluxes
+        for vname in args.vname_in:
+            dat = ncread(infile, vname, tidxstart=tidx_start, tidxend=tidx_end+1)
+            dat_int = get_value_lat_lon(dat, lat2d, lon2d, args.lat, args.lon)
+            vdat.append(dat_int[:,0])
+        # write to output file
+        write_ts(args.fname_out, tdat, vdat, mask=gmvalue)
+    else:
+        # timeseries of profiles
+        for vname in args.vname_in:
+            dat = ncread(infile, vname, zidxend=zidxend, tidxstart=tidx_start, tidxend=tidx_end+1)
+            dat_int = get_value_lat_lon(dat, lat2d, lon2d, args.lat, args.lon)
+            vdat.append(dat_int[:,:,0])
+        # write to output file
+        write_pfl(args.fname_out, tdat, ddat, vdat, mask=gmvalue)
+
+def ncread(infile, *argv, xidx=None, yidx=None, zidxend=None, tidxstart=0, tidxend=None):
+    """Read variables from a netCDF file.
+
+    :infile: (netCDF4 Dateset) input netCDF file
+    :*argv: (str) name of variables to read
+    :xidx: (int) x indices
+    :yidx: (int) y indices
+    :tidxstart: (int) start time index
+    :tidxend: (int) end time index
+    :returns: (list) value or netCDF object of requested variable
+
+    """
+    rdat = []
+    for vname in argv:
+        dat = infile.variables[vname]
+        nsize = dat.ndim
+        if nsize == 2:
+            odat = dat[:]
+        elif nsize == 3:
+            if xidx is None or yidx is None:
+                odat = dat[tidxstart:tidxend, :, :]
+            else:
+                odat = np.squeeze(dat[tidxstart:tidxend, yidx, xidx])
+        elif nsize == 4:
+            if xidx is None or yidx is None:
+                odat = dat[tidxstart:tidxend, 0:zidxend, :, :]
+            else:
+                odat = np.squeeze(dat[tidxstart:tidxend, 0:zidxend, yidx, xidx])
+        else:
+            print('The variable {} has {} dimensions, not supported'
+                    .format(vname, nsize))
+            sys.exit(1)
+        # append to var list
+        # rdat.append(np.squeeze(odat))
+        rdat.append(odat)
+
+    # return a list of arrays if more than one variable are requested
+    if len(rdat) == 1:
+        return rdat[0]
+    else:
+        return rdat
+
+def get_value_lat_lon(indata, lat2d, lon2d, rlat, rlon, imethod='nearest'):
+    """Return the value of a variable at a given location (latitude and
+    longitude).
+
+    :lat2d: (2d Numpy array) latitude in 2d array
+    :lon2d: (2d Numpy array) longitude in 2d array
+    :indata: (2d/3d/4d Numpy array) the value of variables in 2d/3d/4d array
+                                    last two dimensions should be consistent
+                                    with lat2d and lon2d
+    :rlat: (float or 1d Numpy array) output latitude
+    :rlon: (float or 1d Numpy array) output longitude
+    :imethod: (str) interpolation method
+    :returns: (float or 1d Numpy array) value(s) of the variable at given
+                                        latitude and longitude
+
+    """
+    #  TODO: no wrapping of longitude at lon=360, can be done by expanding
+    #        lat2d and lon2d <07-03-18, Qing Li> #
+    grid = (lat2d.flatten(),lon2d.flatten())
+    nsize = indata.ndim
+    rlat = np.asarray(rlat)
+    rlon = np.asarray(rlon)
+    if nsize == 2:
+        outdata = griddata(grid, indata.flatten(), (rlat, rlon), method=imethod)
+    elif nsize == 3:
+        nt = indata.shape[0]
+        nout = rlat.size
+        outdata = np.zeros((nt, nout))
+        for i in np.arange(nt):
+            outdata[i,:] = griddata(grid, indata[i,:,:].flatten(), (rlat, rlon), method=imethod)
+    elif nsize == 4:
+        nt = indata.shape[0]
+        nd = indata.shape[1]
+        nout = rlat.size
+        outdata = np.zeros((nt, nd, nout))
+        for i in np.arange(nt):
+            for j in np.arange(nd):
+                outdata[i,j,:] = griddata(grid, indata[i,j,:,:].flatten(),
+                        (rlat, rlon), method=imethod)
+    else:
+        print('The variable {} has {} dimensions, not supported'
+                .format(vname, nsize))
+        sys.exit(1)
+
+    # return the interpolated data
+    return outdata
+
+if __name__ == "__main__":
+    main()

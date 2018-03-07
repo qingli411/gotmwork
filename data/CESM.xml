@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<data name="OCSPapa" lat="50.1" lon="215.1" maxdepth="300.0">
+<data name=_TAG_NAME lat=_TAG_LAT lon=_TAG_LON maxdepth=_TAG_MAXDEPTH >
     <var name="momentum">
         <longname>Momentum flux (N/m2)</longname>
         <filename>b1850_f19_gx1_vr12-ma_v2_parSpace_daily_0101.nc</filename>
@@ -10,44 +10,44 @@
     </var>
     <var name="heat">
         <longname>Heat flux excluding shortwave radiation (W/m2)</longname>
-        <filename>heatflux_hr.nc</filename>
+        <filename>b1850_f19_gx1_vr12-ma_v2_parSpace_daily_0101.nc</filename>
         <vartype>scalar</vartype>
-        <varname>HFLUX</varname>
+        <varname>SHF_HEAT</varname>
         <outname>heatflux_file.dat</outname>
     </var>
     <var name="swr">
         <longname>Shortwave radiation (W/m2)</longname>
-        <filename>swnet50n145w_hr.cdf</filename>
+        <filename>b1850_f19_gx1_vr12-ma_v2_parSpace_daily_0101.nc</filename>
         <vartype>scalar</vartype>
-        <varname>SWN_1495</varname>
+        <varname>SHF_QSW</varname>
         <outname>swr_file.dat</outname>
     </var>
     <var name="sst">
         <longname>Sea surface temperature (degC)</longname>
-        <filename>sst50n145w_hr.cdf</filename>
+        <filename>b1850_f19_gx1_vr12-ma_v2_parSpace_daily_0101.nc</filename>
         <vartype>scalar</vartype>
         <varname>SST</varname>
         <outname>sst_file.dat</outname>
     </var>
     <var name="sss">
         <longname>Sea surface salinity (psu)</longname>
-        <filename>sss50n145w_hr.cdf</filename>
+        <filename>b1850_f19_gx1_vr12-ma_v2_parSpace_daily_0101.nc</filename>
         <vartype>scalar</vartype>
         <varname>SSS</varname>
         <outname>sss_file.dat</outname>
     </var>
     <var name="t_prof">
         <longname>Temperature profile (degC)</longname>
-        <filename>t50n145w_hr.cdf</filename>
+        <filename>b1850_f19_gx1_vr12-ma_v2_TSProfile_daily_0101.nc</filename>
         <vartype>scalar</vartype>
-        <varname>T_20</varname>
+        <varname>TEMP</varname>
         <outname>tprof_file.dat</outname>
     </var>
     <var name="s_prof">
         <longname>Salinity profile (psu)</longname>
-        <filename>s50n145w_hr.cdf</filename>
+        <filename>b1850_f19_gx1_vr12-ma_v2_TSProfile_daily_0101.nc</filename>
         <vartype>scalar</vartype>
-        <varname>S_41</varname>
+        <varname>SALT</varname>
         <outname>sprof_file.dat</outname>
     </var>
 </data>
