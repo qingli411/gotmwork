@@ -71,9 +71,9 @@ begin
 	do iv = 0,nvaro-1
         print(varsocn(iv))
         if (varsocn(iv) .eq. "SHF_HEAT") then
-            dat = focn->SHF - focn->SHF_QSW
-            dat@longname = "Total Surface Heat Flux, excluding SW"
-            dat@units = "watt/m^2"
+            dat = focn->SHF
+            dat = (/focn->SHF - focn->SHF_QSW/)
+            dat@long_name = "Total Surface Heat Flux, excluding SW"
         else
 	        ; read variable
 	        var_in = varsocn(iv)
