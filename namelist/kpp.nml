@@ -30,7 +30,7 @@
    kpp_interior = .true.,
    clip_mld = .false.,
    Ric = 0.3,
-   lcvmix = .true.,
+   lcvmix = .false.,
    langmuir_method = 0,
    langmuir_file = '',
 /

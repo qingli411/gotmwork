@@ -14,7 +14,7 @@ from gotmtool import *
 def main():
     # process input arguments
     parser = argparse.ArgumentParser(description="""
-        Plot time series of profile from GOTM together with the observation.""")
+        Plot time series of profile from GOTM.""")
     parser.add_argument('-f', '--file', action='store', dest='fname',
             metavar='FILENAME', help='Input GOTM data')
     parser.add_argument('-v', '--variable', action='store', dest='vname',
@@ -22,7 +22,7 @@ def main():
     parser.add_argument('-o', '--output', action='store', dest='fname_out',
             metavar='FIGNAME', help='Output figure name')
     parser.add_argument('-ptype', '--ptype', action='store', dest='ptype',
-            help='Plot type, support pcolor (default), scatter and contourf.')
+            help='Plot type, support contourf (default), scatter and pcolor.')
     parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
             metavar='STARTDATE',
             help='Starting date of input data, in the format of YYYYMMDD')
@@ -113,8 +113,8 @@ def main():
     c_min = levels[0]
     c_max = levels[-1]
     # plot figure
-    if ptype == 'contourf':
-        im = plt.contourf(dttime, z, np.transpose(mdl), levels, extend='both')
+    if ptype == 'pcolor':
+        im = plt.pcolor(dttime, z, np.transpose(mdl), vmin=c_min, vmax=c_max)
     elif ptype == 'scatter':
         nz = len(z)
         nt = len(dttime)
@@ -125,8 +125,8 @@ def main():
             plt.xlim([dttime[0], dttime[-1]])
             plt.ylim([min(z),max(z)])
     else:
-        # pcolor by default
-        im = plt.pcolor(dttime, z, np.transpose(mdl), vmin=c_min, vmax=c_max)
+        # contourf by default
+        im = plt.contourf(dttime, z, np.transpose(mdl), levels, extend='both')
     # auto adjust the x-axis label
     plt.gcf().autofmt_xdate()
     plt.ylabel('Depth (m)')
