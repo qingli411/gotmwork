@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<data name=_TAG_NAME lat=_TAG_LAT lon=_TAG_LON maxdepth=_TAG_MAXDEPTH >
+<data name="CESM_LAT25_LON180" lat="25" lon="180" maxdepth=_TAG_MAXDEPTH >
     <var name="momentum">
         <longname>Momentum flux (N/m2)</longname>
         <filename>b1850_f19_gx1_vr12-ma_v2_parSpace_daily_0101.nc</filename>

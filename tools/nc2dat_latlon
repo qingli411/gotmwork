@@ -133,20 +133,27 @@ def main():
     # get depth
     if 'depth' in varlist:
         ddat = infile.variables['depth'][:]
+        l_depth = True
     elif 'DEPTH' in varlist:
         ddat = infile.variables['DEPTH'][:]
+        l_depth = True
     elif 'z_t' in varlist:
         ddat = infile.variables['z_t'][:]
+        l_depth = True
     else:
         ddat = np.asarray(0.0)
+        l_depth = False
+
     nd = ddat.size
     ddat = -abs(ddat)
-    if args.max_depth:
-        max_d = abs(float(args.max_depth))
-        zidxend = np.argmin(abs(ddat+max_d))+1
-        ddat = ddat[0:zidxend]
-    else:
-        zidxend = nd
+    # a limit on the depth
+    if l_depth:
+        if args.max_depth:
+            max_d = abs(float(args.max_depth))
+            zidxend = np.argmin(abs(ddat+max_d))+1
+            ddat = ddat[0:zidxend]
+        else:
+            zidxend = nd
 
     # output
     vdat = []    # a list of arrays, an array for each variable

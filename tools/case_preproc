@@ -33,6 +33,9 @@ def main():
     parser.add_argument('-de', '--date_end', action='store', dest='date_end',
             metavar='ENDDATE', required=True,
             help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-method', '--method', action='store', dest='method',
+            metavar='METHOD', required=False,
+            help='The tool to convert netCDF data to text file in GOTMv5 format')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
     # parsing arguments and save to args
     args=parser.parse_args()
@@ -50,8 +53,12 @@ def main():
 
     # set tools
     tooldir = args.rootdir+'/tools'
-    nc2dat  = tooldir+'/nc2dat'
     nmlchange = tooldir+'/nmlchange'
+    if args.method:
+        nc2dat_method = args.method
+    else:
+        nc2dat_method = 'nc2dat'
+    nc2dat = tooldir+'/'+nc2dat_method
 
     # read in data.xml
     tree = et.parse(xmlfile)
@@ -95,15 +102,31 @@ def main():
             # scalar variable
             vname = child.find('varname').text
             # nc2dat
-            sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vname, '-o', oname,
+            if nc2dat_method == 'nc2dat_latlon':
+                sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vname, '-o', oname,
+                    '-ds', datestart, '-de', dateend, '-lat', lat, '-lon', lon,
+                    '-maxd', maxdepth])
+            elif nc2dat_method == 'nc2dat':
+                sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vname, '-o', oname,
                     '-ds', datestart, '-de', dateend])
+            else:
+                print('Invalid nc2dat method: {}. Stop.'.format(nc2dat_method))
+                sys.exit(1)
         elif vtype == 'vector':
             # vector variable
             vnamex = child.find('varnamex').text
             vnamey = child.find('varnamey').text
             # nc2dat
-            sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey,
-                '-o', oname, '-ds', datestart, '-de', dateend])
+            if nc2dat_method == 'nc2dat_latlon':
+                sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey,
+                    '-o', oname, '-ds', datestart, '-de', dateend,
+                    '-lat', lat, '-lon', lon, '-maxd', maxdepth])
+            elif nc2dat_method == 'nc2dat':
+                sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey,
+                    '-o', oname, '-ds', datestart, '-de', dateend])
+            else:
+                print('Invalid nc2dat method: {}. Stop.'.format(nc2dat_method))
+                sys.exit(1)
         else:
             print('Variable type {} not supported.'.format(vtype))
             sys.exit(1)

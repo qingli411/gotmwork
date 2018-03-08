@@ -13,7 +13,7 @@ begin
     dataroot = "/Volumes/Qing_work/data/"
     diri = dataroot+"/yellowstone/"+casen+"/"
     filocn = casen+".pop.h.0101.nc"
-    filo = casen+"_STProfiles_monthly_0101.nc"
+    filo = casen+"_TSProfiles_monthly_0101.nc"
 
 ; input file
     focn = addfile(diri+filocn,"r")
