@@ -39,6 +39,10 @@ def main():
     parser.add_argument('-maxd', '--max_depth', action='store', dest='max_depth',
             metavar='MAXDEPTH', required=False,
             help='Max depth of the profile data')
+    parser.add_argument('-ignore_year', '--ignore_year', action='store_true',
+            dest='ignore_year', required=False,
+            help='''Ignore year when matching the time. Useful if the input data
+            does not correspond to a particular year.''')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
     # parsing arguments and save to args
     args=parser.parse_args()
@@ -47,7 +51,7 @@ def main():
     l_test = False
 
     # flag for ignoring year
-    l_ignore_year = True
+    l_ignore_year = args.ignore_year
 
     # print out some message
     print('Converting {} to {}...'.format(args.fname_in, args.fname_out))
