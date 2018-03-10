@@ -7,7 +7,7 @@ import argparse
 import datetime
 import numpy as np
 from netCDF4 import Dataset, num2date, date2index
-from gotmtool import nctime_to_datetime, nctime_indices, write_ts, write_pfl
+from gotmtool import nctime_to_datetime, nctime_indices, write_ts, write_pfl, get_value_lat_lon
 from scipy.interpolate import griddata
 
 def main():
@@ -239,53 +239,6 @@ def ncread(infile, *argv, xidx=None, yidx=None, zidxend=None, tidxstart=0, tidxe
         return rdat[0]
     else:
         return rdat
-
-def get_value_lat_lon(indata, lat2d, lon2d, rlat, rlon, imethod='nearest'):
-    """Return the value of a variable at a given location (latitude and
-    longitude).
-
-    :lat2d: (2d Numpy array) latitude in 2d array
-    :lon2d: (2d Numpy array) longitude in 2d array
-    :indata: (2d/3d/4d Numpy array) the value of variables in 2d/3d/4d array
-                                    last two dimensions should be consistent
-                                    with lat2d and lon2d
-    :rlat: (float or 1d Numpy array) output latitude
-    :rlon: (float or 1d Numpy array) output longitude
-    :imethod: (str) interpolation method
-    :returns: (float or 1d Numpy array) value(s) of the variable at given
-                                        latitude and longitude
-
-    """
-    #  TODO: no wrapping of longitude at lon=360, can be done by expanding
-    #        lat2d and lon2d <07-03-18, Qing Li> #
-    grid = (lat2d.flatten(),lon2d.flatten())
-    nsize = indata.ndim
-    rlat = np.asarray(rlat)
-    rlon = np.asarray(rlon)
-    if nsize == 2:
-        outdata = griddata(grid, indata.flatten(), (rlat, rlon), method=imethod)
-    elif nsize == 3:
-        nt = indata.shape[0]
-        nout = rlat.size
-        outdata = np.zeros((nt, nout))
-        for i in np.arange(nt):
-            outdata[i,:] = griddata(grid, indata[i,:,:].flatten(), (rlat, rlon), method=imethod)
-    elif nsize == 4:
-        nt = indata.shape[0]
-        nd = indata.shape[1]
-        nout = rlat.size
-        outdata = np.zeros((nt, nd, nout))
-        for i in np.arange(nt):
-            for j in np.arange(nd):
-                outdata[i,j,:] = griddata(grid, indata[i,j,:,:].flatten(),
-                        (rlat, rlon), method=imethod)
-    else:
-        print('The variable {} has {} dimensions, not supported'
-                .format(vname, nsize))
-        sys.exit(1)
-
-    # return the interpolated data
-    return outdata
 
 if __name__ == "__main__":
     main()
