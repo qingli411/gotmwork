@@ -147,7 +147,7 @@ def write_ts(fnout, tdat, vdat, mask=None):
                 out_str = '{}'.format(tdat[i])
                 # variables
                 for var in vdat:
-                    out_str += '  {:6.2f}'.format(var[i])
+                    out_str += '  {:10.6g}'.format(var[i])
                 # newline
                 out_str += '\n'
                 fout.write(out_str)
@@ -160,7 +160,7 @@ def write_ts(fnout, tdat, vdat, mask=None):
                     out_str = '{}'.format(tdat[i])
                     # variables
                     for var in vdat:
-                        out_str += '  {:6.2f}'.format(var[i])
+                        out_str += '  {:10.6g}'.format(var[i])
                     # newline
                     out_str += '\n'
                     fout.write(out_str)
@@ -192,7 +192,7 @@ def write_pfl(fnout, tdat, ddat, vdat, mask=None):
                     out_str = '{:7.1f}'.format(ddat[j])
                     # variables
                     for var in vdat:
-                        out_str += '  {:10.6f}'.format(var[i,j])
+                        out_str += '  {:10.6g}'.format(var[i,j])
                     # newline
                     out_str += '\n'
                     fout.write(out_str)

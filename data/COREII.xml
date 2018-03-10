@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data name=_TAG_NAME lat=_TAG_LAT lon=_TAG_LON maxdepth=_TAG_MAXDEPTH >
+    <var name="meteo">
+        <longname>Meteorology data</longname>
+        <filename>meteo.2009.23OCT2012.nc</filename>
+        <vartype>meteo</vartype>
+        <varname_u10>U_10_MOD</varname_u10>
+        <varname_v10>V_10_MOD</varname_v10>
+        <varname_slp>SLP</varname_slp>
+        <varname_sat>T_10_MOD</varname_sat>
+        <varname_hum>Q_10_MOD</varname_hum>
+        <varname_cld>CLD</varname_cld>
+        <hum_method>4</hum_method>
+        <outname>meteo_file.dat</outname>
+    </var>
+    <var name="swr">
+        <longname>Shortwave radiation (W/m2)</longname>
+        <filename>ncar_rad.2009.23OCT2012.nc</filename>
+        <vartype>scalar</vartype>
+        <varname>SWDN_MOD</varname>
+        <outname>swr_file.dat</outname>
+    </var>
+</data>
+

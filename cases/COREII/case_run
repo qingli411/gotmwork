@@ -1,0 +1,57 @@
+#!/bin/bash
+# Setup and run GOTM for CORE-II
+#
+# Qing Li, 20180307
+
+#######################################################################
+#                              Set path                               #
+#######################################################################
+
+workdir="${HOME}/models/gotm/gotmwork"
+tooldir="${workdir}/tools"
+nmldir="${workdir}/namelist"
+xmldir="${workdir}/data"
+cmd_nmlchange="${tooldir}/nmlchange"
+cmd_case_preproc="${tooldir}/case_preproc"
+nc2dat_method="nc2dat_latlon"
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+datadir="/Volumes/Qing_Work/data/COREII_IAF"
+lat=25
+lon=180
+maxdepth=300
+title="COREII_LAT${lat}_LON${lon}"
+outname="${title}"
+# start and end date
+datestart="20090325"
+dateend="20090411"
+
+#######################################################################
+#                        Preprocess input data                        #
+#######################################################################
+cp ${nmldir}/*.nml ./
+# read data.xml
+xmlfile="COREII.xml"
+cp ${xmldir}/${xmlfile} ./
+sed -i.bk "s#_TAG_NAME#\"${title}\"#g" ./${xmlfile}
+sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
+sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
+sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
+${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
+    -ds ${datestart} -de ${dateend} -method ${nc2dat_method}
+
+${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
+${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
+${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
+
+${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+
+#######################################################################
+#                              Run GOTM                               #
+#######################################################################
+# gotm 2> log.${outname}

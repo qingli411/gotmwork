@@ -97,10 +97,10 @@ def write_spec(fnout, tdat, ddat, vdat):
             fout.write(out_str)
             for j in range(nd):
                 # depth
-                out_str = '{:8.4e}'.format(ddat[j])
+                out_str = '{:8.4g}'.format(ddat[j])
                 # variables
                 for var in vdat:
-                    out_str += '  {:10.6e}'.format(var[i,j])
+                    out_str += '  {:10.6g}'.format(var[i,j])
                 # newline
                 out_str += '\n'
                 fout.write(out_str)
