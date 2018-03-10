@@ -61,16 +61,33 @@ def main():
     varlist = infile.variables.keys()
     attlist = infile.ncattrs()
 
-    # read lat2d and lon2d
-    lat2d = ncread(infile, 'TLAT')
-    lon2d = ncread(infile, 'TLONG')
+    # read latitude and longitude
+    for vlat in ['lat', 'LAT', 'TLAT']:
+        if vlat in varlist:
+            lat = infile.variables[vlat][:]
+            break
+
+    for vlon in ['lon', 'LON', 'TLON', 'TLONG']:
+        if vlon in varlist:
+            lon = infile.variables[vlon][:]
+            break
+
+    if lat.ndim == 1 and lon.ndim == 1:
+        lon2d, lat2d = np.meshgrid(lon, lat)
+    elif lat.ndim == 2 and lon.ndim == 2:
+        lat2d = lat
+        lon2d = lon
+    else:
+        print('''Inconsistent dimensions of latitude (nlat = {}) and longitude
+                (nlon = {}). Stop.'''.format(lat.ndim, lon.ndim))
 
     # check if valid sea point
-    region_mask = ncread(infile, 'REGION_MASK')
-    point_mask = get_value_lat_lon(region_mask, lat2d, lon2d, args.lat, args.lon)
-    if point_mask <= 0 or point_mask >=10:
-        print('Not valid sea point. Stop.')
-        sys.exit(2)
+    if 'REGION_MASK' in varlist:
+        region_mask = infile.variables['REGION_MASK'][:]
+        point_mask = get_value_lat_lon(region_mask, lat2d, lon2d, args.lat, args.lon)
+        if point_mask <= 0 or point_mask >=10:
+            print('Not valid sea point. Stop.')
+            sys.exit(2)
 
     # read time dimension
     if 'time' in varlist:
@@ -84,7 +101,10 @@ def main():
     # get time
     if l_ignore_year:
         # ignore year when matching the time
-        year_ref = nctime.units[11:15]
+        dttime_ref = nctime_to_datetime(nctime, tidx_start=0, tidx_end=0)
+        # Note: the method .replace() is required as no zero-padding is used in
+        #  netcdftime.DatetimeNoLeap.strftime('%Y')...
+        year_ref = dttime_ref[0].strftime('%Y').replace(' ','0')
         date_start_ref = year_ref+args.date_start[4:8]
         date_end_ref = year_ref+args.date_end[4:8]
         # get starting and ending indices
@@ -92,7 +112,7 @@ def main():
         # time in datetime format
         dttime = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end)
         # correct the year
-        year_offset = int(args.date_start[0:4])-1
+        year_offset = int(args.date_start[0:4])-int(year_ref)
         tdat = dttime + datetime.timedelta(days=365*year_offset)
     else:
         # get starting and ending indices
@@ -103,24 +123,24 @@ def main():
     # --------
     # TEST
     if l_test:
-        ilat = 193
-        ilon = 248
+        ilat = 70
+        ilon = 48
         lat_req = lat2d[ilat, ilon] + 0.005
         lon_req = lon2d[ilat, ilon] - 0.005
-        shf = ncread(infile, 'SHF', tidxstart=0, tidxend=11)
+        dat = ncread(infile, args.vname_in[0], tidxstart=0, tidxend=11)
         lat_int = get_value_lat_lon(lat2d, lat2d, lon2d, lat_req, lon_req)
         lon_int = get_value_lat_lon(lon2d, lat2d, lon2d, lat_req, lon_req)
-        shf_int = get_value_lat_lon(shf, lat2d, lon2d, lat_req, lon_req)
+        dat_int = get_value_lat_lon(dat, lat2d, lon2d, lat_req, lon_req)
         print('Requested coordinates')
         print('    lat = {}'.format(lat_req))
         print('    lon = {}'.format(lon_req))
         print('Interpolated coordinates')
         print('    lat = {}'.format(lat_int))
         print('    lon = {}'.format(lon_int))
-        print('Original SHF')
-        print(np.asarray(shf[:,ilat,ilon]))
-        print('Interpolated SHF')
-        print(shf_int[:,0])
+        print('Original Data')
+        print(np.asarray(dat[:,ilat,ilon]))
+        print('Interpolated Data')
+        print(dat_int[:,0])
         sys.exit(1)
     # --------
 
