@@ -222,6 +222,35 @@ def write_pfl(fnout, tdat, ddat, vdat, mask=None):
                             out_str += '\n'
                             fout.write(out_str)
 
+def write_spec(fnout, tdat, fdat, vdat):
+    """Write spectra for GOMT input.
+
+    :fnout: (str) filename of output file
+    :tdat: (list) array of time
+    :fdat: (list) array of frequencies
+    :vdat: (list) array of variables
+    :returns: none
+
+    """
+    nt = len(tdat[:]) # size of time
+    nf = len(fdat[:]) # size of frequency
+    up_down = 1 # 1: freq increasing with indicies
+                # otherwise: freq decreasing with indicies
+    with open(fnout, 'w') as fout:
+        for i in range(nt):
+            # time and dimension size
+            out_str = '{}  {}  {}\n'.format(tdat[i], nf, up_down)
+            fout.write(out_str)
+            for j in range(nf):
+                # frequencies
+                out_str = '{:10.6g}'.format(fdat[j])
+                # variables
+                for var in vdat:
+                    out_str += '  {:10.6g}'.format(var[i,j])
+                # newline
+                out_str += '\n'
+                fout.write(out_str)
+
 def get_value_lat_lon(indata, lat2d, lon2d, rlat, rlon, imethod='nearest'):
     """Return the value of a variable at a given location (latitude and
     longitude).

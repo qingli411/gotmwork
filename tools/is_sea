@@ -4,10 +4,8 @@ Qing Li, 20180310
 """
 import sys
 import argparse
-import datetime
 import numpy as np
 from netCDF4 import Dataset
-from gotmtool import get_value_lat_lon
 
 def main():
     # process the input arguments
@@ -27,50 +25,30 @@ def main():
     args=parser.parse_args()
 
     # check input
-    lon_f = float(args.lon)
-    lat_f = float(args.lat)
-    if lon_f < 0:
-        lon_f = lon_f + 360.0
+    rlat = float(args.lat)
+    rlon = float(args.lon)
+    if rlon >= 180:
+        rlon = rlon - 360.0
 
-    if lon_f > 360 or lon_f < 0 or lat_f > 90 or lat_f < -90:
+    if rlat > 85.0 or rlat < -85.0 or rlon > 180.0 or rlon < -180.0:
         parser.print_help()
         sys.exit(1)
-
-    rlon = str(lon_f)
-    rlat = args.lat
 
     # read netCDF file
     infile = Dataset(args.fname_in, 'r')
     varlist = infile.variables.keys()
     attlist = infile.ncattrs()
 
-
     # read latitude and longitude
-    for vlat in ['lat', 'LAT', 'TLAT']:
-        if vlat in varlist:
-            lat = infile.variables[vlat][:]
-            break
+    lat = infile.variables['latitude'][:]
+    lon = infile.variables['longitude'][:]
 
-    for vlon in ['lon', 'LON', 'TLON', 'TLONG']:
-        if vlon in varlist:
-            lon = infile.variables[vlon][:]
-            break
-
-    if lat.ndim == 1 and lon.ndim == 1:
-        lon2d, lat2d = np.meshgrid(lon, lat)
-    elif lat.ndim == 2 and lon.ndim == 2:
-        lat2d = lat
-        lon2d = lon
-    else:
-        print('''Inconsistent dimensions of latitude (nlat = {}) and longitude
-                (nlon = {}). Stop.'''.format(lat.ndim, lon.ndim))
+    ind_lat = np.argmin(np.abs(lat-rlat))
+    ind_lon = np.argmin(np.abs(lon-rlon))
 
     # check if valid sea point
-    for rmask in ['REGION_MASK', 'region_mask', 'MASK', 'mask']:
-        if rmask in varlist:
-            region_mask = infile.variables[rmask][:]
-            point_mask = get_value_lat_lon(region_mask, lat2d, lon2d, rlat, rlon)
-            break
+    region_mask = infile.variables['MAPSTA'][:]
+    point_mask = region_mask[ind_lat, ind_lon]
 
     if point_mask <= 0 or point_mask >=10:
         print('no')

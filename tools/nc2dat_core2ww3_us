@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  Qing Li, 20171217
+#  Qing Li, 20180311
 
 import argparse
-import datetime
+import sys
 import numpy as np
 from netCDF4 import Dataset
 from gotmtool import nctime_to_datetime, nctime_indices, write_spec
@@ -12,12 +12,18 @@ from gotmtool import nctime_to_datetime, nctime_indices, write_spec
 def main():
     # process the input arguments
     parser = argparse.ArgumentParser(description="""
-            Read wave spectra data from CDIP wave buoy in netCDF format
-            and output in a text file in the GOTM input file format.""")
+            Read the WW3 partitioned Stokes drift file in netCDF format and
+            output in a text file in the GOTM input file format.""")
     parser.add_argument('-i', '--input', action='store', dest='fname_in',
             metavar='NCFILENAME', required=True, help='Input netCDF filename')
     parser.add_argument('-o', '--output', action='store', dest='fname_out',
             metavar='DATFILENAME', required=True, help='Output filename')
+    parser.add_argument('-lat', '--latitude', action='store', dest='lat',
+            metavar='LATITUDE', required=True,
+            help='Latitude of the requested location (-85, 85)')
+    parser.add_argument('-lon', '--longitude', action='store', dest='lon',
+            metavar='LONGITUDE', required=True,
+            help='Longitude of the requested location (-180, 360)')
     parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
             metavar='STARTDATE',
             help='Starting date of input data, in the format of YYYYMMDD')
@@ -28,11 +34,18 @@ def main():
     # parsing arguments and save to args
     args=parser.parse_args()
 
-    #  TODO: Check if input data exist <17-12-17, Qing Li> #
     fname_in = args.fname_in
     fname_out = args.fname_out
     date_start = args.date_start
     date_end = args.date_end
+    rlat = float(args.lat)
+    rlon = float(args.lon)
+    if rlon >= 180:
+        rlon = rlon - 360.0
+
+    if rlat > 85.0 or rlat < -85.0 or rlon > 180.0 or rlon < -180.0:
+        parser.print_help()
+        sys.exit(1)
 
     # print out some message
     print('Converting {} to {}...'.format(fname_in, fname_out))
@@ -40,40 +53,34 @@ def main():
     # read data
     infile = Dataset(fname_in, 'r')
     # wave time
-    nctime = infile.variables['waveTime']
+    nctime = infile.variables['time']
     dttime = nctime_to_datetime(nctime) # time in datetime format
     # get starting and ending indices
     tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
     tdat = [dttime[i].isoformat(' ', 'seconds')
             for i in range(tidx_start, tidx_end+1)] # truncated to seconds
 
-    # band center frequency
-    freq = infile.variables['waveFrequency'][:]
-    # frequency bandwidth
-    dfreq = infile.variables['waveBandwidth'][:]
-    # band energy density
-    spec = infile.variables['waveEnergyDensity'][:]
-    # band mean direction that wave is coming from, in degree clockwise from the true North
-    mdir = infile.variables['waveMeanDirection'][:]
-    theta = 90.0-mdir # angle in degree counterclockwise from East
-    d2r = np.pi/180.0
-    xcmp = np.cos(theta*d2r)
-    ycmp = np.sin(theta*d2r)
-    # wave spectrum
-    spec_h2 = spec*dfreq
-    # Stokes drift spectrum
-    spec_ustokes = xcmp*spec_h2*freq**3
-    spec_vstokes = ycmp*spec_h2*freq**3
-    # surface Stokes drift
-    ustokes0 = np.sum(spec_ustokes,axis=1)
-    vstokes0 = np.sum(spec_vstokes,axis=1)
+    # read latitude and longitude
+    lat = infile.variables['latitude'][:]
+    lon = infile.variables['longitude'][:]
+
+    ind_lat = np.argmin(np.abs(lat-rlat))
+    ind_lon = np.argmin(np.abs(lon-rlon))
+
+    region_mask = infile.variables['MAPSTA'][:]
+    point_mask = region_mask[ind_lat, ind_lon]
+    if point_mask <= 0 or point_mask >=10:
+        print('Not valid sea point. Stop.')
+        sys.exit(2)
+
+    # frequency
+    freq = infile.variables['f'][:]
+    # partitioned surface Stokes drift
+    ussp = infile.variables['ussp'][tidx_start:tidx_end+1,:,ind_lat,ind_lon]
+    vssp = infile.variables['vssp'][tidx_start:tidx_end+1,:,ind_lat,ind_lon]
 
     # write in file
-    fdat = freq
-    vdat = spec_h2[tidx_start:tidx_end+1,:]
-    vdat2 = xcmp[tidx_start:tidx_end+1,:]
-    vdat3 = ycmp[tidx_start:tidx_end+1,:]
-    write_spec(fname_out, tdat, fdat, [vdat, vdat2, vdat3])
+    write_spec(fname_out, tdat, freq, [ussp, vssp])
 
 if __name__ == "__main__":
     main()

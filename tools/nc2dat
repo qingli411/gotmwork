@@ -4,9 +4,8 @@ Qing Li, 20171103
 """
 import sys
 import argparse
-import datetime
 import numpy as np
-from netCDF4 import Dataset, num2date, date2index
+from netCDF4 import Dataset
 from gotmtool import nctime_to_datetime, nctime_indices, write_ts, write_pfl
 
 def main():

@@ -6,7 +6,7 @@ import sys
 import argparse
 import datetime
 import numpy as np
-from netCDF4 import Dataset, num2date, date2index
+from netCDF4 import Dataset
 from gotmtool import nctime_to_datetime, nctime_indices, write_ts, write_pfl, get_value_lat_lon
 from scipy.interpolate import griddata
 
