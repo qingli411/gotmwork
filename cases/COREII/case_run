@@ -13,7 +13,7 @@ nmldir="${workdir}/namelist"
 xmldir="${workdir}/data"
 cmd_nmlchange="${tooldir}/nmlchange"
 cmd_case_preproc="${tooldir}/case_preproc"
-cmd_nc2dat_core2ww3_us="${tooldir}/nc2dat_core2ww3_us"
+cmd_nc2dat_core2ww3_usp="${tooldir}/nc2dat_core2ww3_usp"
 nc2dat_method="nc2dat_latlon"
 
 #######################################################################
@@ -46,7 +46,7 @@ sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
     -ds ${datestart} -de ${dateend} -method ${nc2dat_method}
 
-${cmd_nc2dat_core2ww3_us} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
+${cmd_nc2dat_core2ww3_usp} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
     -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
 
 ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.

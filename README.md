@@ -21,7 +21,15 @@ A set of tools to preprocess observational data for input and postprocess GOTM o
 
   `nc2dat`
 
+  `nc2dat_latlon` Convert CESM/CORE-II data to text file for given lat and lon
+
   `nc2dat_cdip_spec` Convert wave spectrum data of CDIP to text file.
+
+  `nc2dat_core2ww3_usp` Convert partitioned Stokes drift of WW3 to text file.
+
+- Check is the point given by latitude and longitude is a sea point.
+
+  `is_sea`
 
 - Plot time series from GOTM output. Accept multiple variables.
 
@@ -46,6 +54,15 @@ A set of tools to preprocess observational data for input and postprocess GOTM o
 
   `ocs_heatflux.ncl`
 
+- NCL script to prepare the surface fluxes data and temperature and salinity profiles from CESM output.
+
+  `cesm_prep_fluxes.ncl`
+
+  `cesm_prep_profiles.ncl`
+
+- NCL script to prepare meteorology data from CORE-II.
+
+  `core2_prep_meteo.ncl`
 
 ## namelist/ ##
 
