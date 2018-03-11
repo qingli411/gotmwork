@@ -345,7 +345,7 @@
    w_adv_height0 = 0.0,
    w_adv0 = 0.0,
    w_adv_file = '',
-   w_adv_discr = 4,
+   w_adv_discr = 6,
 /
 
 !-------------------------------------------------------------------------------
@@ -395,10 +395,10 @@
    zeta_offset = 0.0,
    zeta_0 = 0.0,
    period_1 = 44714.0,
-   amp_1 = 1.0,
+   amp_1 = 0.0,
    phase_1 = 0.0,
    period_2 = 43200.0,
-   amp_2 = 0.5,
+   amp_2 = 0.0,
    phase_2 = 0.0,
 /
 
@@ -528,25 +528,28 @@
 /
 
 !-------------------------------------------------------------------------------
-! Wind induced wave spectrum can be specified. Used to include the effects
-! of Stokes drift and Langmuir turbulence
+! Stokes drift profile can be specified. Used to include the effects of
+! Langmuir turbulence.
 !-------------------------------------------------------------------------------
-! spec_method [integer]
-!               method to prescribe the wave spectrum
-!               0: nothing is done - all variables equal 0
-!               1: constant values
-!               2: time varying variables read from file
-! nfreq       [integer]
-!               number of frequency bins in the spectrum
-!               This variable is only used if spec_method = 2
-! spec_file   [file path]
-!               filename for file wave spectrum
-!               This variable is only used if spec_method = 2
+! ustokes_method [integer]
+!                  method to prescribe the Stokes drift
+!                  0: nothing is done - all variables equal 0
+!                  1: constant values
+!                  2: calculated from the frequency weighted wave spectrum
+!                  3: calculated from the partitioned surface Stokes drift
+! nfreq          [integer]
+!                  number of frequency bands
+!                  This variable is only used if (ustokes_method = 2 or
+!                    ustokes_method = 3)
+! ustokes_file   [file path]
+!                  filename for file Stokes drift
+!                  This variable is only used if (ustokes_method = 2 or
+!                    ustokes_method = 3)
 !-------------------------------------------------------------------------------
 
-&wave_spec
-   spec_method = 0,
+&stokes_drift
+   ustokes_method = 0,
    nfreq = 64,
-   spec_file = '',
+   ustokes_file = '',
 /
 
