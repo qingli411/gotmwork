@@ -10,16 +10,16 @@ from netCDF4 import Dataset
 def main():
     # process the input arguments
     parser = argparse.ArgumentParser(description="""
-            Check if a point given by the latitude and longitude is a sea
+            Check if the point given by the latitude and longitude is a sea
             point.""")
     parser.add_argument('-fmask', '--mask_file', action='store', dest='fname_in',
             metavar='NCFILENAME', required=True, help='Input netCDF filename')
     parser.add_argument('-lat', '--latitude', action='store', dest='lat',
             metavar='LATITUDE', required=True,
-            help='Latitude of the requested location (-90, 90)')
+            help='Latitude of the requested location (-85, 85)')
     parser.add_argument('-lon', '--longitude', action='store', dest='lon',
             metavar='LONGITUDE', required=True,
-            help='Longitude of the requested location (0, 360)')
+            help='Longitude of the requested location (-180, 360)')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
     # parsing arguments and save to args
     args=parser.parse_args()
@@ -37,17 +37,27 @@ def main():
     # read netCDF file
     infile = Dataset(args.fname_in, 'r')
     varlist = infile.variables.keys()
-    attlist = infile.ncattrs()
 
     # read latitude and longitude
-    lat = infile.variables['latitude'][:]
-    lon = infile.variables['longitude'][:]
+    for vlat in ['latitude', 'lat', 'LAT']:
+        if vlat in varlist:
+            lat = infile.variables[vlat][:]
+            break
+
+    for vlon in ['longitude', 'lon', 'LON']:
+        if vlon in varlist:
+            lon = infile.variables[vlon][:]
+            break
 
     ind_lat = np.argmin(np.abs(lat-rlat))
     ind_lon = np.argmin(np.abs(lon-rlon))
 
     # check if valid sea point
-    region_mask = infile.variables['MAPSTA'][:]
+    for vmask in ['MAPSTA', 'mapsta', 'MASK', 'mask']:
+        if vmask in varlist:
+            region_mask = infile.variables[vmask][:]
+            break
+
     point_mask = region_mask[ind_lat, ind_lon]
 
     if point_mask <= 0 or point_mask >=10:

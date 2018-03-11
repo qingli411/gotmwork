@@ -13,6 +13,7 @@ nmldir="${workdir}/namelist"
 xmldir="${workdir}/data"
 cmd_nmlchange="${tooldir}/nmlchange"
 cmd_case_preproc="${tooldir}/case_preproc"
+cmd_nc2dat_core2ww3_us="${tooldir}/nc2dat_core2ww3_us"
 nc2dat_method="nc2dat_latlon"
 
 #######################################################################
@@ -20,6 +21,7 @@ nc2dat_method="nc2dat_latlon"
 #######################################################################
 
 datadir="/Volumes/Qing_Work/data/COREII_IAF"
+uspdir="/Volumes/Qing_Work/data/WAVEWATCH_COREII"
 lat=25
 lon=180
 maxdepth=300
@@ -28,6 +30,7 @@ outname="${title}"
 # start and end date
 datestart="20090325"
 dateend="20090411"
+uspdata="ww3.${datestart:0:4}_usp.nc"
 
 #######################################################################
 #                        Preprocess input data                        #
@@ -42,6 +45,9 @@ sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
     -ds ${datestart} -de ${dateend} -method ${nc2dat_method}
+
+${cmd_nc2dat_core2ww3_us} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
+    -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
 
 ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
 ${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2

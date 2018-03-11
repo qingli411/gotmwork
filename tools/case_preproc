@@ -157,7 +157,7 @@ def main():
                 sys.exit(1)
             # humidity method
             hum_method = child.find('hum_method').text
-            nml = airsea.nml
+            nml = "airsea.nml"
             sp.run([nmlchange, '-f', nml, '-e', "hum_method", '-v', hum_method])
         else:
             print('Variable type {} not supported.'.format(vtype))
