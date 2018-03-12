@@ -86,10 +86,10 @@ def main():
 
     # # Stokes drift
     # spec_h2 = spec*dfreq
-    # ustokes, vstokes = stokes_drift(freq, spec_h2[i,:], xcmp[i,:], ycmp[i,:], z)
-    # ustokes_nt, vstokes_nt = stokes_drift(freq, spec_h2[i,:], xcmp[i,:],
+    # ustokes, vstokes = stokes_drift_spec(freq, spec_h2[i,:], xcmp[i,:], ycmp[i,:], z)
+    # ustokes_nt, vstokes_nt = stokes_drift_spec(freq, spec_h2[i,:], xcmp[i,:],
     #         ycmp[i,:], z, tail=False)
-    # ustokes_int, vstokes_int = stokes_drift(freq, spec_h2[i,:], xcmp[i,:],
+    # ustokes_int, vstokes_int = stokes_drift_spec(freq, spec_h2[i,:], xcmp[i,:],
     #         ycmp[i,:], z, cellavg=False)
 
     # # plot Stokes drift
@@ -143,7 +143,7 @@ def plot_stokes_drift(z, ustokes, vstokes, figname=None):
 #                             Stokes drift, etc.                              #
 ###############################################################################
 
-def stokes_drift(freq, spec, xcmp, ycmp, z, tail=True, cellavg=True):
+def stokes_drift_spec(freq, spec, xcmp, ycmp, z, tail=True, cellavg=True):
     """Calculate Stokes drift from spectrum. (Numerical integration)
 
     :freq: frequency
@@ -212,6 +212,43 @@ def stokes_drift(freq, spec, xcmp, ycmp, z, tail=True, cellavg=True):
     # return Stokes drift
     return ustokes, vstokes
 
+def stokes_drift_usp(freq, ussp, vssp, z, zi):
+    """Calculate the Stokes drift profile from partitioned surface Stokes
+    drift.
+
+    :freq: frequency
+    :ussp: partitioned surface Stokes drift, x-component
+    :vssp: partitioned surface Stokes drift, y-component
+    :z: vertical levels
+    :returns: ustokes, vstokes
+
+    """
+    nfreq = np.size(freq)
+    nlev = np.size(z)
+
+    # calculate some common factors
+    const = 8.*np.pi**2./gravity
+    factor = const*freq**2.
+
+    # initialize Stokes drift
+    ustokes = np.zeros(nlev)
+    vstokes = np.zeros(nlev)
+
+    # get cell
+    zi = np.zeros(nlev+1)
+    zi[1:nlev] = 0.5*(z[0:-1]+z[1:])
+    zi[-1] = 2.*z[-1]-zi[-2]
+    dz = zi[0:nlev]-zi[1:]
+    for k in range(nlev):
+        kdz = factor*dz[k]/2.
+        kflt = np.sinh(kdz)/kdz
+        tmp = kflt*np.exp(factor*z[k])
+        ustokes[k] = np.sum(tmp*ussp)
+        vstokes[k] = np.sum(tmp*vssp)
+    # return Stokes drift
+    return ustokes, vstokes
+
+
 ###############################################################################
 #                             Empirical spectra                               #
 ###############################################################################
@@ -275,14 +312,14 @@ def _test():
 
     """
     # Test 1: Test the integration along frequency in the function
-    # stokes_drift() with Phillips spectrum
+    # stokes_drift_spec() with Phillips spectrum
     # high resolution versus low resolution in frequency
     _test_stokes_drift_freq(dz=0.1, dfreq=0.005, label='LRes')
     _test_stokes_drift_freq(dz=0.1, dfreq=0.0005, label='HRes')
 
 def _test_stokes_drift_freq(dz=0.1, dfreq=0.005, label='LRes', outdir='./'):
     """Routine to test the integration along frequency in the function
-    stokes_drift() using Phillips spectrum.
+    stokes_drift_spec() using Phillips spectrum.
 
     :dz: depth interval
     :dfreq: frequency interval
@@ -319,7 +356,7 @@ def _test_stokes_drift_freq(dz=0.1, dfreq=0.005, label='LRes', outdir='./'):
     plt.savefig(outdir+'test_spectrum_'+suffix+'.pdf')
     # get Stokes drift
     us_phil = stokes_drift_Phillips(z, fp)
-    us_cal, vs_cal = stokes_drift(f, spec_phil*df, xcmp_phil, ycmp_phil, z, cellavg = False)
+    us_cal, vs_cal = stokes_drift_spec(f, spec_phil*df, xcmp_phil, ycmp_phil, z, cellavg = False)
     # plot Stokes drift
     plt.figure()
     plt.plot(us_phil, z, '-k', label='Analytical')
