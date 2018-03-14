@@ -5,7 +5,7 @@
 ; Qing Li, 20171108
 
 begin
-    dataDir = "/Users/qingli/data/OCS/Papa/2016/"
+    dataDir = "/Users/qingli/data/OCS/Papa/Papa_20100616-20150101/"
     loc_str = "50n145w"
     ; dataDir = "/Users/qingli/data/OCS/KEO/2016/"
     ; loc_str = "32n145e"

@@ -22,14 +22,14 @@ cmd_plotts="${tooldir}/plotts"
 #                           Set parameters                            #
 #######################################################################
 
-datadir="${HOME}/data/OCS/Papa/2016"
-specdata="${HOME}/data/CDIP/Papa/166p1_rt.nc"
+datadir="${HOME}/data/OCS/Papa/Papa_20100616-20150101"
+specdata="${HOME}/data/CDIP/Papa/166p1_historic.nc"
 title="OCSPapa"
 outname="ocspapa"
 # start and end date
-datestart="20160101"
-dateend="20161231"
-turbmethod="KPP-Original"
+datestart="20130701"
+dateend="20140701"
+turbmethod="KPP-CVMix"
 casename="${title}_${turbmethod}_${datestart}-${dateend}"
 
 #######################################################################
@@ -41,27 +41,30 @@ rundir="${scratchdir}/${casename}"
 mkdir -p ${rundir}
 
 cd ${rundir}
-# cp ${nmldir}/*.nml ./
-# # read data.xml
-# xmlfile=${title}.xml
-# cp ${xmldir}/${xmlfile} ./
-# ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
-#     -ds ${datestart} -de ${dateend}
+cp ${nmldir}/*.nml ./
+# read data.xml
+xmlfile=${title}.xml
+cp ${xmldir}/${xmlfile} ./
+${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
+    -ds ${datestart} -de ${dateend}
 
-# # processing wave spectrum data
-# ${cmd_nc2dat_cdip} -i ${specdata} -o "spec_file.dat" -ds ${datestart} \
-#     -de ${dateend}
+# processing wave spectrum data
+${cmd_nc2dat_cdip} -i ${specdata} -o "spec_file.dat" -ds ${datestart} \
+    -de ${dateend}
 
-# ${cmd_nmlchange} -f obs.nml -e spec_method -v 2
-# ${cmd_nmlchange} -f obs.nml -e spec_file -v 'spec_file.dat'
-# ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
-# ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
-# ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+${cmd_nmlchange} -f obs.nml -e spec_method -v 2
+${cmd_nmlchange} -f obs.nml -e spec_file -v 'spec_file.dat'
+${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+
+# turn on CVMix
+${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
 
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-# gotm 2> log.${outname}
+gotm 2> log.${outname}
 
 #######################################################################
 #                           Postprocessing                            #
@@ -82,6 +85,6 @@ pp_vars="temp temp_obs salt salt_obs"
 pp_date_start=${datestart}
 pp_date_end=${dateend}
 for pp_var in ${pp_vars}; do
-    # ${cmd_plotpfl} -f ${outname}.nc -v ${pp_var} -o "${pp_var}_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end} -ptype contourf
+    ${cmd_plotpfl} -f ${outname}.nc -v ${pp_var} -o "${pp_var}_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end} -ptype contourf
     ${cmd_plotts} -f ${outname}.nc -v tx ty heat I_0 -o "gotm_ts_surface_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end}
 done
