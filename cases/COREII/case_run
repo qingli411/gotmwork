@@ -8,12 +8,15 @@
 #######################################################################
 
 workdir="${HOME}/models/gotm/gotmwork"
+scratchdir="${HOME}/work/gotmrun"
 tooldir="${workdir}/tools"
 nmldir="${workdir}/namelist"
 xmldir="${workdir}/data"
 cmd_nmlchange="${tooldir}/nmlchange"
 cmd_case_preproc="${tooldir}/case_preproc"
 cmd_nc2dat_core2ww3_usp="${tooldir}/nc2dat_core2ww3_usp"
+cmd_plotpfl="${tooldir}/plotpfl"
+cmd_plotts="${tooldir}/plotts"
 nc2dat_method="nc2dat_latlon"
 
 #######################################################################
@@ -24,7 +27,7 @@ datadir="/Volumes/Qing_Work/data/COREII_IAF"
 uspdir="/Volumes/Qing_Work/data/WAVEWATCH_COREII"
 lat=25
 lon=180
-maxdepth=300
+maxdepth=500
 title="COREII_LAT${lat}_LON${lon}"
 outname="${title}"
 # start and end date
@@ -32,9 +35,18 @@ datestart="20090325"
 dateend="20090411"
 uspdata="ww3.${datestart:0:4}_usp.nc"
 
+turbmethod="KPP-CVMix"
+# turbmethod="KPP-Original"
+casename="${title}_${turbmethod}_${datestart}-${dateend}"
+
 #######################################################################
 #                        Preprocess input data                        #
 #######################################################################
+# create run dir
+rundir="${scratchdir}/${casename}"
+mkdir -p ${rundir}
+
+cd ${rundir}
 cp ${nmldir}/*.nml ./
 # read data.xml
 xmlfile="COREII.xml"
@@ -61,7 +73,23 @@ ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
 ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
 
+# turn on CVMix
+${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-# gotm 2> log.${outname}
+gotm 2> log.${outname}
+
+
+#######################################################################
+#                           Postprocessing                            #
+#######################################################################
+
+pp_vars="temp temp_obs salt salt_obs"
+pp_date_start=${datestart}
+pp_date_end=${dateend}
+for pp_var in ${pp_vars}; do
+    ${cmd_plotpfl} -f ${outname}.nc -v ${pp_var} -o "${pp_var}_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end} -ptype contourf
+    ${cmd_plotts} -f ${outname}.nc -v tx ty heat I_0 -o "gotm_ts_surface_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end}
+done

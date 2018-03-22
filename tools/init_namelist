@@ -1,0 +1,7 @@
+#!/bin/bash
+
+source activate py27
+
+editscenario --schemadir=${HOME}/models/gotm/code/schemas --targetversion=gotm-5.0 -e nml . ${HOME}/models/gotm/code/schemas/gotm-5.0.defaults --skipvalidation --assignments turb_method=99
+
+source deactivate py27
