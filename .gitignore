@@ -8,6 +8,7 @@
 *.eps
 *.ps
 *.bk
+*~
 log.*
 __pycache__
 timestamp

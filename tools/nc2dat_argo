@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+#  Qing Li, 20180322
+
+import argparse
+import sys
+import numpy as np
+from netCDF4 import Dataset
+from gotmtool import nctime_to_datetime, nctime_indices, write_pfl
+
+def main():
+    # process the input arguments
+    parser = argparse.ArgumentParser(description="""
+            Read the Argo profile data in netCDF format and
+            output the temperature and salinity profilees in a text
+            file in the GOTM input file format.""")
+    parser.add_argument('-i', '--input', action='store', dest='fname_in',
+            metavar='NCFILENAME', required=True, help='Input netCDF filename')
+    parser.add_argument('-o', '--output', action='store', dest='fname_out',
+            metavar='DATFILENAME', required=True, help='Output filename')
+    parser.add_argument('-lat', '--latitude', action='store', dest='lat',
+            metavar='LATITUDE', required=True,
+            help='Latitude of the requested location (-85, 85)')
+    parser.add_argument('-lon', '--longitude', action='store', dest='lon',
+            metavar='LONGITUDE', required=True,
+            help='Longitude of the requested location (-180, 360)')
+    parser.add_argument('-r', '--range', action='store', dest='range',
+            metavar='RANGE', required=True,
+            help='Range in degree of the searching radius')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE',
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE',
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args=parser.parse_args()
+
+    fname_in = args.fname_in
+    fname_out = args.fname_out
+    date_start = args.date_start
+    date_end = args.date_end
+    rlat = float(args.lat)
+    rlon = float(args.lon)
+    dr = float(args.range)
+    if rlon >= 180:
+        rlon = rlon - 360.0
+
+    if rlat > 85.0 or rlat < -85.0 or rlon > 180.0 or rlon < -180.0:
+        parser.print_help()
+        sys.exit(1)
+
+    # print out some message
+    print('Converting {} to {}...'.format(fname_in, fname_out))
+
+    # read data
+    infile = Dataset(fname_in, 'r')
+    # wave time
+    nctime = infile.variables['time']
+
+    # get starting and ending indices
+    tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
+    # time in datetime format
+    dttime = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end)
+
+    ntime = tidx_end+1-tidx_start
+
+    # read cast number
+    cast = infile.variables['cast'][tidx_start:tidx_end+1]
+
+    # read latitude and longitude
+    lat = infile.variables['Latitude'][tidx_start:tidx_end+1]
+    print(len(lat))
+    lon = infile.variables['Longitude'][tidx_start:tidx_end+1]
+
+    # find the indices of points within the search range
+    idx_loc = np.where(np.all([lat>=rlat-dr, lat<rlat+dr, lon>=rlon-dr,
+        lon<rlon+dr], axis=0))[0]
+
+    print(idx_loc)
+    print(cast[idx_loc])
+
+    print(lat[idx_loc])
+    print(lon[idx_loc])
+    for i in range(len(idx_loc)):
+        print(i)
+        idx = idx_loc[i]
+        print(idx)
+
+    # read depth (limited to upper 500 m)
+    idx_depth_max = 37
+    depth = infile.variables['depth'][:idx_depth_max]
+    print(depth)
+    ddat = depth
+
+    # read temperature and salinity
+    # missing_value = 1e10
+    idx_cast = cast[idx_loc]-1
+    print(idx_cast)
+    temp = infile.variables['Temperature'][idx_cast,:idx_depth_max]
+    print(temp)
+    temp_qcf = infile.variables['TempFlag'][idx_cast,:idx_depth_max]
+    print(temp_qcf)
+
+    nloc = len(idx_loc)
+    print(nloc)
+    tdat = [dttime[idx_loc[i]].isoformat(' ', 'seconds')
+            for i in range(nloc)] # truncated to seconds
+    vdat = [temp]
+    # write in file
+    write_pfl(args.fname_out, tdat, ddat, vdat, mask=np.nan)
+
+if __name__ == "__main__":
+    main()

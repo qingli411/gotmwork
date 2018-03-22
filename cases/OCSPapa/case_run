@@ -85,7 +85,9 @@ pp_vars="temp temp_obs salt salt_obs"
 
 pp_date_start=${datestart}
 pp_date_end=${dateend}
+# plot surface fluxes
+${cmd_plotts} -f ${outname}.nc -v tx ty heat I_0 -o "gotm_ts_surface_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end}
+# plot temperature and salinity
 for pp_var in ${pp_vars}; do
     ${cmd_plotpfl} -f ${outname}.nc -v ${pp_var} -o "${pp_var}_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end} -ptype contourf
-    ${cmd_plotts} -f ${outname}.nc -v tx ty heat I_0 -o "gotm_ts_surface_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end}
 done
