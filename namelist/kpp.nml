@@ -1,27 +1,57 @@
 !-------------------------------------------------------------------------------
-! KPP namelist
+! KPP turbulence model
 !-------------------------------------------------------------------------------
 ! kpp_sbl         [bool]
-!                   compute surface boundary layer mixing
+!                   .true. for active surface boundary layer module
 ! kpp_bbl         [bool]
-!                   compute bottom boundary layer mixing
+!                   .true. for active bottom boundary layer module
 ! kpp_interior    [bool]
-!                   compute internal mixing
+!                   .true. for active interior mixing
 ! clip_mld        [bool]
-!                   use clipping of MLD at Ekman and Monin-Oboukhov scale
+!                   .true. for clipping of MLD at MO or Ekman scale
 ! Ric             [float]
-!                   critical bulk Richardson number
+!                   critical value of bulk Richardson number
+! lcvmix          [bool]
+!                   .true. for using CVMix
+! lnoDGat1        [bool]
+!                   .true. for setting G'(0) = 0
 ! langmuir_method [integer]
 !                   method how Langmuir turbulence is included
-!                   0: No Langmuir turbulence effects
+!                   0: none
 !                   1: Langmuir mixing, enhancement factor approximated by a
-!                      simple enhancement factor model based on empirical wave
-!                      spectrum.
-!                   2: Langmuir mixing, enhancement factor is read from file
+!                     simple enhancement facator model based on empirical wave
+!                     spectrum
+!                   2: Langmuir mixing, enhancement factor given from file
+!                     langmuir_file
 !                   3: Langmuir mixing + Langmuir enhanced entrainment
 ! langmuir_file   [file path]
-!                   file with Langmuir enhancement factor
-!                   This variable is only used if langmuir_method = 2
+!                   file with enhancement factor
+!                   This variable is only used if (langmuir_method = 2 or
+!                     langmuir_method = 3)
+! interp_type     [string]
+!                   interpolation method used to interpolate bulk Richardson
+!                     number
+!                   linear: Linear interpolation
+!                   quadratic: Quadratic interpolation (default if not set)
+!                   cubic: Cubic spline interpolation
+! interp_type2    [string]
+!                   interpolation method used to interpolate diff and visc at
+!                     OBL depth
+!                   linear: Linear interpolation
+!                   quadratic: Quadratic interpolation
+!                   cubic: Cubic spline interpolation
+!                   cubic: Following LMD94 (default if not set)
+! MatchTechnique  [string]
+!                   interpolation method used to interpolate diff and visc at
+!                     OBL depth
+!                   SimpleShapes: Shape functions for both the gradient and
+!                     nonlocal terms vanish at interface (default if not set)
+!                   MatchGradient: Shape function for nonlocal term vanishes at
+!                     interface, but gradient term matches interior values
+!                   MatchBoth: Shape functions for both the gradient and
+!                     nonlocal term match interior values at interface
+!                   ParabolicNonLocal: Shape function for the nonlocal term is
+!                     (1-sigma)^2, gradient term is sigma*(1-sigma)^2
 !-------------------------------------------------------------------------------
 
 &kpp
@@ -31,7 +61,11 @@
    clip_mld = .false.,
    Ric = 0.3,
    lcvmix = .false.,
+   lnoDGat1 = .true.,
    langmuir_method = 0,
    langmuir_file = '',
+   interp_type = 'quadratic',
+   interp_type2 = 'LMD94',
+   MatchTechnique = 'SimpleShapes',
 /
 
