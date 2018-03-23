@@ -30,8 +30,8 @@ def nctime_indices(nctime, date_start, date_end):
     if date_start and date_end:
         dt_start = datetime.datetime.strptime(date_start, dtformat)
         dt_end = datetime.datetime.strptime(date_end, dtformat)
-        tidx_start, tidx_end = date2index([dt_start, dt_end], nctime,
-                calendar=None, select='nearest')
+        tidx_start = date2index(dt_start, nctime, calendar=None, select='before')
+        tidx_end = date2index(dt_end, nctime, calendar=None, select='after')
     else:
         tidx_start = 0
         tidx_end = ntime-1
@@ -54,12 +54,12 @@ def nctime_to_datetime(nctime, tidx_start=None, tidx_end=None):
     else:
         istart = tidx_start
         iend = tidx_end+1
-    # check if attribute exist
+    # check if attributes exist
     t_units = nctime.units
     try:
         t_cal = nctime.calendar
-    except AttributeError : # gregorian if attribute doesn't exist
-        t_cal = 'gregorian'
+    except AttributeError :
+        t_cal = 'standard'
     # return sliced datetime
     return num2date(nctime[istart:iend], units=t_units, calendar=t_cal)
 

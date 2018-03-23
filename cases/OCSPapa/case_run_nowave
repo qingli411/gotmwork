@@ -1,7 +1,7 @@
 #!/bin/bash
-# Setup and run GOTM for CORE-II
+# Setup and run GOTM for OCS Papa
 #
-# Qing Li, 20180307
+# Qing Li, 20171105
 
 #######################################################################
 #                              Set path                               #
@@ -14,9 +14,6 @@ nmldir="${workdir}/namelist"
 xmldir="${workdir}/data"
 cmd_nmlchange="${tooldir}/nmlchange"
 cmd_case_preproc="${tooldir}/case_preproc"
-cmd_nc2dat_core2ww3_usp="${tooldir}/nc2dat_core2ww3_usp"
-cmd_nc2dat_argo="${tooldir}/nc2dat_argo"
-nc2dat_method="nc2dat_latlon"
 cmd_plotpfl="${tooldir}/plotpfl"
 cmd_plotts="${tooldir}/plotts"
 
@@ -24,72 +21,34 @@ cmd_plotts="${tooldir}/plotts"
 #                           Set parameters                            #
 #######################################################################
 
-datadir="/Volumes/Qing_Work/data/COREII_IAF"
-uspdir="/Volumes/Qing_Work/data/WAVEWATCH_COREII"
-argodir="/Volumes/Qing_Work/data/obs/Argo"
-argodata="WOD13_PFL_2000.nc"
-lat=50
-lon=215
-maxdepth=300
-title="COREII_LAT${lat}_LON${lon}"
-outname="${title}"
+datadir="${HOME}/data/OCS/Papa/Papa_2008-2009"
+title="OCSPapa"
+outname="ocspapa"
 # start and end date
 datestart="20090701"
 dateend="20091231"
-uspdata="ww3.2008-2009_usp.nc"
-
 turbmethod="KPP-CVMix"
 # turbmethod="KPP-Original"
 casename="${title}_${turbmethod}_${datestart}-${dateend}"
 
-l_run_gotm="yes"
-
 #######################################################################
 #                        Preprocess input data                        #
 #######################################################################
+
 # create run dir
 rundir="${scratchdir}/${casename}"
 mkdir -p ${rundir}
 
 cd ${rundir}
-
-if [ ${l_run_gotm} == "yes" ]; then
-
 cp ${nmldir}/*.nml ./
 # read data.xml
-xmlfile="COREII.xml"
+xmlfile=${title}.xml
 cp ${xmldir}/${xmlfile} ./
-sed -i.bk "s#_TAG_NAME#\"${title}\"#g" ./${xmlfile}
-sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
-sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
-sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
-
-# input data
 ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
-    -ds ${datestart} -de ${dateend} -method ${nc2dat_method}
-
-${cmd_nc2dat_core2ww3_usp} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
-    -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
-
-tprof_name="tprof_file.dat"
-sprof_name="sprof_file.dat"
-${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-    -r 3 -ot ${tprof_name} -os ${sprof_name} \
     -ds ${datestart} -de ${dateend}
 
-${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
-${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
-${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
-
-${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
-${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
-${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
-${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_name}
-
-${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
-${cmd_nmlchange} -f obs.nml -e nfreq -v 3
-${cmd_nmlchange} -f obs.nml -e ustokes_file -v "usp_file.dat"
-
+${cmd_nmlchange} -f obs.nml -e spec_method -v 2
+${cmd_nmlchange} -f obs.nml -e spec_file -v 'spec_file.dat'
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
 ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
@@ -97,17 +56,27 @@ ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
 # turn on CVMix
 ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
 
-#######################################################################
-#                              Run GOTM                               #
-#######################################################################
+########################################################################
+##                              Run GOTM                               #
+########################################################################
 gotm 2> log.${outname}
 
-fi # l_run_gotm
 #######################################################################
 #                           Postprocessing                            #
 #######################################################################
 
+pp_mmdd_start=("0101" "0201" "0301" "0401" "0501" "0601" "0701" "0801" "0901" "1001" "1101" "1201")
+pp_mmdd_end=("0131" "0228" "0331" "0430" "0531" "0630" "0731" "0831" "0930" "1031" "1130" "1231")
+pp_year="2016"
 pp_vars="temp temp_obs salt salt_obs"
+# for i in {0..11}; do
+#     pp_date_start="${pp_year}${pp_mmdd_start[i]}"
+#     pp_date_end="${pp_year}${pp_mmdd_end[i]}"
+#     for pp_var in ${pp_vars}; do
+#         ${cmd_plotpfl} -f ${outname}.nc -v ${pp_var} -o "${pp_var}_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end}
+#     done
+# done
+
 pp_date_start=${datestart}
 pp_date_end=${dateend}
 # plot surface fluxes

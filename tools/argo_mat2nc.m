@@ -48,11 +48,14 @@ var2dLongName = {'Salinity',...
 var2dUnits = {'psu', 'degC', 'unitless', 'unitless'};
 var2dType = {'NC_DOUBLE', 'NC_DOUBLE', 'NC_INT', 'NC_INT'};
 
-
 nvar1d = numel(var1dListOut);
 nvar2d = numel(var2dListOut);         
 
 date_str = datestr(now,'yyyymmdd');
+
+% fill values
+fv_int = netcdf.getConstant('NC_FILL_INT');
+fv_double = netcdf.getConstant('NC_FILL_DOUBLE');
 
 % create netCDF
 ncid = netcdf.create(outdata,'NETCDF4');
@@ -76,28 +79,38 @@ netcdf.putAtt(ncid, varid_cast, 'units', 'unitless');
 varid1d = zeros(nvar1d,1);
 varid2d = zeros(nvar2d,1);
 for i = 1:nvar1d
+    if strcmp(var1dType{i}, 'NC_INT')
+        fillvalue = fv_int;
+    elseif strcmp(var1dType{i}, 'NC_DOUBLE')
+        fillvalue = fv_double;
+    end
     varid1d(i) = netcdf.defVar(ncid, var1dListOut{i},...
         var1dType{i}, castDimId);
-    netcdf.defVarFill(ncid,varid1d(i),false,NaN)
+    netcdf.defVarFill(ncid, varid1d(i), false, fillvalue)
     netcdf.putAtt(ncid, varid1d(i), 'long_name', var1dLongName{i});
     netcdf.putAtt(ncid, varid1d(i), 'units', var1dUnits{i});
 end
 for i = 1:nvar2d
+    if strcmp(var2dType{i}, 'NC_INT')
+        fillvalue = fv_int;
+    elseif strcmp(var2dType{i}, 'NC_DOUBLE')
+        fillvalue = fv_double;
+    end
     varid2d(i) = netcdf.defVar(ncid, var2dListOut{i},...
         var2dType{i}, [zDimId, castDimId]);
-    netcdf.defVarFill(ncid,varid2d(i),false,NaN)
+    netcdf.defVarFill(ncid, varid2d(i), false, fillvalue)
     netcdf.putAtt(ncid, varid2d(i), 'long_name', var2dLongName{i});
     netcdf.putAtt(ncid, varid2d(i), 'units', var2dUnits{i});
 end
 % global attributes
 varid_global = netcdf.getConstant('NC_GLOBAL');
-netcdf.putAtt(ncid, varid_global, 'date', char(datetime));
 title = 'Argo profile data from 2004 to 2013 (WOD13_PFL_2000)';
 netcdf.putAtt(ncid, varid_global, 'title', title);
+netcdf.putAtt(ncid, varid_global, 'date', char(datetime));
 history = 'Converted from WOD13_PFL_2000.mat';
 netcdf.putAtt(ncid, varid_global, 'history', history);
-
-
+netcdf.putAtt(ncid, varid_global, 'script', 'argo_mat2nc.m');
+netcdf.putAtt(ncid, varid_global, '_FillValue', fv_double);
 
 % end define mode
 netcdf.endDef(ncid);

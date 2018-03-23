@@ -13,7 +13,7 @@
 begin
 
 ; define parameters
-    yyyy = "2009"
+    yyyy = "2008-2009"
     dlabel = "23OCT2012"
 
 ; define file names

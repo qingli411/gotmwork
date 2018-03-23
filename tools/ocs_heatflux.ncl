@@ -5,10 +5,12 @@
 ; Qing Li, 20171108
 
 begin
-    dataDir = "/Users/qingli/data/OCS/Papa/Papa_20100616-20150101/"
-    loc_str = "50n145w"
+    ; dataDir = "/Users/qingli/data/OCS/Papa/Papa_20100616-20150101/"
+    ; dataDir = "/Users/qingli/data/OCS/Papa/Papa_2008-2009/"
+    ; loc_str = "50n145w"
     ; dataDir = "/Users/qingli/data/OCS/KEO/2016/"
-    ; loc_str = "32n145e"
+    dataDir = "/Users/qingli/data/OCS/KEO/KEO_2008-2009/"
+    loc_str = "32n145e"
     ; dataDir = "/Users/qingli/data/OCS/ARC/2016/"
     ; loc_str = "39s30e"
     qlatfile = "qlat"+loc_str+"_hr.cdf"

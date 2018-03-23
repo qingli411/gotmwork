@@ -6,7 +6,8 @@
 import argparse
 import sys
 import numpy as np
-from netCDF4 import Dataset
+import datetime
+from netCDF4 import Dataset, date2num, num2date
 from gotmtool import nctime_to_datetime, nctime_indices, write_pfl
 
 def main():
@@ -17,8 +18,6 @@ def main():
             file in the GOTM input file format.""")
     parser.add_argument('-i', '--input', action='store', dest='fname_in',
             metavar='NCFILENAME', required=True, help='Input netCDF filename')
-    parser.add_argument('-o', '--output', action='store', dest='fname_out',
-            metavar='DATFILENAME', required=True, help='Output filename')
     parser.add_argument('-lat', '--latitude', action='store', dest='lat',
             metavar='LATITUDE', required=True,
             help='Latitude of the requested location (-85, 85)')
@@ -28,6 +27,12 @@ def main():
     parser.add_argument('-r', '--range', action='store', dest='range',
             metavar='RANGE', required=True,
             help='Range in degree of the searching radius')
+    parser.add_argument('-ot', '--output_temp', action='store',
+            dest='fname_out_temp', metavar='DATFILENAME',
+            help='Output filename for temperature profile')
+    parser.add_argument('-os', '--output_salt', action='store',
+            dest='fname_out_salt', metavar='DATFILENAME',
+            help='Output filename for salinity profile')
     parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
             metavar='STARTDATE',
             help='Starting date of input data, in the format of YYYYMMDD')
@@ -38,8 +43,8 @@ def main():
     # parsing arguments and save to args
     args=parser.parse_args()
 
+    # check arguments
     fname_in = args.fname_in
-    fname_out = args.fname_out
     date_start = args.date_start
     date_end = args.date_end
     rlat = float(args.lat)
@@ -52,65 +57,91 @@ def main():
         parser.print_help()
         sys.exit(1)
 
+    if args.fname_out_temp:
+        fname_out_temp = args.fname_out_temp
+    else:
+        fname_out_temp = 'tprof_file.dat'
+
+    if args.fname_out_salt:
+        fname_out_salt = args.fname_out_salt
+    else:
+        fname_out_salt = 'sprof_file.dat'
+
     # print out some message
-    print('Converting {} to {}...'.format(fname_in, fname_out))
+    print('Converting {} to {} and {}...'.format(fname_in, fname_out_temp, fname_out_salt))
 
     # read data
     infile = Dataset(fname_in, 'r')
-    # wave time
-    nctime = infile.variables['time']
-
-    # get starting and ending indices
-    tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
-    # time in datetime format
-    dttime = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end)
-
-    ntime = tidx_end+1-tidx_start
-
-    # read cast number
-    cast = infile.variables['cast'][tidx_start:tidx_end+1]
+    attlist = infile.ncattrs()
 
     # read latitude and longitude
-    lat = infile.variables['Latitude'][tidx_start:tidx_end+1]
-    print(len(lat))
-    lon = infile.variables['Longitude'][tidx_start:tidx_end+1]
+    lat = infile.variables['Latitude'][:]
+    lon = infile.variables['Longitude'][:]
 
     # find the indices of points within the search range
     idx_loc = np.where(np.all([lat>=rlat-dr, lat<rlat+dr, lon>=rlon-dr,
         lon<rlon+dr], axis=0))[0]
 
-    print(idx_loc)
-    print(cast[idx_loc])
+    # read time
+    nctime = infile.variables['time']
+    nptime = nctime[idx_loc]
 
-    print(lat[idx_loc])
-    print(lon[idx_loc])
-    for i in range(len(idx_loc)):
-        print(i)
-        idx = idx_loc[i]
-        print(idx)
+    # check if attributes exist
+    t_units = nctime.units
+    try:
+        t_cal = nctime.calendar
+    except AttributeError :
+        t_cal = 'standard'
+
+    # get starting and ending indices
+    dtformat = '%Y%m%d'
+    dt_start = datetime.datetime.strptime(date_start, dtformat)
+    dt_end = datetime.datetime.strptime(date_end, dtformat)
+    dnum_start = date2num(dt_start, units=t_units, calendar=t_cal)
+    dnum_end = date2num(dt_end, units=t_units, calendar=t_cal)
+    tidx_start = np.searchsorted(nptime, dnum_start, side='left')-1
+    tidx_end = np.searchsorted(nptime, dnum_end, side='right')
+    # time in datetime format
+    dttime = num2date(nptime[tidx_start:tidx_end+1], units=t_units, calendar=t_cal)
+
+    # truncate time to seconds
+    ntime = tidx_end+1-tidx_start
+    tdat = [dttime[i].isoformat(' ', 'seconds')
+            for i in range(ntime)]
+
+    # read cast number to get the indices in the full record
+    cast = infile.variables['cast'][idx_loc]
+
+    # indices in the full record
+    idx_cast = cast[tidx_start:tidx_end+1]-1
 
     # read depth (limited to upper 500 m)
     idx_depth_max = 37
     depth = infile.variables['depth'][:idx_depth_max]
-    print(depth)
-    ddat = depth
+    ddat = -abs(depth)
+
+    # get global missing value
+    if 'missing_value' in attlist:
+        gmvalue = infile.missing_value
+    elif '_FillValue' in attlist:
+        gmvalue = infile._FillValue
+    else:
+        # turn off auto mask, handled in write_pfl()
+        infile.set_auto_mask(False)
+        gmvalue = np.nan
 
     # read temperature and salinity
-    # missing_value = 1e10
-    idx_cast = cast[idx_loc]-1
-    print(idx_cast)
+    np.warnings.filterwarnings('ignore')
     temp = infile.variables['Temperature'][idx_cast,:idx_depth_max]
-    print(temp)
     temp_qcf = infile.variables['TempFlag'][idx_cast,:idx_depth_max]
-    print(temp_qcf)
+    temp[temp_qcf>0] = gmvalue
+    salt= infile.variables['Salinity'][idx_cast,:idx_depth_max]
+    salt_qcf = infile.variables['SalnFlag'][idx_cast,:idx_depth_max]
+    salt[temp_qcf>0] = gmvalue
 
-    nloc = len(idx_loc)
-    print(nloc)
-    tdat = [dttime[idx_loc[i]].isoformat(' ', 'seconds')
-            for i in range(nloc)] # truncated to seconds
-    vdat = [temp]
     # write in file
-    write_pfl(args.fname_out, tdat, ddat, vdat, mask=np.nan)
+    write_pfl(fname_out_temp, tdat, ddat, [temp], mask=gmvalue)
+    write_pfl(fname_out_salt, tdat, ddat, [salt], mask=gmvalue)
 
 if __name__ == "__main__":
     main()
