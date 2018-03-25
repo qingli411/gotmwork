@@ -129,6 +129,40 @@ def ncread_ts(ncvar, tidx_start=None, tidx_end=None):
         dat = None
     return dat
 
+def ncread_dim_time(infile, date_start, date_end):
+    """Read the time dimension within the given range from
+    a netCDF file.
+
+    :infile: (netCDF4 Dataset) input netCDF file
+    :date_start: (str) starting date, in the format of YYYYMMDD
+    :date_end: (str) ending date, in the format of YYYYMMDD
+    :returns: dttime, tidx_start, tidx_end
+    ::dttime: (datetime obj) time in datetime format
+    ::tidx_start: (int) starting index
+    ::tidx_end: (int) ending index
+
+    """
+    # read time
+    varlist = infile.variables.keys()
+    if 'time' in varlist:
+        nctime = infile.variables['time']
+    elif 'TIME' in varlist:
+        nctime = infile.variables['TIME']
+    else:
+        print('Time dimension is required and should have the name \"time\" or \"TIME\"')
+
+    # get starting and ending indices
+    tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
+
+    # nctime -> datetime
+    dttime = nctime_to_datetime(nctime, tidx_start, tidx_end)
+
+    # print some message
+    print_dttime_range(dttime)
+
+    # return
+    return dttime, tidx_start, tidx_end
+
 def write_ts(fnout, tdat, vdat, mask=None):
     """Write time series in GOTMv5 format.
 

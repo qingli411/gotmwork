@@ -30,7 +30,7 @@ def main():
     parser.add_argument('-de', '--date_end', action='store', dest='date_end',
             metavar='ENDDATE',
             help='Ending date of input data, in the format of YYYYMMDD')
-    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
     # parsing arguments and save to args
     args = parser.parse_args()
 
@@ -47,30 +47,12 @@ def main():
 
     # read data
     infile = Dataset(args.fname, 'r')
-    varlist = infile.variables.keys()
-
-    # read time
-    if 'time' in varlist:
-        nctime = infile.variables['time']
-    elif 'TIME' in varlist:
-        nctime = infile.variables['TIME']
-    else:
-        print('Time dimension is required and should have the name \"time\" or \"TIME\"')
-
-    # get starting and ending indices
-    tidx_start, tidx_end = nctime_indices(nctime, args.date_start,
-            args.date_end)
-
-    # nctime -> datetime
-    dttime = nctime_to_datetime(nctime, tidx_start, tidx_end)
-
-    # print some message
-    print_dttime_range(dttime)
+    dttime, tidx_start, tidx_end = ncread_dim_time(infile, args.date_start, args.date_end)
 
     # do the same for input file 2
     if l_f2:
         infile2 = Dataset(args.fname2, 'r')
-        varlist2 = infile2.varables.keys()
+        dttime2, tidx_start2, tidx_end2 = ncread_dim_time(infile2, args.date_start, args.date_end)
 
     # number of subfigure
     nv = len(args.vname)
@@ -85,6 +67,11 @@ def main():
         dat = ncread_ts(ncvar, tidx_start, tidx_end)
         # skip the first data point
         plt.plot(dttime[1:], dat[1:], '-k', linewidth=1.5)
+        if l_f2:
+            # add the second line
+            ncvar2 = infile2.variables[varname]
+            dat2 = ncread_ts(ncvar2, tidx_start2, tidx_end2)
+            plt.plot(dttime2[1:], dat2[1:], '-r', linewidth=1.5)
         f = plt.gcf()
         f.set_size_inches(fig_width, fig_height)
         plt.ylabel(varname)
@@ -99,13 +86,18 @@ def main():
         f, axarr = plt.subplots(nv, sharex=True)
         f.set_size_inches(fig_width, fig_height)
         for i in range(nv):
+            ax = axarr[i]
             # read data
             varname = args.vname[i]
             ncvar = infile.variables[varname]
             dat = ncread_ts(ncvar, tidx_start, tidx_end)
             # skip the first data point
-            ax = axarr[i]
             ax.plot(dttime[1:], dat[1:], '-k', linewidth=1.5)
+            if l_f2:
+                # add the second line
+                ncvar2 = infile2.variables[varname]
+                dat2 = ncread_ts(ncvar2, tidx_start2, tidx_end2)
+                ax.plot(dttime2[1:], dat2[1:], '-r', linewidth=1.5)
             ax.set_ylabel(varname)
             # use scientific notation in y-axis label
             ax.ticklabel_format(axis='y', style='sci', scilimits=(-2,2))

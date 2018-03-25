@@ -17,6 +17,8 @@ def main():
         Plot time series of profile from GOTM.""")
     parser.add_argument('-f', '--file', action='store', dest='fname',
             metavar='FILENAME', help='Input GOTM data')
+    parser.add_argument('-f2', '--file2', action='store', dest='fname2',
+            metavar='FILENAME', help='Input GOTM data 2')
     parser.add_argument('-v', '--variable', action='store', dest='vname',
             metavar='VARNAME', help='Variable name')
     parser.add_argument('-o', '--output', action='store', dest='fname_out',
@@ -29,7 +31,7 @@ def main():
     parser.add_argument('-de', '--date_end', action='store', dest='date_end',
             metavar='ENDDATE',
             help='Ending date of input data, in the format of YYYYMMDD')
-    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
     # parsing arguments and save to args
     args = parser.parse_args()
 
@@ -50,13 +52,9 @@ def main():
 
     # read data
     infile = Dataset(args.fname, 'r')
-    varlist = infile.variables.keys()
-    if 'time' in varlist:
-        nctime = infile.variables['time']
-    elif 'TIME' in varlist:
-        nctime = infile.variables['TIME']
-    else:
-        print('Time dimension is required and should have the name \"time\" or \"TIME\"')
+
+    # read time
+    dttime, tidx_start, tidx_end = ncread_dim_time(infile, args.date_start, args.date_end)
 
     # try to read missing_value if it exists
     try:
@@ -68,9 +66,162 @@ def main():
     # read variable
     ncvar = infile.variables[args.vname]
 
+    # read z coordinate
+    z = read_z(infile, ncvar)
+
+    # read profile
+    mdl = ncread_pfl(ncvar, tidx_start, tidx_end)
+    if mdl is None:
+        print('The variable {} has {} dimension, not supported'
+                .format(ncvar.name, ncvar.ndim))
+        sys.exit(1)
+
+    # remove missing values if exist
+    if not mvalue is None:
+        mdl[np.where(mdl == mvalue)] = np.NaN
+    # mask out NaN
+    mdl = np.ma.array(mdl, mask=np.isnan(mdl))
+
+    # get levels
+    levels = set_levels(mdl)
+    c_min = levels[0]
+    c_max = levels[-1]
+
+    if not args.fname2:
+        # single plot
+
+        # set figure size
+        fig_height = 3
+        fig_width = 6
+
+        # plot figure
+        if ptype == 'pcolor':
+            im = plt.pcolor(dttime, z, np.transpose(mdl), vmin=c_min, vmax=c_max)
+        elif ptype == 'scatter':
+            nz = len(z)
+            nt = len(dttime)
+            for i in range(nz):
+                yy = np.ones([nt,1])
+                im = plt.scatter(dttime, yy*z[i], c=mdl[:,i], s=1,
+                        vmin=c_min, vmax=c_max)
+                plt.xlim([dttime[0], dttime[-1]])
+                plt.ylim([min(z),max(z)])
+        else:
+            # contourf by default
+            im = plt.contourf(dttime, z, np.transpose(mdl), levels, extend='both')
+        plt.ylabel('Depth (m)')
+
+        # set figure size
+        f = plt.gcf()
+        f.set_size_inches(fig_width, fig_height)
+
+        # scientific notation for colorbar labels
+        cb = plt.colorbar(im)
+        cb.formatter.set_powerlimits((-2, 2))
+        cb.update_ticks()
+
+    else:
+        # double plots
+
+        # read data
+        infile2 = Dataset(args.fname2, 'r')
+
+        # read time
+        dttime2, tidx_start2, tidx_end2 = ncread_dim_time(infile2, args.date_start, args.date_end)
+
+        # try to read missing_value if it exists
+        try:
+            mvalue2 = infile2.missing_value
+        except AttributeError:
+            infile2.set_auto_mask(False)
+            mvalue2 = None
+
+        # read variable
+        ncvar2 = infile2.variables[args.vname]
+
+        # read z coordinate
+        z2 = read_z(infile2, ncvar2)
+
+        # read profile
+        mdl2 = ncread_pfl(ncvar2, tidx_start2, tidx_end2)
+        if mdl2 is None:
+            print('The variable {} has {} dimension, not supported'
+                    .format(ncvar2.name, ncvar2.ndim))
+            sys.exit(1)
+
+        # remove missing values if exist
+        if not mvalue2 is None:
+            mdl2[np.where(mdl2 == mvalue2)] = np.NaN
+        # mask out NaN
+        mdl2 = np.ma.array(mdl2, mask=np.isnan(mdl2))
+
+        # set figure size
+        fig_height = 6
+        fig_width = 6
+
+        # plot figure
+        f, axarr = plt.subplots(2, sharex=True)
+        f.set_size_inches(fig_width, fig_height)
+
+        if ptype == 'pcolor':
+            im = axarr[0].pcolor(dttime, z, np.transpose(mdl), vmin=c_min, vmax=c_max)
+            im2 = axarr[1].pcolor(dttime2, z2, np.transpose(mdl2), vmin=c_min, vmax=c_max)
+        elif ptype == 'scatter':
+            nz = len(z)
+            nt = len(dttime)
+            for i in range(nz):
+                yy = np.ones([nt,1])
+                im = axarr[0].scatter(dttime, yy*z[i], c=mdl[:,i], s=1,
+                        vmin=c_min, vmax=c_max)
+                axarr[0].set_xlim([dttime[0], dttime[-1]])
+                axarr[0].set_ylim([min(z),max(z)])
+            nz2 = len(z2)
+            nt2 = len(dttime2)
+            for i in range(nz2):
+                yy = np.ones([nt2,1])
+                im2 = axarr[1].scatter(dttime2, yy*z2[i], c=mdl2[:,i], s=1,
+                        vmin=c_min, vmax=c_max)
+                axarr[1].set_xlim([dttime[0], dttime[-1]])
+                axarr[1].set_ylim([min(z2),max(z2)])
+        else:
+            # contourf by default
+            im = axarr[0].contourf(dttime, z, np.transpose(mdl), levels, extend='both')
+            im2 = axarr[1].contourf(dttime2, z2, np.transpose(mdl2), levels, extend='both')
+
+        axarr[0].set_ylabel('Depth (m)')
+        axarr[1].set_ylabel('Depth (m)')
+
+        # scientific notation for colorbar labels
+        cb = plt.colorbar(im, ax=axarr[0])
+        cb.formatter.set_powerlimits((-2, 2))
+        cb.update_ticks()
+        cb2 = plt.colorbar(im2, ax=axarr[1])
+        cb2.formatter.set_powerlimits((-2, 2))
+        cb2.update_ticks()
+
+    # auto adjust the x-axis label
+    plt.gcf().autofmt_xdate()
+
+    # save figure
+    if args.fname_out:
+        figname = args.fname_out
+    else:
+        figname = args.vname
+
+    plt.savefig(figname)
+
+def read_z(infile, ncvar):
+    """Read the z coordinate of a variable in a netCDF file
+
+    :infile: (netCDF4 Dataset) input netCDF file
+    :ncvar: (netCDF variable) variable
+    :returns: z coordinate (negative below the surface)
+
+    """
     # choose veritcal coordinate
+    varlist = infile.variables.keys()
     if 'z' in varlist:
-        # GOTM output
+        # GOTM output (fixed z)
         coord = ncvar.coordinates
         if 'zi' in coord:
             z = infile.variables['zi'][0,:,0,0]
@@ -84,71 +235,7 @@ def main():
         z = -abs(infile.variables['DEPTH'][:])
     else:
         print('Depth dimension is required and should have the name \"z\" or \"depth\" or \"DEPTH\"')
-
-    # get starting and ending indices
-    tidx_start, tidx_end = nctime_indices(nctime, args.date_start,
-            args.date_end)
-
-    # nctime -> datetime
-    dttime = nctime_to_datetime(nctime, tidx_start, tidx_end)
-
-    # read profile
-    mdl = ncread_pfl(ncvar, tidx_start, tidx_end)
-    if mdl is None:
-        print('The variable {} has {} dimension, not supported'
-                .format(ncvar.name, ncvar.ndim))
-        sys.exit(1)
-
-    # print some message
-    print_dttime_range(dttime)
-
-    # remove missing values if exist
-    if not mvalue is None:
-        mdl[np.where(mdl == mvalue)] = np.NaN
-    # mask out NaN
-    mdl = np.ma.array(mdl, mask=np.isnan(mdl))
-
-    # get levels
-    levels = set_levels(mdl)
-    c_min = levels[0]
-    c_max = levels[-1]
-    # plot figure
-    if ptype == 'pcolor':
-        im = plt.pcolor(dttime, z, np.transpose(mdl), vmin=c_min, vmax=c_max)
-    elif ptype == 'scatter':
-        nz = len(z)
-        nt = len(dttime)
-        for i in range(nz):
-            yy = np.ones([nt,1])
-            im = plt.scatter(dttime, yy*z[i], c=mdl[:,i], s=1,
-                    vmin=c_min, vmax=c_max)
-            plt.xlim([dttime[0], dttime[-1]])
-            plt.ylim([min(z),max(z)])
-    else:
-        # contourf by default
-        im = plt.contourf(dttime, z, np.transpose(mdl), levels, extend='both')
-    # auto adjust the x-axis label
-    plt.gcf().autofmt_xdate()
-    plt.ylabel('Depth (m)')
-    cb = plt.colorbar(im)
-
-    # scientific notation for colorbar labels
-    cb.formatter.set_powerlimits((-2, 2))
-    cb.update_ticks()
-
-    # set figure size
-    fig_height = 3
-    fig_width = 6
-    f = plt.gcf()
-    f.set_size_inches(fig_width, fig_height)
-
-    # save figure
-    if args.fname_out:
-        figname = args.fname_out
-    else:
-        figname = args.vname
-
-    plt.savefig(figname)
+    return z
 
 def set_levels(data):
     """Set contour levels by the 99th and 1st percentiles of the data.
