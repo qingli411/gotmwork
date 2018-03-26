@@ -7,91 +7,104 @@
 #                              Set path                               #
 #######################################################################
 
+# root directory for gotmwork
 workdir="${HOME}/models/gotm/gotmwork"
+
+# scratch directory to run the case
 scratchdir="${HOME}/work/gotmrun"
-tooldir="${workdir}/tools"
-nmldir="${workdir}/namelist"
-xmldir="${workdir}/data"
-cmd_nmlchange="${tooldir}/nmlchange"
-cmd_case_preproc="${tooldir}/case_preproc"
-cmd_nc2dat_core2ww3_usp="${tooldir}/nc2dat_core2ww3_usp"
-cmd_nc2dat_argo="${tooldir}/nc2dat_argo"
-nc2dat_method="nc2dat_latlon"
-cmd_plotpfl="${tooldir}/plotpfl"
-cmd_plotts="${tooldir}/plotts"
+
+# setup paths and tools
+source ${workdir}/set_tools.sh
+
+# input data - surface fluxes
+datadir="/Volumes/Qing_Work/data/COREII_IAF"
+
+# input data - waves
+uspdir="/Volumes/Qing_Work/data/WAVEWATCH_COREII"
+uspdata="ww3.2008-2009_usp.nc"
+
+# input data - Argo profiles for initialization
+argodir="/Volumes/Qing_Work/data/obs/Argo"
+argodata="WOD13_PFL_2000.nc"
 
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
 
-datadir="/Volumes/Qing_Work/data/COREII_IAF"
-uspdir="/Volumes/Qing_Work/data/WAVEWATCH_COREII"
-argodir="/Volumes/Qing_Work/data/obs/Argo"
-argodata="WOD13_PFL_2000.nc"
+# name of the dataset
+title="COREII"
+
+# set locations
 lat=50
 lon=215
 maxdepth=300
-title="COREII_LAT${lat}_LON${lon}"
-outname="${title}"
-# start and end date
+
+# output file name
+outname="gotm_out"
+
+# starting and ending date - in the format of YYYYMMDD
 datestart="20090701"
 dateend="20091231"
-uspdata="ww3.2008-2009_usp.nc"
 
+# name of the turbulence model
 turbmethod="KPP-CVMix"
 # turbmethod="KPP-Original"
-casename="${title}_${turbmethod}_${datestart}-${dateend}"
 
+# case name
+casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
+
+#
 l_run_gotm="yes"
 
 #######################################################################
 #                        Preprocess input data                        #
 #######################################################################
-# create run dir
+
+# create run directory
 rundir="${scratchdir}/${casename}"
 mkdir -p ${rundir}
-
 cd ${rundir}
 
 if [ ${l_run_gotm} == "yes" ]; then
-
+# set up namelists
 cp ${nmldir}/*.nml ./
-# read data.xml
-xmlfile="COREII.xml"
+
+xmlfile=${title}.xml
 cp ${xmldir}/${xmlfile} ./
-sed -i.bk "s#_TAG_NAME#\"${title}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 
-# input data
+# general setup for the surface fluxes
 ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
-    -ds ${datestart} -de ${dateend} -method ${nc2dat_method}
+    -ds ${datestart} -de ${dateend} -method nc2dat_latlon
+${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
 
+# use meteo data instead of fluxes
+${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
+${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
+${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
+
+# processing Stokes drift data
 ${cmd_nc2dat_core2ww3_usp} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
     -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
+${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
+${cmd_nmlchange} -f obs.nml -e nfreq -v 3
+${cmd_nmlchange} -f obs.nml -e ustokes_file -v "usp_file.dat"
 
+# processing Argo data for initialization
 tprof_name="tprof_file.dat"
 sprof_name="sprof_file.dat"
 ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
     -r 3 -ot ${tprof_name} -os ${sprof_name} \
     -ds ${datestart} -de ${dateend}
-
-${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
-${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
-${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
-
 ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
 ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
 ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
 ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_name}
 
-${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
-${cmd_nmlchange} -f obs.nml -e nfreq -v 3
-${cmd_nmlchange} -f obs.nml -e ustokes_file -v "usp_file.dat"
-
-${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
-${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+# set turbulence model
 ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
 
 # turn on CVMix
@@ -107,12 +120,5 @@ fi # l_run_gotm
 #                           Postprocessing                            #
 #######################################################################
 
-pp_vars="temp temp_obs salt salt_obs"
-pp_date_start=${datestart}
-pp_date_end=${dateend}
-# plot surface fluxes
-${cmd_plotts} -f ${outname}.nc -v tx ty heat I_0 -o "gotm_ts_surface_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end}
-# plot temperature and salinity
-for pp_var in ${pp_vars}; do
-    ${cmd_plotpfl} -f ${outname}.nc -v ${pp_var} -o "${pp_var}_${pp_date_start}-${pp_date_end}.pdf" -ds ${pp_date_start} -de ${pp_date_end} -ptype contourf
-done
+# plot surface forcing and profiles
+source ${scpt_case_postproc}

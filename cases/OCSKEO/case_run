@@ -4,43 +4,76 @@
 # Qing Li, 20171211
 
 #######################################################################
-#                              Set path                               #
+#                              Set paths                              #
 #######################################################################
 
+# root directory for gotmwork
 workdir="${HOME}/models/gotm/gotmwork"
-tooldir="${workdir}/tools"
-nmldir="${workdir}/namelist"
-xmldir="${workdir}/data"
-cmd_nc2dat="${tooldir}/nc2dat"
-cmd_nmlchange="${tooldir}/nmlchange"
-cmd_case_preproc="${tooldir}/case_preproc"
+
+# scratch directory to run the case
+scratchdir="${HOME}/work/gotmrun"
+
+# setup paths and tools
+source ${workdir}/set_tools.sh
+
+# input data - surface fluxes
+datadir="${HOME}/data/OCS/KEO/KEO_2008-2009"
 
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
 
-datadir="${HOME}/data/OCS/KEO/2016"
+# name of the dataset
 title="OCSKEO"
-outname="ocskeo"
-# start and end date
-datestart="20160325"
-dateend="20160411"
+
+# output file name
+outname="gotm_out"
+
+# starting and ending date - in the format of YYYYMMDD
+datestart="20080102"
+dateend="20081231"
+
+# name of the turbulence model
+turbmethod="KPP-CVMix"
+# turbmethod="KPP-Original"
+
+# case name
+casename="${title}_${turbmethod}_${datestart}-${dateend}"
 
 #######################################################################
 #                        Preprocess input data                        #
 #######################################################################
+
+# create run directory
+rundir="${scratchdir}/${casename}"
+mkdir -p ${rundir}
+cd ${rundir}
+
+# set up namelists
 cp ${nmldir}/*.nml ./
-# read data.xml
+
+# general setup for the surface fluxes
 xmlfile=${title}.xml
 cp ${xmldir}/${xmlfile} ./
 ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
     -ds ${datestart} -de ${dateend}
-
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+
+# set turbulence model
 ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+
+# turn on CVMix
+${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
 
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
 gotm 2> log.${outname}
+
+#######################################################################
+#                           Post-processing                           #
+#######################################################################
+
+# plot surface forcing and profiles
+source ${scpt_case_postproc}

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<data name=_TAG_NAME lat=_TAG_LAT lon=_TAG_LON maxdepth=_TAG_MAXDEPTH >
+<data name="COREII" lat=_TAG_LAT lon=_TAG_LON maxdepth=_TAG_MAXDEPTH >
     <var name="meteo">
         <longname>Meteorology data</longname>
-        <filename>meteo.2008-2009.23OCT2012.nc</filename>
+        <filename>meteo.nc</filename>
         <vartype>meteo</vartype>
         <varname_u10>U_10_MOD</varname_u10>
         <varname_v10>V_10_MOD</varname_v10>
@@ -15,7 +15,7 @@
     </var>
     <var name="swr">
         <longname>Shortwave radiation (W/m2)</longname>
-        <filename>ncar_rad.2008-2009.23OCT2012.nc</filename>
+        <filename>ncar_rad.nc</filename>
         <vartype>scalar</vartype>
         <varname>SWDN_MOD</varname>
         <outname>swr_file.dat</outname>
