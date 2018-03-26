@@ -30,7 +30,7 @@ title="OCSKEO"
 outname="gotm_out"
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20080102"
+datestart="20080701"
 dateend="20081231"
 
 # name of the turbulence model

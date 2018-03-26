@@ -21,6 +21,8 @@ def main():
             metavar='FILENAME', help='Input GOTM data 2')
     parser.add_argument('-v', '--variable', action='store', dest='vname',
             metavar='VARNAME', help='Variable name')
+    parser.add_argument('-v2', '--variable2', action='store', dest='vname2',
+            metavar='VARNAME', help='Variable name 2')
     parser.add_argument('-o', '--output', action='store', dest='fname_out',
             metavar='FIGNAME', help='Output figure name')
     parser.add_argument('-ptype', '--ptype', action='store', dest='ptype',
@@ -72,8 +74,7 @@ def main():
     # read profile
     mdl = ncread_pfl(ncvar, tidx_start, tidx_end)
     if mdl is None:
-        print('The variable {} has {} dimension, not supported'
-                .format(ncvar.name, ncvar.ndim))
+        print('The variable {} has {} dimension, not supported'.format(ncvar.name, ncvar.ndim))
         sys.exit(1)
 
     # remove missing values if exist
@@ -137,7 +138,10 @@ def main():
             mvalue2 = None
 
         # read variable
-        ncvar2 = infile2.variables[args.vname]
+        if args.vname2:
+            ncvar2 = infile2.variables[args.vname2]
+        else:
+            ncvar2 = infile2.variables[args.vname]
 
         # read z coordinate
         z2 = read_z(infile2, ncvar2)
@@ -145,8 +149,7 @@ def main():
         # read profile
         mdl2 = ncread_pfl(ncvar2, tidx_start2, tidx_end2)
         if mdl2 is None:
-            print('The variable {} has {} dimension, not supported'
-                    .format(ncvar2.name, ncvar2.ndim))
+            print('The variable {} has {} dimension, not supported'.format(ncvar2.name, ncvar2.ndim))
             sys.exit(1)
 
         # remove missing values if exist
@@ -208,7 +211,7 @@ def main():
     else:
         figname = args.vname
 
-    plt.savefig(figname)
+    plt.savefig(figname, dpi = 300)
 
 def read_z(infile, ncvar):
     """Read the z coordinate of a variable in a netCDF file

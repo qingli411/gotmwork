@@ -34,12 +34,12 @@ title="OCSPapa"
 outname="gotm_out"
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20130701"
+datestart="20130101"
 dateend="20140701"
 
 # name of the turbulence model
-# turbmethod="KPP-CVMix"
-turbmethod="KPP-Original"
+turbmethod="KPP-CVMix"
+# turbmethod="KPP-Original"
 
 # case name
 casename="${title}_${turbmethod}_${datestart}-${dateend}"

@@ -109,7 +109,7 @@ def main():
 
     # save figure
     figname = args.fname_out
-    plt.savefig(figname)
+    plt.savefig(figname, dpi=300)
 
 if __name__ == "__main__":
     main()

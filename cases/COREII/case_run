@@ -35,16 +35,16 @@ argodata="WOD13_PFL_2000.nc"
 title="COREII"
 
 # set locations
-lat=50
-lon=215
-maxdepth=300
+lat=32
+lon=145
+maxdepth=525
 
 # output file name
 outname="gotm_out"
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20090701"
-dateend="20091231"
+datestart="20080701"
+dateend="20081231"
 
 # name of the turbulence model
 turbmethod="KPP-CVMix"
