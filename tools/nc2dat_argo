@@ -14,8 +14,16 @@ def main():
     # process the input arguments
     parser = argparse.ArgumentParser(description="""
             Read the Argo profile data in netCDF format and
-            output the temperature and salinity profilees in a text
-            file in the GOTM input file format.""")
+            output the temperature and salinity profiles in a text
+            file in the GOTM input file format. The argument -r RANGE
+            set the searching radius in degrees.
+
+            Two date mode:
+              1) search for all the profiles covering the starting and ending date
+                 if the ending date is set using -de ENDDATE.
+              2) search for a single profile within the searching range set by
+                 -dr DATERANGE, only work if the ending date is not set.
+              """)
     parser.add_argument('-i', '--input', action='store', dest='fname_in',
             metavar='NCFILENAME', required=True, help='Input netCDF filename')
     parser.add_argument('-lat', '--latitude', action='store', dest='lat',
@@ -26,30 +34,43 @@ def main():
             help='Longitude of the requested location (-180, 360)')
     parser.add_argument('-r', '--range', action='store', dest='range',
             metavar='RANGE', required=True,
-            help='Range in degree of the searching radius')
+            help='Range in degrees of the searching radius')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE', required=True,
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE',
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-dr', '--date_range', action='store', dest='date_range',
+            metavar='DATERANGE',
+            help='Date range in days for searching the initial profiles before or after the starting date')
     parser.add_argument('-ot', '--output_temp', action='store',
             dest='fname_out_temp', metavar='DATFILENAME',
             help='Output filename for temperature profile')
     parser.add_argument('-os', '--output_salt', action='store',
             dest='fname_out_salt', metavar='DATFILENAME',
             help='Output filename for salinity profile')
-    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
-            metavar='STARTDATE',
-            help='Starting date of input data, in the format of YYYYMMDD')
-    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
-            metavar='ENDDATE',
-            help='Ending date of input data, in the format of YYYYMMDD')
-    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
     # parsing arguments and save to args
     args=parser.parse_args()
 
     # check arguments
     fname_in = args.fname_in
-    date_start = args.date_start
-    date_end = args.date_end
     rlat = float(args.lat)
     rlon = float(args.lon)
     dr = float(args.range)
+    date_start = args.date_start
+
+    if args.date_end:
+        l_single = False
+        date_end = args.date_end
+    elif args.date_range:
+        l_single = True
+        date_range = float(args.date_range)
+    else:
+        parser.print_help()
+        sys.exit(1)
+
     if rlon >= 180:
         rlon = rlon - 360.0
 
@@ -96,9 +117,17 @@ def main():
     # get starting and ending indices
     dtformat = '%Y%m%d'
     dt_start = datetime.datetime.strptime(date_start, dtformat)
-    dt_end = datetime.datetime.strptime(date_end, dtformat)
     dnum_start = date2num(dt_start, units=t_units, calendar=t_cal)
-    dnum_end = date2num(dt_end, units=t_units, calendar=t_cal)
+    if l_single:
+        # search around starting date
+        tmp = dnum_start
+        dnum_start = tmp-date_range
+        dnum_end = tmp+date_range
+    else:
+        # cover the whole range set by the starting to ending date
+        dt_end = datetime.datetime.strptime(date_end, dtformat)
+        dnum_end = date2num(dt_end, units=t_units, calendar=t_cal)
+
     tidx_start = np.searchsorted(nptime, dnum_start, side='left')-1
     tidx_end = np.searchsorted(nptime, dnum_end, side='right')
     # time in datetime format
@@ -116,9 +145,10 @@ def main():
     idx_cast = cast[tidx_start:tidx_end+1]-1
 
     # read depth (limited to upper 500 m)
-    idx_depth_max = 37
-    depth = infile.variables['depth'][:idx_depth_max]
-    ddat = -abs(depth)
+    depth = infile.variables['depth'][:]
+    depth = abs(depth)
+    idx_depth_max = np.searchsorted(depth, 500, side='left')+1
+    ddat = -depth[:idx_depth_max]
 
     # get global missing value
     if 'missing_value' in attlist:
@@ -135,13 +165,29 @@ def main():
     temp = infile.variables['Temperature'][idx_cast,:idx_depth_max]
     temp_qcf = infile.variables['TempFlag'][idx_cast,:idx_depth_max]
     temp[temp_qcf>0] = gmvalue
-    salt= infile.variables['Salinity'][idx_cast,:idx_depth_max]
+    salt = infile.variables['Salinity'][idx_cast,:idx_depth_max]
     salt_qcf = infile.variables['SalnFlag'][idx_cast,:idx_depth_max]
     salt[temp_qcf>0] = gmvalue
 
     # write in file
-    write_pfl(fname_out_temp, tdat, ddat, [temp], mask=gmvalue)
-    write_pfl(fname_out_salt, tdat, ddat, [salt], mask=gmvalue)
+    if l_single:
+        # select the profile which has the median of near surface temperature
+        # (averaged temperature between -10 m and -90 m)
+        idx_depth_avg1 = np.searchsorted(depth, 10, side='left')
+        idx_depth_avg2 = np.searchsorted(depth, 90, side='left')
+        temp_avg = np.nanmean(temp[:,idx_depth_avg1:idx_depth_avg2+1], axis=1)
+        # find the index of the median
+        idx_temp_median = [np.argsort(temp_avg)[(len(temp_avg)-1)//2]]
+        # set the date to the starting date
+        tdat_sgl = dt_start
+        # write profiles
+        temp2 = temp[idx_temp_median,:]
+        write_pfl(fname_out_temp, [tdat_sgl], ddat, [temp[idx_temp_median,:]], mask=gmvalue)
+        write_pfl(fname_out_salt, [tdat_sgl], ddat, [salt[idx_temp_median,:]], mask=gmvalue)
+    else:
+        # write all data
+        write_pfl(fname_out_temp, tdat, ddat, [temp], mask=gmvalue)
+        write_pfl(fname_out_salt, tdat, ddat, [salt], mask=gmvalue)
 
 if __name__ == "__main__":
     main()
