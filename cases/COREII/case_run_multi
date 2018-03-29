@@ -18,8 +18,8 @@ scratchdir="${HOME}/work/gotmrun"
 source ${workdir}/set_tools.sh
 
 # data directory
-dataroot="/Users/qingli/data_local"
-# dataroot="/Volumes/Qing_Work/data"
+# dataroot="/Users/qingli/data_local"
+dataroot="/Volumes/Qing_Work/data"
 
 # input data - surface fluxes
 datadir="${dataroot}/COREII_IAF"
@@ -87,7 +87,7 @@ while [ ${lat} -le ${lat_end} ]; do
 
         if [ ${l_dry_run} == "yes" ]; then
             ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-                -r 2 -ds ${datestart} -dr 30 -dry
+                -r 2 -ds ${datestart} -dr 20 -dry
             # echo ${casename}
         else
             echo ${casename}
@@ -132,7 +132,7 @@ while [ ${lat} -le ${lat_end} ]; do
             #     -ds ${datestart} -de ${dateend}
             ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
                 -r 2 -ot ${tprof_name} -os ${sprof_name} \
-                -ds ${datestart} -dr 30
+                -ds ${datestart} -dr 20
             ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
             ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
             ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2

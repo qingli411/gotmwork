@@ -177,14 +177,48 @@ def main():
     salt_qcf = infile.variables['SalnFlag'][idx_cast,:idx_depth_max]
     salt[temp_qcf>0] = gmvalue
 
+    # remove profiles with too many missing values near the surface
+    # check the upper 100 m of the profile
+    idx_depth_sl = np.searchsorted(depth, 100, side='left')
+    temp_sl = temp[:,:idx_depth_sl+1]
+    temp_sl[temp_sl==gmvalue] = np.NaN
+    # number of profiles
+    npfl = temp_sl.shape[0]
+    # number of levels
+    nlev = temp_sl.shape[1]
+    # indices of profiles that have enough valid data
+    idx_pass = []
+    for i in np.arange(npfl):
+        # number of NaNs in the profile
+        nnan = np.count_nonzero(np.isnan(temp_sl[i,:]))
+        if nnan < nlev/3:
+            # ignore the profile if the number of missing value is greater
+            # than 1/3 of the total value within the upper 100 m
+            idx_pass.append(i)
+
+    # skip if no valid profiles
+    if len(idx_pass) < 1:
+        # no message if dry run
+        if not args.l_dry_run:
+            print("Too many missing values in the profiles. Skip.")
+        sys.exit(1)
+
+    # updated indices in the full record
+    idx_cast_new = idx_cast[idx_pass]
+
+    # updated temperature and salinity profiles
+    temp_avail = temp[idx_pass, :]
+    salt_avail = salt[idx_pass, :]
+
     # write in file
     if l_single:
         # select the profile which has the median of near surface temperature
         # (averaged temperature between -10 m and -50 m)
         idx_depth_avg1 = np.searchsorted(depth, 10, side='left')
         idx_depth_avg2 = np.searchsorted(depth, 50, side='left')
-        print(temp[:,idx_depth_avg1:idx_depth_avg2+1])
-        temp_avg = np.nanmean(temp[:,idx_depth_avg1:idx_depth_avg2+1], axis=1)
+        temp_smp = temp_avail[:,idx_depth_avg1:idx_depth_avg2+1]
+        temp_smp[temp_smp==gmvalue] = np.NaN
+        temp_avg = np.nanmean(temp_smp, axis=1)
         # find the index of the median
         idx_temp_median = np.argsort(temp_avg)[(len(temp_avg)-1)//2]
         # set the date to the starting date
@@ -195,17 +229,17 @@ def main():
             # print("Date of output profile: {}".format(tdat[idx_temp_median]))
             # print("Longitude: {}".format(lon[idx_cast[idx_temp_median]]))
             # print("Latitude: {}".format(lat[idx_cast[idx_temp_median]]))
-            print("{} {} {} {} {} {} {}".format(tdat[idx_temp_median],
-                lon[idx_cast[idx_temp_median]], lat[idx_cast[idx_temp_median]],
+            print("{:s} {:6.2f} {:6.2f} {:3d} {:6.2f} {:6.2f} {:6.2f}".format(tdat[idx_temp_median],
+                lon[idx_cast_new[idx_temp_median]], lat[idx_cast_new[idx_temp_median]],
                 len(temp_avg), rlon, rlat, temp_avg[idx_temp_median]))
         else:
-            write_pfl(fname_out_temp, [tdat_sgl], ddat, [temp[[idx_temp_median],:]], mask=gmvalue)
-            write_pfl(fname_out_salt, [tdat_sgl], ddat, [salt[[idx_temp_median],:]], mask=gmvalue)
+            write_pfl(fname_out_temp, [tdat_sgl], ddat, [temp_avail[[idx_temp_median],:]], mask=gmvalue)
+            write_pfl(fname_out_salt, [tdat_sgl], ddat, [salt_avail[[idx_temp_median],:]], mask=gmvalue)
     else:
         # write all data
         if not args.l_dry_run:
-            write_pfl(fname_out_temp, tdat, ddat, [temp], mask=gmvalue)
-            write_pfl(fname_out_salt, tdat, ddat, [salt], mask=gmvalue)
+            write_pfl(fname_out_temp, tdat, ddat, [temp_avail], mask=gmvalue)
+            write_pfl(fname_out_salt, tdat, ddat, [salt_avail], mask=gmvalue)
 
 if __name__ == "__main__":
     main()
