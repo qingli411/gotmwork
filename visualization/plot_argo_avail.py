@@ -18,6 +18,7 @@ def main():
     rlat = np.zeros(nlines)
     rlon = np.zeros(nlines)
     ndt = np.zeros(nlines)
+    temp = np.zeros(nlines)
 
     # date format
     dtformat = '%Y-%m-%d %H:%M:%S'
@@ -25,12 +26,13 @@ def main():
     i = 0
     with open(infile, 'r') as f:
         for line in f:
-            [date, time, lon_str, lat_str, npfl_str, rlon_str, rlat_str] = line.split()
+            [date, time, lon_str, lat_str, npfl_str, rlon_str, rlat_str, temp_str] = line.split()
             lon[i] = float(lon_str)
             lat[i] = float(lat_str)
             rlon[i] = float(rlon_str)
             rlat[i] = float(rlat_str)
             npfl[i] = float(npfl_str)
+            temp[i] = float(temp_str)
             dt_str_tmp = date+' '+time
             dt_tmp = datetime.datetime.strptime(dt_str_tmp, dtformat)
             dt_ref = datetime.datetime.strptime(dt_str_ref, dtformat)
@@ -52,6 +54,9 @@ def main():
     plt.figure()
     plot_map_scatter(rlon, rlat, ndt, 'ndt.png', vmax=30, vmin=-30, cmap='RdBu')
 
+    plt.figure()
+    plot_map_scatter(rlon, rlat, temp, 'temp.png', vmax=30, vmin=-2)
+
 def plot_map_scatter(rlon, rlat, dat, figname, vmax=None, vmin=None, cmap='rainbow'):
     """Plot scatters on a map
 
@@ -61,7 +66,7 @@ def plot_map_scatter(rlon, rlat, dat, figname, vmax=None, vmin=None, cmap='rainb
     :return: none
     """
     # plot map
-    m = Basemap(projection='cyl', llcrnrlat=-70,urcrnrlat=70,llcrnrlon=0,urcrnrlon=360)
+    m = Basemap(projection='cyl', llcrnrlat=-72,urcrnrlat=72,llcrnrlon=0,urcrnrlon=360)
     # plot coastlines, draw label meridians and parallels.
     m.drawcoastlines()
     m.drawmapboundary(fill_color='lightgray')
@@ -69,11 +74,11 @@ def plot_map_scatter(rlon, rlat, dat, figname, vmax=None, vmin=None, cmap='rainb
     m.drawparallels(np.arange(-90.,91.,30.), labels=[1,0,1,1])
     m.drawmeridians(np.arange(-180.,181.,60.), labels=[1,0,1,1])
     x, y = m(rlon, rlat)
-    m.scatter(x, y, marker='.', s=18, c=dat, cmap=plt.cm.get_cmap(cmap), vmin=vmin, vmax=vmax)
+    m.scatter(x, y, marker='.', s=32, c=dat, cmap=plt.cm.get_cmap(cmap), vmin=vmin, vmax=vmax)
     m.colorbar()
     # set figure size
     f = plt.gcf()
-    f.set_size_inches(10, 5)
+    f.set_size_inches(8, 4)
     # save figure
     plt.savefig(figname, dpi=300)
 

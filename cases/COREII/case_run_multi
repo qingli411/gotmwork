@@ -17,15 +17,19 @@ scratchdir="${HOME}/work/gotmrun"
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
+# data directory
+dataroot="/Users/qingli/data_local"
+# dataroot="/Volumes/Qing_Work/data"
+
 # input data - surface fluxes
-datadir="/Volumes/Qing_Work/data/COREII_IAF"
+datadir="${dataroot}/COREII_IAF"
 
 # input data - waves
-uspdir="/Volumes/Qing_Work/data/WAVEWATCH_COREII"
+uspdir="${dataroot}/WAVEWATCH_COREII"
 uspdata="ww3.2008-2009_usp.nc"
 
 # input data - Argo profiles for initialization
-argodir="/Volumes/Qing_Work/data/obs/Argo"
+argodir="${dataroot}/obs/Argo"
 argodata="WOD13_PFL_2000.nc"
 
 # mask data
@@ -58,12 +62,12 @@ l_dry_run="yes"
 #######################################################################
 #                         Loop over locations                         #
 #######################################################################
-lon_start=1
+lon_start=2
 lon_end=360
-dlon=2
+dlon=4
 lat_start=-70
 lat_end=70
-dlat=2
+dlat=4
 
 # start outer loop over lon
 lon=${lon_start}
@@ -73,8 +77,8 @@ lat=${lat_start}
 while [ ${lat} -le ${lat_end} ]; do
 
     # check if it is a sea point
-    # l_sea=$(${cmd_is_sea} -fmask ${maskfile} -lat ${lat} -lon ${lon})
-    l_sea="yes"
+    l_sea=$(${cmd_is_sea} -fmask ${maskfile} -lat ${lat} -lon ${lon})
+
     # skip if not a sea point
     if [ ${l_sea} == "yes" ]; then
 
@@ -82,9 +86,9 @@ while [ ${lat} -le ${lat_end} ]; do
         casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
 
         if [ ${l_dry_run} == "yes" ]; then
-            # ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-                # -r 2 -ds ${datestart} -dr 30 -dry
-            echo ${casename}
+            ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+                -r 2 -ds ${datestart} -dr 30 -dry
+            # echo ${casename}
         else
             echo ${casename}
 

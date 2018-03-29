@@ -180,9 +180,10 @@ def main():
     # write in file
     if l_single:
         # select the profile which has the median of near surface temperature
-        # (averaged temperature between -10 m and -90 m)
+        # (averaged temperature between -10 m and -50 m)
         idx_depth_avg1 = np.searchsorted(depth, 10, side='left')
-        idx_depth_avg2 = np.searchsorted(depth, 90, side='left')
+        idx_depth_avg2 = np.searchsorted(depth, 50, side='left')
+        print(temp[:,idx_depth_avg1:idx_depth_avg2+1])
         temp_avg = np.nanmean(temp[:,idx_depth_avg1:idx_depth_avg2+1], axis=1)
         # find the index of the median
         idx_temp_median = np.argsort(temp_avg)[(len(temp_avg)-1)//2]
@@ -194,7 +195,9 @@ def main():
             # print("Date of output profile: {}".format(tdat[idx_temp_median]))
             # print("Longitude: {}".format(lon[idx_cast[idx_temp_median]]))
             # print("Latitude: {}".format(lat[idx_cast[idx_temp_median]]))
-            print("{} {} {} {} {} {}".format(tdat[idx_temp_median], lon[idx_cast[idx_temp_median]], lat[idx_cast[idx_temp_median]], len(temp_avg), rlon, rlat))
+            print("{} {} {} {} {} {} {}".format(tdat[idx_temp_median],
+                lon[idx_cast[idx_temp_median]], lat[idx_cast[idx_temp_median]],
+                len(temp_avg), rlon, rlat, temp_avg[idx_temp_median]))
         else:
             write_pfl(fname_out_temp, [tdat_sgl], ddat, [temp[[idx_temp_median],:]], mask=gmvalue)
             write_pfl(fname_out_salt, [tdat_sgl], ddat, [salt[[idx_temp_median],:]], mask=gmvalue)
