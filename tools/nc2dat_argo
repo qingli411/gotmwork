@@ -50,6 +50,8 @@ def main():
     parser.add_argument('-os', '--output_salt', action='store',
             dest='fname_out_salt', metavar='DATFILENAME',
             help='Output filename for salinity profile')
+    parser.add_argument('-dry', '--dry', action='store_true', dest='l_dry_run',
+            help='Check the available profiles without outputting them into files')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
     # parsing arguments and save to args
     args=parser.parse_args()
@@ -88,9 +90,6 @@ def main():
     else:
         fname_out_salt = 'sprof_file.dat'
 
-    # print out some message
-    print('Converting {} to {} and {}...'.format(fname_in, fname_out_temp, fname_out_salt))
-
     # read data
     infile = Dataset(fname_in, 'r')
     attlist = infile.ncattrs()
@@ -123,13 +122,22 @@ def main():
         tmp = dnum_start
         dnum_start = tmp-date_range
         dnum_end = tmp+date_range
+        tidx_start = np.searchsorted(nptime, dnum_start, side='right')
+        tidx_end = np.searchsorted(nptime, dnum_end, side='left')-1
     else:
         # cover the whole range set by the starting to ending date
         dt_end = datetime.datetime.strptime(date_end, dtformat)
         dnum_end = date2num(dt_end, units=t_units, calendar=t_cal)
+        tidx_start = np.searchsorted(nptime, dnum_start, side='left')-1
+        tidx_end = np.searchsorted(nptime, dnum_end, side='right')
 
-    tidx_start = np.searchsorted(nptime, dnum_start, side='left')-1
-    tidx_end = np.searchsorted(nptime, dnum_end, side='right')
+    # check if any profiles are found
+    if tidx_end < tidx_start:
+        # no message if dry run
+        if not args.l_dry_run:
+            print("Profile not available. Skip.")
+        sys.exit(1)
+
     # time in datetime format
     dttime = num2date(nptime[tidx_start:tidx_end+1], units=t_units, calendar=t_cal)
 
@@ -177,17 +185,24 @@ def main():
         idx_depth_avg2 = np.searchsorted(depth, 90, side='left')
         temp_avg = np.nanmean(temp[:,idx_depth_avg1:idx_depth_avg2+1], axis=1)
         # find the index of the median
-        idx_temp_median = [np.argsort(temp_avg)[(len(temp_avg)-1)//2]]
+        idx_temp_median = np.argsort(temp_avg)[(len(temp_avg)-1)//2]
         # set the date to the starting date
         tdat_sgl = dt_start
         # write profiles
-        temp2 = temp[idx_temp_median,:]
-        write_pfl(fname_out_temp, [tdat_sgl], ddat, [temp[idx_temp_median,:]], mask=gmvalue)
-        write_pfl(fname_out_salt, [tdat_sgl], ddat, [salt[idx_temp_median,:]], mask=gmvalue)
+        if args.l_dry_run:
+            # print("Number of profiles: {}".format(len(temp_avg)))
+            # print("Date of output profile: {}".format(tdat[idx_temp_median]))
+            # print("Longitude: {}".format(lon[idx_cast[idx_temp_median]]))
+            # print("Latitude: {}".format(lat[idx_cast[idx_temp_median]]))
+            print("{} {} {} {} {} {}".format(tdat[idx_temp_median], lon[idx_cast[idx_temp_median]], lat[idx_cast[idx_temp_median]], len(temp_avg), rlon, rlat))
+        else:
+            write_pfl(fname_out_temp, [tdat_sgl], ddat, [temp[[idx_temp_median],:]], mask=gmvalue)
+            write_pfl(fname_out_salt, [tdat_sgl], ddat, [salt[[idx_temp_median],:]], mask=gmvalue)
     else:
         # write all data
-        write_pfl(fname_out_temp, tdat, ddat, [temp], mask=gmvalue)
-        write_pfl(fname_out_salt, tdat, ddat, [salt], mask=gmvalue)
+        if not args.l_dry_run:
+            write_pfl(fname_out_temp, tdat, ddat, [temp], mask=gmvalue)
+            write_pfl(fname_out_salt, tdat, ddat, [salt], mask=gmvalue)
 
 if __name__ == "__main__":
     main()

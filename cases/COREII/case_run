@@ -96,9 +96,12 @@ ${cmd_nmlchange} -f obs.nml -e ustokes_file -v "usp_file.dat"
 # processing Argo data for initialization
 tprof_name="tprof_file.dat"
 sprof_name="sprof_file.dat"
+# ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+#     -r 3 -ot ${tprof_name} -os ${sprof_name} \
+#     -ds ${datestart} -de ${dateend}
 ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-    -r 3 -ot ${tprof_name} -os ${sprof_name} \
-    -ds ${datestart} -de ${dateend}
+    -r 2 -ot ${tprof_name} -os ${sprof_name} \
+    -ds ${datestart} -dr 10
 ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
 ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
 ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2

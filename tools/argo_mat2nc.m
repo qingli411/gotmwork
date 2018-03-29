@@ -19,7 +19,10 @@ dat = load(indata);
 
 % process time
 refdate_str = '1990-01-01 00:00:00';
-time = dat.DateNum - datenum(refdate_str);
+time_unsorted = dat.DateNum - datenum(refdate_str);
+
+% sort time dimension
+[time, idx_sort] = sort(time_unsorted);
 
 % output variable name and meta data
 nnt = numel(dat.DateNum);
@@ -120,11 +123,11 @@ netcdf.putVar(ncid, varid_z, int32(dat.Depth));
 netcdf.putVar(ncid, varid_cast, 1:nnt);
 netcdf.putVar(ncid, varid_time, time);
 for i = 1:nvar1d
-    vardata = squeeze(dat.(var1dListOut{i}));
+    vardata = squeeze(dat.(var1dListOut{i})(idx_sort));
     netcdf.putVar(ncid, varid1d(i), vardata);
 end
 for i = 1:nvar2d
-    vardata = squeeze(dat.(var2dListOut{i}));
+    vardata = squeeze(dat.(var2dListOut{i})(idx_sort,:));
     netcdf.putVar(ncid, varid2d(i), vardata');
 end
 

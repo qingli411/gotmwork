@@ -1,0 +1,157 @@
+#!/bin/bash
+# Setup and run GOTM for CORE-II
+# Loop over latitude and longitude
+#
+# Qing Li, 20180328
+
+#######################################################################
+#                              Set path                               #
+#######################################################################
+
+# root directory for gotmwork
+workdir="${HOME}/models/gotm/gotmwork"
+
+# scratch directory to run the case
+scratchdir="${HOME}/work/gotmrun"
+
+# setup paths and tools
+source ${workdir}/set_tools.sh
+
+# input data - surface fluxes
+datadir="/Volumes/Qing_Work/data/COREII_IAF"
+
+# input data - waves
+uspdir="/Volumes/Qing_Work/data/WAVEWATCH_COREII"
+uspdata="ww3.2008-2009_usp.nc"
+
+# input data - Argo profiles for initialization
+argodir="/Volumes/Qing_Work/data/obs/Argo"
+argodata="WOD13_PFL_2000.nc"
+
+# mask data
+maskfile="${HOME}/data/mask/ww3_mask_1dx1d.nc"
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+# name of the dataset
+title="COREII"
+
+# set locations
+maxdepth=525
+
+# output file name
+outname="gotm_out"
+
+# starting and ending date - in the format of YYYYMMDD
+datestart="20080601"
+dateend="20081231"
+
+# name of the turbulence model
+turbmethod="KPP-CVMix"
+# turbmethod="KPP-Original"
+
+#
+l_dry_run="yes"
+
+#######################################################################
+#                         Loop over locations                         #
+#######################################################################
+lon_start=1
+lon_end=360
+dlon=2
+lat_start=-70
+lat_end=70
+dlat=2
+
+# start outer loop over lon
+lon=${lon_start}
+while [ ${lon} -le ${lon_end} ]; do
+# start inner loop over lat
+lat=${lat_start}
+while [ ${lat} -le ${lat_end} ]; do
+
+    # check if it is a sea point
+    # l_sea=$(${cmd_is_sea} -fmask ${maskfile} -lat ${lat} -lon ${lon})
+    l_sea="yes"
+    # skip if not a sea point
+    if [ ${l_sea} == "yes" ]; then
+
+        # case name
+        casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
+
+        if [ ${l_dry_run} == "yes" ]; then
+            # ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+                # -r 2 -ds ${datestart} -dr 30 -dry
+            echo ${casename}
+        else
+            echo ${casename}
+
+            # create run directory
+            rundir="${scratchdir}/${casename}"
+            mkdir -p ${rundir}
+            cd ${rundir}
+
+            # set up namelists
+            cp ${nmldir}/*.nml ./
+
+            xmlfile=${title}.xml
+            cp ${xmldir}/${xmlfile} ./
+            sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
+            sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
+            sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
+
+            # general setup for the surface fluxes
+            ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
+                -ds ${datestart} -de ${dateend} -method nc2dat_latlon
+            ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+            ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+
+            # use meteo data instead of fluxes
+            ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
+            ${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
+            ${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
+
+            # processing Stokes drift data
+            ${cmd_nc2dat_core2ww3_usp} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
+                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
+            ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
+            ${cmd_nmlchange} -f obs.nml -e nfreq -v 3
+            ${cmd_nmlchange} -f obs.nml -e ustokes_file -v "usp_file.dat"
+
+            # processing Argo data for initialization
+            tprof_name="tprof_file.dat"
+            sprof_name="sprof_file.dat"
+            # ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+            #     -r 3 -ot ${tprof_name} -os ${sprof_name} \
+            #     -ds ${datestart} -de ${dateend}
+            ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+                -r 2 -ot ${tprof_name} -os ${sprof_name} \
+                -ds ${datestart} -dr 30
+            ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
+            ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
+            ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
+            ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_name}
+
+            # set turbulence model
+            ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+
+            # turn on CVMix
+            ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+
+            # run GOTM
+            gotm 2> log.${outname}
+
+            # plot surface forcing and profiles
+            source ${scpt_case_postproc}
+        fi # l_dry_run
+    fi # l_sea
+
+# end inner loop over lat
+lat=$((${lat}+${dlat}))
+done
+# end outer loop over lon
+lon=$((${lon}+${dlon}))
+done
+

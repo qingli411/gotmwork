@@ -61,6 +61,12 @@ begin
 
     ; assume zero cloud cover
     cld = (/var/)*0.0
+    cld!0 = "TIME"
+    cld&TIME = time
+    cld!1 = "LAT"
+    cld&LAT = lat
+    cld!2 = "LON"
+    cld&LON = lon
     cld@long_name = "Cloud cover (all zero)"
     cld@units = "unitless"
     cld@missing_value = fmsg
