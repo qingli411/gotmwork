@@ -1,0 +1,20 @@
+#!/bin/bash
+#
+# Manually parallel run by submitting multiple jobs
+
+lon_slist=(  2  70 126 166 194 226 266 322)
+lon_elist=( 66 122 162 190 222 262 318 360)
+dlon=4
+
+for i in {0..7}; do
+    lon_start=${lon_slist[i]}
+    lon_end=${lon_elist[i]}
+    ./case_run_multi ${lon_start} ${lon_end} > log.${i} &
+    # # start outer loop over lon
+    # lon=${lon_start}
+    # while [ ${lon} -le ${lon_end} ]; do
+    #     echo $lon
+    #     # end outer loop over lon
+    #     lon=$((${lon}+${dlon}))
+    # done
+done

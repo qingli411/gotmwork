@@ -43,7 +43,7 @@ maskfile="${HOME}/data/mask/ww3_mask_1dx1d.nc"
 title="COREII"
 
 # set locations
-maxdepth=525
+maxdepth=400
 
 # output file name
 outname="gotm_out"
@@ -56,14 +56,16 @@ dateend="20081231"
 turbmethod="KPP-CVMix"
 # turbmethod="KPP-Original"
 
-#
+# flag for dry run
 l_dry_run="yes"
 
 #######################################################################
 #                         Loop over locations                         #
 #######################################################################
-lon_start=2
-lon_end=360
+lon_start=$1
+lon_end=$2
+# lon_start=2
+# lon_end=360
 dlon=4
 lat_start=-70
 lat_end=70
@@ -143,6 +145,9 @@ while [ ${lat} -le ${lat_end} ]; do
 
             # turn on CVMix
             ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+
+            # turn off bottom boundary layer
+            ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
 
             # run GOTM
             gotm 2> log.${outname}
