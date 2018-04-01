@@ -12,14 +12,14 @@
 workdir="${HOME}/models/gotm/gotmwork"
 
 # scratch directory to run the case
-scratchdir="${HOME}/work/gotmrun"
+scratchdir="${HOME}/scratch"
 
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
 # data directory
-# dataroot="/Users/qingli/data_local"
-dataroot="/Volumes/Qing_Work/data"
+dataroot="/Users/qingli/data_local"
+# dataroot="/Volumes/Qing_Work/data"
 
 # input data - surface fluxes
 datadir="${dataroot}/COREII_IAF"
@@ -57,7 +57,7 @@ turbmethod="KPP-CVMix"
 # turbmethod="KPP-Original"
 
 # flag for dry run
-l_dry_run="yes"
+l_dry_run="no"
 
 #######################################################################
 #                         Loop over locations                         #
@@ -87,12 +87,21 @@ while [ ${lat} -le ${lat_end} ]; do
         # case name
         casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
 
-        if [ ${l_dry_run} == "yes" ]; then
-            ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-                -r 2 -ds ${datestart} -dr 20 -dry
-            # echo ${casename}
-        else
+        # dry run first and check the availability of argo profiles
+        ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+            -r 2 -ds ${datestart} -dr 20 -dry
+        nstate=$?
+
+        if [ ${l_dry_run} == "no" ]; then
+            # print case name
             echo ${casename}
+
+            # skip if no argo profile is available
+            if [ $nstate == 1 ]; then
+                echo "[case_run_multi] No Argo profile available. Skip."
+                lat=$((${lat}+${dlat}))
+                continue
+            fi
 
             # create run directory
             rundir="${scratchdir}/${casename}"
@@ -153,7 +162,7 @@ while [ ${lat} -le ${lat_end} ]; do
             gotm 2> log.${outname}
 
             # plot surface forcing and profiles
-            source ${scpt_case_postproc}
+            # source ${scpt_case_postproc}
         fi # l_dry_run
     fi # l_sea
 
