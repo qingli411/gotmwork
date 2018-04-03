@@ -1,0 +1,138 @@
+#!/bin/bash
+# Setup and run GOTM for OSMOSIS
+#
+# Qing Li, 20180403
+
+#######################################################################
+#                              Set paths                              #
+#######################################################################
+
+# root directory for gotmwork
+workdir="${HOME}/models/gotm/gotmwork"
+
+# scratch directory to run the case
+scratchdir="${HOME}/work/gotmrun"
+
+# setup paths and tools
+source ${workdir}/set_tools.sh
+
+# input data
+season="spring"
+datadir="${HOME}/data/OSMOSIS/${season}"
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+# name of the dataset
+title="OSMOSIS_${season}"
+
+# output file name
+outname="gotm_out"
+
+# starting and ending date - in the format of YYYYMMDD
+if [ ${season} == "winter" ]; then
+    start_time="2012-09-22 00:00:00"
+    stop_time="2012-12-05 03:00:00"
+    depth=200.0
+    nlev=100
+    h_i=13.0
+    A=0.57
+    g1=0.5
+    g2=13.4
+elif [ ${season} == "spring" ]; then
+    start_time="2012-12-25 00:00:00"
+    stop_time="2013-09-10 03:00:00"
+    depth=240.0
+    nlev=240
+    h_i=100.0
+    A=0.57
+    g1=0.55
+    g2=17.0
+else
+    echo "Season ${season} not supported. Stop."
+    exit 1
+fi
+lat=49.0
+lon=0.0
+dt=1800.
+
+# name of the turbulence model
+turbmethod="OSMOSIS"
+
+# case name
+casename="${title}_${turbmethod}"
+
+#######################################################################
+#                        Preprocess input data                        #
+#######################################################################
+
+# create run directory
+rundir="${scratchdir}/${casename}"
+mkdir -p ${rundir}
+cd ${rundir}
+
+# input data
+cp ${datadir}/*.dat ./
+
+# set up namelists
+cp ${nmldir}/*.nml ./
+
+# general setup for the surface fluxes
+${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+
+${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
+${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
+
+${cmd_nmlchange} -f gotmrun.nml -e name -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e latitude -v ${lat}
+${cmd_nmlchange} -f gotmrun.nml -e longitufe -v ${lon}
+${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
+
+${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmrun.nml -e nsave -v 1
+
+# set turbulence model
+${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 98
+
+# set obs
+${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
+${cmd_nmlchange} -f obs.nml -e t_prof_file -v "tprof_file.dat"
+${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
+${cmd_nmlchange} -f obs.nml -e s_prof_file -v "sprof_file.dat"
+${cmd_nmlchange} -f obs.nml -e extinct_method -v 7
+${cmd_nmlchange} -f obs.nml -e A -v ${A}
+${cmd_nmlchange} -f obs.nml -e g1 -v ${g1}
+${cmd_nmlchange} -f obs.nml -e g2 -v ${g2}
+${cmd_nmlchange} -f obs.nml -e ustokes_method -v 0
+
+# set airsea
+${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .false.
+${cmd_nmlchange} -f airsea.nml -e calc_evaporation -v .false.
+${cmd_nmlchange} -f airsea.nml -e heat_method -v 2
+${cmd_nmlchange} -f airsea.nml -e heatflux_file -v "heat_flux.dat"
+${cmd_nmlchange} -f airsea.nml -e momentum_method -v 2
+${cmd_nmlchange} -f airsea.nml -e momentumflux_file -v "momentum_flux.dat"
+${cmd_nmlchange} -f airsea.nml -e swr_method -v 2
+${cmd_nmlchange} -f airsea.nml -e swr_file -v "swr_file.dat"
+${cmd_nmlchange} -f airsea.nml -e precip_method -v 2
+${cmd_nmlchange} -f airsea.nml -e precip_file -v "pme_file.dat"
+${cmd_nmlchange} -f airsea.nml -e sst_method -v 0
+${cmd_nmlchange} -f airsea.nml -e sss_method -v 0
+
+# set osm
+${cmd_nmlchange} -f osm.nml -e h_i -v ${h_i}
+
+#######################################################################
+#                              Run GOTM                               #
+#######################################################################
+gotm 2> log.${outname}
+
+#######################################################################
+#                           Postprocessing                            #
+#######################################################################
+
+# plot surface forcing and profiles
+source ${scpt_case_postproc}
