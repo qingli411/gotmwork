@@ -13,7 +13,7 @@
 
 &osm
    osm_sbl = .true.,
-   osm_bbl = .true.,
+   osm_bbl = .false.,
    osm_interior = .true.,
    h_i = 50.0,
 /

@@ -92,7 +92,7 @@ ${cmd_nmlchange} -f gotmrun.nml -e longitufe -v ${lon}
 ${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
 
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
-${cmd_nmlchange} -f gotmrun.nml -e nsave -v 1
+${cmd_nmlchange} -f gotmrun.nml -e nsave -v 2
 
 # set turbulence model
 ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 98
