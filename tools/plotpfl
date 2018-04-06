@@ -225,11 +225,16 @@ def read_z(infile, ncvar):
     varlist = infile.variables.keys()
     if 'z' in varlist:
         # GOTM output (fixed z)
-        coord = ncvar.coordinates
+        try:
+            coord = ncvar.coordinates
+        except AttributeError:
+            coord = 'v4'
         if 'zi' in coord:
             z = infile.variables['zi'][0,:,0,0]
-        else:
+        elif 'z' in coord:
             z = infile.variables['z'][0,:,0,0]
+        else:
+            z = infile.variables['z'][:]
     elif 'depth' in varlist:
         # observation
         z = -abs(infile.variables['depth'][:])

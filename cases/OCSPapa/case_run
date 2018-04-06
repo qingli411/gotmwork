@@ -69,7 +69,8 @@ if [ ! -z ${specdata} ]; then
     # only do this if specdata is set
     ${cmd_nc2dat_cdip} -i ${specdata} -o "spec_file.dat" -ds ${datestart} \
         -de ${dateend}
-    ${cmd_nmlchange} -f obs.nml -e spec_method -v 2
+    ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 2
+    ${cmd_nmlchange} -f obs.nml -e nfreq -v 64
     ${cmd_nmlchange} -f obs.nml -e spec_file -v 'spec_file.dat'
 fi
 
