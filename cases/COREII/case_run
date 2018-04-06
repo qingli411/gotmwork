@@ -91,7 +91,7 @@ ${cmd_nc2dat_core2ww3_usp} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
     -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
 ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
 ${cmd_nmlchange} -f obs.nml -e nfreq -v 3
-${cmd_nmlchange} -f obs.nml -e ustokes_file -v "usp_file.dat"
+${cmd_nmlchange} -f obs.nml -e usp_file -v "usp_file.dat"
 
 # processing Argo data for initialization
 tprof_name="tprof_file.dat"

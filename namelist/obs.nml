@@ -58,7 +58,7 @@
 !-------------------------------------------------------------------------------
 
 &sprofile
-   s_prof_method = 1,
+   s_prof_method = 0,
    s_analyt_method = 1,
    z_s1 = 30.0,
    s_1 = 20.0,
@@ -134,13 +134,13 @@
 !-------------------------------------------------------------------------------
 
 &tprofile
-   t_prof_method = 1,
-   t_analyt_method = 3,
+   t_prof_method = 0,
+   t_analyt_method = 1,
    z_t1 = 30.0,
    t_1 = 20.0,
    z_t2 = 40.0,
    t_2 = 15.0,
-   t_obs_NN = 0.0001,
+   t_obs_NN = 0.000256,
    t_prof_file = '',
    TRelaxTauM = 1e+15,
    TRelaxTauB = 1e+15,
@@ -535,21 +535,31 @@
 !                  method to prescribe the Stokes drift
 !                  0: nothing is done - all variables equal 0
 !                  1: constant values
-!                  2: calculated from the frequency weighted wave spectrum
+!                  2: calculated from the frequency bin width weighted wave
+!                    spectrum
 !                  3: calculated from the partitioned surface Stokes drift
+!                  4: calculated from the surface Stokes drift and penetration
+!                    depth assumingexponential profile
 ! nfreq          [integer]
 !                  number of frequency bands
 !                  This variable is only used if (ustokes_method = 2 or
 !                    ustokes_method = 3)
-! ustokes_file   [file path]
-!                  filename for file Stokes drift
-!                  This variable is only used if (ustokes_method = 2 or
-!                    ustokes_method = 3)
+! spec_file      [file path]
+!                  filename for wave spectrum file
+!                  This variable is only used if (ustokes_method = 2)
+! usp_file       [file path]
+!                  filename for partitioned surface Stokes drift file
+!                  This variable is only used if (ustokes_method = 3)
+! usdelta_file   [file path]
+!                  filename for surface Stokes drift and penetration depth file
+!                  This variable is only used if (ustokes_method = 4)
 !-------------------------------------------------------------------------------
 
 &stokes_drift
    ustokes_method = 0,
    nfreq = 64,
-   ustokes_file = '',
+   spec_file = '',
+   usp_file = '',
+   usdelta_file = '',
 /
 

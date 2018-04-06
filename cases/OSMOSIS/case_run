@@ -17,7 +17,7 @@ scratchdir="${HOME}/work/gotmrun"
 source ${workdir}/set_tools.sh
 
 # input data
-season="spring"
+season="winter"
 datadir="${HOME}/data/OSMOSIS/${season}"
 
 #######################################################################
@@ -25,7 +25,7 @@ datadir="${HOME}/data/OSMOSIS/${season}"
 #######################################################################
 
 # name of the dataset
-title="OSMOSIS_${season}"
+title="OSMOSIS_${season}2"
 
 # output file name
 outname="gotm_out"
@@ -40,6 +40,7 @@ if [ ${season} == "winter" ]; then
     A=0.57
     g1=0.5
     g2=13.4
+    nsave=1
 elif [ ${season} == "spring" ]; then
     start_time="2012-12-25 00:00:00"
     stop_time="2013-09-10 03:00:00"
@@ -49,6 +50,7 @@ elif [ ${season} == "spring" ]; then
     A=0.57
     g1=0.55
     g2=17.0
+    nsave=2
 else
     echo "Season ${season} not supported. Stop."
     exit 1
@@ -59,6 +61,9 @@ dt=1800.
 
 # name of the turbulence model
 turbmethod="OSMOSIS"
+# turbmethod="SMC"
+# turbmethod="CVMix"
+# turbmethod="GOTMKPP"
 
 # case name
 casename="${title}_${turbmethod}"
@@ -92,10 +97,27 @@ ${cmd_nmlchange} -f gotmrun.nml -e longitufe -v ${lon}
 ${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
 
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
-${cmd_nmlchange} -f gotmrun.nml -e nsave -v 2
+${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
 
 # set turbulence model
-${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 98
+case ${turbmethod} in
+    "OSMOSIS")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 98
+        ;;
+    "SMC")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
+        ;;
+    "CVMix")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+        ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+        ;;
+    "GOTMKPP")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+        ;;
+    *)
+        echo "Turbulence method ${turbmethod} not supported. Stop."
+        exit 1
+esac
 
 # set obs
 ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
@@ -106,7 +128,9 @@ ${cmd_nmlchange} -f obs.nml -e extinct_method -v 7
 ${cmd_nmlchange} -f obs.nml -e A -v ${A}
 ${cmd_nmlchange} -f obs.nml -e g1 -v ${g1}
 ${cmd_nmlchange} -f obs.nml -e g2 -v ${g2}
-${cmd_nmlchange} -f obs.nml -e ustokes_method -v 0
+${cmd_nmlchange} -f obs.nml -e ustokes_method -v 4
+${cmd_nmlchange} -f obs.nml -e nfreq -v 1
+${cmd_nmlchange} -f obs.nml -e usdelta_file -v 'ustokes_file.dat'
 
 # set airsea
 ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .false.
@@ -114,7 +138,7 @@ ${cmd_nmlchange} -f airsea.nml -e calc_evaporation -v .false.
 ${cmd_nmlchange} -f airsea.nml -e heat_method -v 2
 ${cmd_nmlchange} -f airsea.nml -e heatflux_file -v "heat_flux.dat"
 ${cmd_nmlchange} -f airsea.nml -e momentum_method -v 2
-${cmd_nmlchange} -f airsea.nml -e momentumflux_file -v "momentum_flux.dat"
+${cmd_nmlchange} -f airsea.nml -e momentumflux_file -v "tau_file.dat"
 ${cmd_nmlchange} -f airsea.nml -e swr_method -v 2
 ${cmd_nmlchange} -f airsea.nml -e swr_file -v "swr_file.dat"
 ${cmd_nmlchange} -f airsea.nml -e precip_method -v 2
