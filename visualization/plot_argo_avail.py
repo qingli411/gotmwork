@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 import os
-from mpl_toolkits.basemap import Basemap
 from gotmplot import plot_map_scatter
 
 def main():

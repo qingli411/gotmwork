@@ -45,12 +45,16 @@ title="COREII"
 # set locations
 maxdepth=400
 
+# run parameters
+dt=1800
+nsave=6
+
 # output file name
 outname="gotm_out"
 
 # starting and ending date - in the format of YYYYMMDD
 datestart="20080601"
-dateend="20081231"
+dateend="20091231"
 
 # name of the turbulence model
 turbmethod="KPP-CVMix"
@@ -122,6 +126,8 @@ while [ ${lat} -le ${lat_end} ]; do
                 -ds ${datestart} -de ${dateend} -method nc2dat_latlon
             ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
             ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+            ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+            ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
 
             # use meteo data instead of fluxes
             ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.

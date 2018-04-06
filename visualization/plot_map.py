@@ -1,10 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import datetime
 import os
 import re
 import sys
-from mpl_toolkits.basemap import Basemap
 from netCDF4 import Dataset
 from gotmplot import plot_map_scatter
 
@@ -58,6 +56,7 @@ def main():
             lat[i] = infile.variables['lat'][:]
             lon[i] = infile.variables['lon'][:]
             tmp = infile.variables['sst'][:]
+            # processing the data
             dat[i] = np.mean(tmp)
         else:
             lat[i] = None
