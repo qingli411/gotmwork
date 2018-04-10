@@ -34,11 +34,12 @@ title="OCSPapa"
 outname="gotm_out"
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20130101"
+datestart="20130701"
 dateend="20140701"
 
 # name of the turbulence model
-turbmethod="KPP-CVMix"
+# turbmethod="KPPLT-EFACTOR"
+turbmethod="KPPLT-ENTR"
 # turbmethod="KPP-Original"
 
 # case name
@@ -75,10 +76,36 @@ if [ ! -z ${specdata} ]; then
 fi
 
 # set turbulence model
-${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
-
-# turn on CVMix
-${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+case ${turbmethod} in
+    "OSMOSIS")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 98
+        ;;
+    "SMC")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
+        ;;
+    "KPP-CVMix")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+        ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+        ;;
+    "KPP-GOTM")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+        ;;
+    "KPPLT-EFACTOR")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+        ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+        ${cmd_nmlchange} -f kpp.nml -e langmuir_method -v 1
+        ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 3
+        ;;
+    "KPPLT-ENTR")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+        ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+        ${cmd_nmlchange} -f kpp.nml -e langmuir_method -v 2
+        ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 3
+        ;;
+    *)
+        echo "Turbulence method ${turbmethod} not supported. Stop."
+        exit 1
+esac
 
 #######################################################################
 #                              Run GOTM                               #

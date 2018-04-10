@@ -16,18 +16,25 @@
 ! lnoDGat1        [bool]
 !                   .true. for setting G'(0) = 0
 ! langmuir_method [integer]
-!                   method how Langmuir turbulence is included
+!                   method to include Langmuir turbulence
 !                   0: none
-!                   1: Langmuir mixing, enhancement factor approximated by a
-!                     simple enhancement facator model based on empirical wave
-!                     spectrum
-!                   2: Langmuir mixing, enhancement factor given from file
-!                     langmuir_file
-!                   3: Langmuir mixing + Langmuir enhanced entrainment
-! langmuir_file   [file path]
+!                   1: Langmuir mixing from an enhancement factor (Li et al.,
+!                     2016)
+!                   2: Langmuir mixing + Langmuir enhanced entrainment (Li and
+!                     Fox-Kemper, 2017)
+!                   This variable is only used if lcvmix = True
+! efactor_method  [integer]
+!                   method to compute enhancement factor
+!                   1: approximated by a simple enhancement facator model based
+!                     on empirical wave spectrum (Li et al., 2017)
+!                   2: read from file efactor_file
+!                   3: compute from input wave spectrum
+!                   4: compute from Stokes drift
+!                   This variable is only used if langmuir_method = 1
+! efactor_file    [file path]
 !                   file with enhancement factor
-!                   This variable is only used if (langmuir_method = 2 or
-!                     langmuir_method = 3)
+!                   This variable is only used if (langmuir_method = 1 and
+!                     efactor_method = 2)
 ! interp_type     [string]
 !                   interpolation method used to interpolate bulk Richardson
 !                     number
@@ -63,7 +70,8 @@
    lcvmix = .false.,
    lnoDGat1 = .true.,
    langmuir_method = 0,
-   langmuir_file = '',
+   efactor_method = 1,
+   efactor_file = '',
    interp_type = 'quadratic',
    interp_type2 = 'LMD94',
    MatchTechnique = 'SimpleShapes',
