@@ -4,7 +4,7 @@ import os
 import re
 import sys
 from netCDF4 import Dataset
-from gotmplot import plot_map_scatter
+from gotmtool import plot_map_scatter
 
 def main():
     # forcing method
@@ -14,6 +14,7 @@ def main():
     # starting and ending date (yyyymmdd), empty if find all
     date_start = '20080601'
     date_end = '20081231'
+    analysis = 'mldMean'
 
     # data directory
     datadir = os.environ['HOME']+'/scratch'
@@ -55,9 +56,9 @@ def main():
             infile = Dataset(ncfile, 'r')
             lat[i] = infile.variables['lat'][:]
             lon[i] = infile.variables['lon'][:]
-            tmp = infile.variables['sst'][:]
+            dttime, tidx_start, tidx_end = ncread_dim_time(infile, args.date_start, args.date_end)
             # processing the data
-            dat[i] = np.mean(tmp)
+            dat[i] = do_analysis(analysis)(infile, tidx_start=tidx_start, tidx_end=tidx_end)
         else:
             lat[i] = None
             lon[i] = None

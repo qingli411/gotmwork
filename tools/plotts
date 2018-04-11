@@ -64,13 +64,13 @@ def main():
         # read data
         varname = args.vname[0]
         ncvar = infile.variables[varname]
-        dat = ncread_ts(ncvar, tidx_start, tidx_end)
+        dat = ncread_ts(ncvar, tidx_start, tidx_end+1)
         # skip the first data point
         plt.plot(dttime[1:], dat[1:], '-k', linewidth=1.5)
         if l_f2:
             # add the second line
             ncvar2 = infile2.variables[varname]
-            dat2 = ncread_ts(ncvar2, tidx_start2, tidx_end2)
+            dat2 = ncread_ts(ncvar2, tidx_start2, tidx_end2+1)
             plt.plot(dttime2[1:], dat2[1:], '-r', linewidth=1.5)
         f = plt.gcf()
         f.set_size_inches(fig_width, fig_height)
@@ -90,13 +90,13 @@ def main():
             # read data
             varname = args.vname[i]
             ncvar = infile.variables[varname]
-            dat = ncread_ts(ncvar, tidx_start, tidx_end)
+            dat = ncread_ts(ncvar, tidx_start, tidx_end+1)
             # skip the first data point
             ax.plot(dttime[1:], dat[1:], '-k', linewidth=1.5)
             if l_f2:
                 # add the second line
                 ncvar2 = infile2.variables[varname]
-                dat2 = ncread_ts(ncvar2, tidx_start2, tidx_end2)
+                dat2 = ncread_ts(ncvar2, tidx_start2, tidx_end2+1)
                 ax.plot(dttime2[1:], dat2[1:], '-r', linewidth=1.5)
             ax.set_ylabel(varname)
             # use scientific notation in y-axis label

@@ -101,7 +101,7 @@ def main():
     # get time
     if l_ignore_year:
         # ignore year when matching the time
-        dttime_ref = nctime_to_datetime(nctime, tidx_start=0, tidx_end=0)
+        dttime_ref = nctime_to_datetime(nctime, tidx_start=0, tidx_end=1)
         # Note: the method .replace() is required as no zero-padding is used in
         #  netcdftime.DatetimeNoLeap.strftime('%Y')...
         year_ref = dttime_ref[0].strftime('%Y').replace(' ','0')
@@ -110,7 +110,7 @@ def main():
         # get starting and ending indices
         tidx_start, tidx_end = nctime_indices(nctime, date_start_ref, date_end_ref)
         # time in datetime format
-        dttime = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end)
+        dttime = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end+1)
         # correct the year
         year_offset = int(args.date_start[0:4])-int(year_ref)
         tdat = dttime + datetime.timedelta(days=365*year_offset)
@@ -118,7 +118,7 @@ def main():
         # get starting and ending indices
         tidx_start, tidx_end = nctime_indices(nctime, args.date_start, args.date_end)
         # time in datetime format
-        tdat = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end)
+        tdat = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end+1)
 
     # --------
     # TEST

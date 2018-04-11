@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 import os
-from gotmplot import plot_map_scatter
+from gotmtool import plot_map_scatter
 
 def main():
     datadir = os.environ['HOME']+'/work/gotmfigures/argo_availability/'

@@ -72,7 +72,7 @@ def main():
     z = read_z(infile, ncvar)
 
     # read profile
-    mdl = ncread_pfl(ncvar, tidx_start, tidx_end)
+    mdl = ncread_pfl(ncvar, tidx_start, tidx_end+1)
     if mdl is None:
         print('The variable {} has {} dimension, not supported'.format(ncvar.name, ncvar.ndim))
         sys.exit(1)
@@ -147,7 +147,7 @@ def main():
         z2 = read_z(infile2, ncvar2)
 
         # read profile
-        mdl2 = ncread_pfl(ncvar2, tidx_start2, tidx_end2)
+        mdl2 = ncread_pfl(ncvar2, tidx_start2, tidx_end2+1)
         if mdl2 is None:
             print('The variable {} has {} dimension, not supported'.format(ncvar2.name, ncvar2.ndim))
             sys.exit(1)
