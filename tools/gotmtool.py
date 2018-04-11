@@ -107,7 +107,7 @@ def ncread_dim_time(infile, date_start, date_end):
     dttime = nctime_to_datetime(nctime, tidx_start=tidx_start, tidx_end=tidx_end+1)
 
     # print some message
-    print_dttime_range(dttime)
+    # print_dttime_range(dttime)
 
     # return
     return dttime, tidx_start, tidx_end
@@ -384,10 +384,16 @@ def get_mld_deltaT(infile, deltaT=0.2, zRef=-10, tidx_start=None, tidx_end=None)
         dTemp = Temp[i,:]-Temp[i,idx_zref]
         # ignore the points above the reference level
         dTemp[idx_zref:] = 99.
+        # ignore nan
+        dTemp[np.isnan(dTemp)] = 99.
         # find the maximum index (closest to the surface) where the temperature
         # difference is greater than the threshold value
-        idx_min = np.max(np.where(dTemp<=-deltaT))
-        mld[i] = z[i,idx_min]
+        idxlist = np.where(dTemp<=-deltaT)
+        if idxlist[0].size>0:
+            idx_min = np.max(idxlist)
+            mld[i] = z[i,idx_min]
+        else:
+            mld[i] = np.min(z[i,:])
     return mld
 
 def get_mld_deltaR(infile, deltaR=0.03, zRef=-10, tidx_start=None, tidx_end=None):
@@ -412,10 +418,16 @@ def get_mld_deltaR(infile, deltaR=0.03, zRef=-10, tidx_start=None, tidx_end=None
         dRho = Rho[i,:]-Rho[i,idx_zref]
         # ignore the points above the reference level
         dRho[idx_zref:] = -99.
+        # ignore nan
+        dRho[np.isnan(dRho)] = -99.
         # find the maximum index (closest to the surface) where the density
         # difference is greater than the threshold value
-        idx_min = np.max(np.where(dRho>=deltaR))
-        mld[i] = z[i,idx_min]
+        idxlist = np.where(dRho>=deltaR)
+        if idxlist[0].size>0:
+            idx_min = np.max(idxlist)
+            mld[i] = z[i,idx_min]
+        else:
+            mld[i] = np.min(z[i,:])
     return mld
 
 ###############################################################################
