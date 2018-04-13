@@ -30,6 +30,14 @@
         <varname>SWN_1495</varname>
         <outname>swr_file.dat</outname>
     </var>
+    <var name="precip">
+        <longname>Precipitation (mm/hour)</longname>
+        <filename>rain_wspd_cor32n145e_hr.cdf</filename>
+        <vartype>scalar</vartype>
+        <varname>RN_485</varname>
+        <outname>precip_file.dat</outname>
+        <scale_factor>2.77778e-7</scale_factor>
+    </var>
     <var name="sst">
         <longname>Sea surface temperature (degC)</longname>
         <filename>sst32n145e_hr.cdf</filename>

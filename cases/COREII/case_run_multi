@@ -59,7 +59,8 @@ datestart="20080601"
 dateend="20091231"
 
 # name of the turbulence model
-turbmethod="KPP-CVMix"
+# turbmethod="KPP-CVMix"
+turbmethod="OSMOSIS"
 # turbmethod="KPP-Original"
 
 # flag for dry run

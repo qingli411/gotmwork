@@ -20,5 +20,13 @@
         <varname>SWDN_MOD</varname>
         <outname>swr_file.dat</outname>
     </var>
+    <var name="precip">
+        <longname>Precipitation (mm/day)</longname>
+        <filename>gpcp_precip.nc</filename>
+        <vartype>scalar</vartype>
+        <varname>precip</varname>
+        <outname>precip_file.dat</outname>
+        <scale_factor>1.1574e-8</scale_factor>
+    </var>
 </data>
 

@@ -88,7 +88,7 @@ def main():
     sp.run([nmlchange, '-f', 'airsea.nml', '-e', 'calc_fluxes', '-v', '.false.'])
 
     # airsea variable in airsea.nml
-    airseavarlist = ['meteo', 'u10', 'swr', 'momentum', 'heat']
+    airseavarlist = ['meteo', 'u10', 'swr', 'momentum', 'heat', 'precip']
 
     # observation profiles in 'obs.nml'
     obsvarlist = ['t_prof', 's_prof', 'ext_press', 'int_press', 'w_adv', 'zeta',
@@ -158,7 +158,7 @@ def main():
             # humidity method
             hum_method = child.find('hum_method').text
             nml = "airsea.nml"
-            sp.run([nmlchange, '-f', nml, '-e', "hum_method", '-v', hum_method])
+            sp.run([nmlchange, '-f', nml, '-e', 'hum_method', '-v', hum_method])
         else:
             print('Variable type {} not supported.'.format(vtype))
             sys.exit(1)
@@ -177,6 +177,12 @@ def main():
             nml_file = var+'flux_file'
         else:
             nml_file = var+'_file'
+        #
+        # set scale factor if exist
+        found = child.find('scale_factor')
+        if found is not None:
+            scale_factor = child.find('scale_factor').text
+            sp.run([nmlchange, '-f', nml, '-e', var+'_factor', '-v', scale_factor])
         #
         # change values in namelist
         sp.run([nmlchange, '-f', nml, '-e', nml_method, '-v', '2'])

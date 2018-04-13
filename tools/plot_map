@@ -96,7 +96,7 @@ def main():
     if args.figname:
         figname = args.figname
     else:
-        figname = analysis+'_'+method+'_'+date_start_analy+'-'+date_end_analy+'.png'
+        figname = forc_scheme+'_'+turb_scheme+'_'+analysis+'_'+method+'_'+date_start_analy+'-'+date_end_analy+'.png'
 
     # netcdf file name
     if args.nc_file:
