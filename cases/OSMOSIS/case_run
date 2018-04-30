@@ -16,16 +16,19 @@ scratchdir="${HOME}/work/gotmrun"
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
-# input data
+# season
 season="winter"
-datadir="${HOME}/data/OSMOSIS/${season}"
+
+# input data root directory
+dataroot="${HOME}/work/gotmdata"
+datadir="${dataroot}/OSMOSIS/${season}"
 
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
 
 # name of the dataset
-title="OSMOSIS_${season}2"
+title="OSMOSIS_${season}"
 
 # output file name
 outname="gotm_out"

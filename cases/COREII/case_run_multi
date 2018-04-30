@@ -44,8 +44,10 @@ maskfile="${HOME}/data/mask/ww3_mask_1dx1d.nc"
 # name of the dataset
 title="COREII"
 
-# set locations
-maxdepth=400
+# set max depth and levels, grid zooming at surface
+maxdepth=500
+nlev=128
+ddu=2
 
 # run parameters
 dt=1800
@@ -131,6 +133,8 @@ while [ ${lat} -le ${lat_end} ]; do
             ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
             ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
             ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+            ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+            ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
 
             # use meteo data instead of fluxes
             ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.

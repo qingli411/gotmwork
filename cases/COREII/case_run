@@ -18,7 +18,8 @@ source ${workdir}/set_tools.sh
 
 # data directory
 # dataroot="/Users/qingli/data_local"
-dataroot="/Volumes/Qing_Work/data"
+# dataroot="/Volumes/Qing_Work/data"
+dataroot="/Users/qingli/work/gotmdata"
 
 # input data - surface fluxes
 datadir="${dataroot}/COREII_IAF"
@@ -30,7 +31,7 @@ wavdir="${dataroot}/WAVEWATCH_COREII"
 wavdata="ww3.2008-2009.nc"
 
 # input data - Argo profiles for initialization
-argodir="${dataroot}/obs/Argo"
+argodir="${dataroot}/Argo"
 argodata="WOD13_PFL_2000.nc"
 
 #######################################################################
@@ -43,7 +44,10 @@ title="COREII"
 # set locations
 lat=50
 lon=215
-maxdepth=300
+maxdepth=500
+nlev=128
+ddu=2
+ddl=0
 
 # output file name
 outname="gotm_out"
@@ -53,11 +57,13 @@ datestart="20090701"
 dateend="20091231"
 
 # name of the turbulence model
-turbmethod="KPPLT-ENTR"
+# turbmethod="KPPLT-ENTR"
 # turbmethod="KPP-Original"
+turbmethod="KPP-CVMix"
 
 # case name
-casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
+# casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
+casename="${title}_LAT${lat}_LON${lon}_NLEV${nlev}DDU${ddu}_${turbmethod}_${datestart}-${dateend}"
 
 #
 l_run_gotm="yes"
@@ -86,6 +92,9 @@ ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
     -ds ${datestart} -de ${dateend} -method nc2dat_latlon
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
+${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
 # use meteo data instead of fluxes
 ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.

@@ -16,12 +16,15 @@ scratchdir="${HOME}/work/gotmrun"
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
+# input data root directory
+dataroot="${HOME}/work/gotmdata"
+
 # input data - surface fluxes
-datadir="${HOME}/data/OCS/Papa/Papa_20100616-20150101"
-# datadir="${HOME}/data/OCS/Papa/Papa_2008-2009"
+datadir="${dataroot}/OCS/Papa/Papa_20100616-20150101"
+# datadir="${dataroot}/OCS/Papa/Papa_2008-2009"
 
 # input data - waves
-specdata="${HOME}/data/CDIP/Papa/166p1_historic.nc"
+specdata="${dataroot}/CDIP/Papa/166p1_historic.nc"
 
 #######################################################################
 #                           Set parameters                            #
@@ -39,8 +42,10 @@ dateend="20140701"
 
 # name of the turbulence model
 # turbmethod="KPPLT-EFACTOR"
-turbmethod="KPPLT-ENTR"
+# turbmethod="KPPLT-ENTR"
 # turbmethod="KPP-Original"
+turbmethod="SMCLT"
+# turbmethod="SMC"
 
 # case name
 casename="${title}_${turbmethod}_${datestart}-${dateend}"
@@ -82,6 +87,16 @@ case ${turbmethod} in
         ;;
     "SMC")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
+        ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 3
+        ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 9
+        ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
+        ;;
+    "SMCLT")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
+        ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 4
+        ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 11
+        ${cmd_nmlchange} -f gotmturb.nml -e e6 -v 5.0
+        ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
         ;;
     "KPP-CVMix")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99

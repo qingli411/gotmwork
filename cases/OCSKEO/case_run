@@ -16,8 +16,11 @@ scratchdir="${HOME}/work/gotmrun"
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
+# input data root directory
+dataroot="${HOME}/work/gotmdata"
+
 # input data - surface fluxes
-datadir="${HOME}/data/OCS/KEO/KEO_2008-2009"
+datadir="${dataroot}/OCS/KEO/KEO_2008-2009"
 
 #######################################################################
 #                           Set parameters                            #
