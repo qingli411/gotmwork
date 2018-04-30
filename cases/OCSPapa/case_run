@@ -33,6 +33,15 @@ specdata="${dataroot}/CDIP/Papa/166p1_historic.nc"
 # name of the dataset
 title="OCSPapa"
 
+# set levels, grid zooming at surface
+nlev=128
+ddu=2
+ddl=0
+
+# run parameters
+dt=1800
+nsave=6
+
 # output file name
 outname="gotm_out"
 
@@ -62,13 +71,18 @@ cd ${rundir}
 # set up namelists
 cp ${nmldir}/*.nml ./
 
-# general setup for the surface fluxes
+# set run parameters
 xmlfile=${title}.xml
 cp ${xmldir}/${xmlfile} ./
 ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
     -ds ${datestart} -de ${dateend}
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
+${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
 # processing wave spectrum data
 if [ ! -z ${specdata} ]; then
@@ -95,7 +109,7 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
         ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 4
         ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 11
-        ${cmd_nmlchange} -f gotmturb.nml -e e6 -v 5.0
+        ${cmd_nmlchange} -f gotmturb.nml -e e6 -v 6.0
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
         ;;
     "KPP-CVMix")
@@ -104,6 +118,7 @@ case ${turbmethod} in
         ;;
     "KPP-GOTM")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+        ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .false.
         ;;
     "KPPLT-EFACTOR")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99

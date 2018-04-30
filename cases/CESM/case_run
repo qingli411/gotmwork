@@ -40,7 +40,7 @@ dateend="20091231"
 
 # name of the turbulence model
 turbmethod="KPP-CVMix"
-# turbmethod="KPP-Original"
+# turbmethod="KPP-GOTM"
 
 # case name
 casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
@@ -67,7 +67,7 @@ sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 
-# general setup for the surface fluxes
+# set run parameters
 ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
     -ds ${datestart} -de ${dateend} -method nc2dat_latlon
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}

@@ -17,9 +17,7 @@ scratchdir="${HOME}/work/gotmrun"
 source ${workdir}/set_tools.sh
 
 # data directory
-# dataroot="/Users/qingli/data_local"
-# dataroot="/Volumes/Qing_Work/data"
-dataroot="/Users/qingli/work/gotmdata"
+dataroot="${HOME}/work/gotmdata"
 
 # input data - surface fluxes
 datadir="${dataroot}/COREII_IAF"
@@ -41,13 +39,17 @@ argodata="WOD13_PFL_2000.nc"
 # name of the dataset
 title="COREII"
 
-# set locations
+# set location, max depth and levels, grid zooming at surface
 lat=50
 lon=215
 maxdepth=500
 nlev=128
 ddu=2
 ddl=0
+
+# run parameters
+dt=1800
+nsave=6
 
 # output file name
 outname="gotm_out"
@@ -62,8 +64,7 @@ dateend="20091231"
 turbmethod="KPP-CVMix"
 
 # case name
-# casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
-casename="${title}_LAT${lat}_LON${lon}_NLEV${nlev}DDU${ddu}_${turbmethod}_${datestart}-${dateend}"
+casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
 
 #
 l_run_gotm="yes"
@@ -87,11 +88,13 @@ sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 
-# general setup for the surface fluxes
+# set run parameters
 ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
     -ds ${datestart} -de ${dateend} -method nc2dat_latlon
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
 ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
 ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
 ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
@@ -118,9 +121,6 @@ ${cmd_nmlchange} -f obs.nml -e wave_file -v "wave_file.dat"
 # processing Argo data for initialization
 tprof_name="tprof_file.dat"
 sprof_name="sprof_file.dat"
-# ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-#     -r 3 -ot ${tprof_name} -os ${sprof_name} \
-#     -ds ${datestart} -de ${dateend}
 ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
     -r 2 -ot ${tprof_name} -os ${sprof_name} \
     -ds ${datestart} -dr 10
@@ -136,6 +136,16 @@ case ${turbmethod} in
         ;;
     "SMC")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
+        ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 3
+        ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 9
+        ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
+        ;;
+    "SMCLT")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
+        ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 4
+        ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 11
+        ${cmd_nmlchange} -f gotmturb.nml -e e6 -v 6.0
+        ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
         ;;
     "KPP-CVMix")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
@@ -143,6 +153,7 @@ case ${turbmethod} in
         ;;
     "KPP-GOTM")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+        ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .false.
         ;;
     "KPPLT-EFACTOR")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
