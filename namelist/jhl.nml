@@ -1,0 +1,18 @@
+!jhl Namelist
+
+&jhl
+   RiNo_Crit = 0.25,
+   ShearMix_Rate = 0.089,
+   FRi_Curvature = -0.97,
+   C_N = 0.24,
+   C_S = 0.14,
+   Lambda = 0.82,
+   Lambda2_N_S = 0.0,
+   TKE_bg = 0.0,
+   Kappa_0 = 1.0e-7,
+   Kappa_Tol_Err = 0.1,
+   Prandtl_Turb = 1.0,
+   Max_RiNo_It = 50,
+   Max_KS_it = 13,
+/
+

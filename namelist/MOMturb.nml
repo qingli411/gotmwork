@@ -1,0 +1,6 @@
+!momturb Namelist
+
+&momturb
+   Mode=2,
+/
+
