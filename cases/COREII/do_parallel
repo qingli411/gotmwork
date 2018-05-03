@@ -15,4 +15,5 @@ for i in {0..7}; do
 
     # Run GOTM
     # ./case_run_multi ${lon_start} ${lon_end} > log.${i} &
+    # ./case_run_multi_fast ${lon_start} ${lon_end} > log.${i} &
 done
