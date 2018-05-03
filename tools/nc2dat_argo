@@ -45,11 +45,14 @@ def main():
             metavar='DATERANGE',
             help='Date range in days for searching the initial profiles before or after the starting date')
     parser.add_argument('-ot', '--output_temp', action='store',
-            dest='fname_out_temp', metavar='DATFILENAME',
+            dest='fname_out_temp', metavar='TEMPFILENAME',
             help='Output filename for temperature profile')
     parser.add_argument('-os', '--output_salt', action='store',
-            dest='fname_out_salt', metavar='DATFILENAME',
+            dest='fname_out_salt', metavar='SALTFILENAME',
             help='Output filename for salinity profile')
+    parser.add_argument('-maxd', '--max_depth', action='store',
+            dest='max_depth', metavar='MAXDEPTH',
+            help='Max depth of the profiles')
     parser.add_argument('-dry', '--dry', action='store_true', dest='l_dry_run',
             help='Check the available profiles without outputting them into files')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
@@ -89,6 +92,11 @@ def main():
         fname_out_salt = args.fname_out_salt
     else:
         fname_out_salt = 'sprof_file.dat'
+
+    if args.max_depth:
+        max_depth = float(args.max_depth)
+    else:
+        max_depth = 500.0
 
     # read data
     infile = Dataset(fname_in, 'r')
@@ -152,10 +160,10 @@ def main():
     # indices in the full record
     idx_cast = cast[tidx_start:tidx_end+1]-1
 
-    # read depth (limited to upper 500 m)
+    # read depth (limited to upper max_depth)
     depth = infile.variables['depth'][:]
     depth = abs(depth)
-    idx_depth_max = np.searchsorted(depth, 500, side='left')+1
+    idx_depth_max = np.searchsorted(depth, max_depth, side='left')+1
     ddat = -depth[:idx_depth_max]
 
     # get global missing value

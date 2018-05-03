@@ -4,11 +4,14 @@
 #
 # Qing Li, 20180410
 
-kproc="case_run_multi"
-klist=$(ps aux | grep ${kproc} | awk '{if($11!="grep") print $2}')
+for kproc in case_run_multi preproc_data; do
 
-for i in ${klist}; do
-    echo "Killing process ${i} ..."
-    kill ${i}
+    klist=$(ps aux | grep ${kproc} | awk '{if($11!="grep") print $2}')
+
+    for i in ${klist}; do
+        echo "Killing process ${i} ..."
+        kill ${i}
+    done
+
 done
 

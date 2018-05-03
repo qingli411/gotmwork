@@ -9,12 +9,10 @@ dlon=4
 for i in {0..7}; do
     lon_start=${lon_slist[i]}
     lon_end=${lon_elist[i]}
-    ./case_run_multi ${lon_start} ${lon_end} > log.${i} &
-    # # start outer loop over lon
-    # lon=${lon_start}
-    # while [ ${lon} -le ${lon_end} ]; do
-    #     echo $lon
-    #     # end outer loop over lon
-    #     lon=$((${lon}+${dlon}))
-    # done
+
+    # Preprocess input data
+    ./preproc_data ${lon_start} ${lon_end} > log.${i} &
+
+    # Run GOTM
+    # ./case_run_multi ${lon_start} ${lon_end} > log.${i} &
 done
