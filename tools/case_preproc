@@ -26,7 +26,7 @@ def main():
             metavar='ROOTDIR', required=True,
             help='Root directory of GOTMWORK')
     parser.add_argument('-data', '--data', action='store', dest='datadir',
-            metavar='DATADIR', required=True, help='Input data directory')
+            metavar='DATADIR', required=False, help='Input data directory')
     parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
             metavar='STARTDATE', required=True,
             help='Starting date of input data, in the format of YYYYMMDD')
@@ -44,10 +44,18 @@ def main():
     args=parser.parse_args()
 
     # set paths
-    datadir = args.datadir
     datestart = args.date_start
     dateend = args.date_end
     xmlfile = args.fname_xml
+
+    # check input data
+    if not args.l_skip_data:
+        if not args.datadir:
+            print('Input data is required if -skipdata is not set.')
+            parser.print_help()
+            sys.exit(1)
+        else:
+            datadir = args.datadir
 
     # check if XML file exists
     if not os.path.isfile(xmlfile):
