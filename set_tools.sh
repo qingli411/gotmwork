@@ -19,3 +19,4 @@ cmd_is_sea="${tooldir}/is_sea"
 
 # bash script
 scpt_case_postproc="${tooldir}/case_postproc.sh"
+scpt_case_turbmethod="${tooldir}/case_turbmethod.sh"
