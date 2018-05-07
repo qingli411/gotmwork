@@ -26,7 +26,7 @@ def main():
             metavar='ROOTDIR', required=True,
             help='Root directory of GOTMWORK')
     parser.add_argument('-data', '--data', action='store', dest='datadir',
-            metavar='DATADIR', required=True, help='Input data directory')
+            metavar='DATADIR', required=False, help='Input data directory')
     parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
             metavar='STARTDATE', required=True,
             help='Starting date of input data, in the format of YYYYMMDD')
@@ -36,15 +36,26 @@ def main():
     parser.add_argument('-method', '--method', action='store', dest='method',
             metavar='METHOD', required=False,
             help='The tool to convert netCDF data to text file in GOTMv5 format')
+    parser.add_argument('-skipdata', '--skipdata',
+            action='store_true', dest='l_skip_data',
+            help='Only update namelist without regenerate the input data')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
     # parsing arguments and save to args
     args=parser.parse_args()
 
     # set paths
-    datadir = args.datadir
     datestart = args.date_start
     dateend = args.date_end
     xmlfile = args.fname_xml
+
+    # check input data
+    if not args.l_skip_data:
+        if not args.datadir:
+            print('Input data is required if -skipdata is not set.')
+            parser.print_help()
+            sys.exit(1)
+        else:
+            datadir = args.datadir
 
     # check if XML file exists
     if not os.path.isfile(xmlfile):
@@ -101,67 +112,70 @@ def main():
         fname = child.find('filename').text
         vtype = child.find('vartype').text
         oname = child.find('outname').text
-        if vtype == 'scalar':
-            # scalar variable
-            vname = child.find('varname').text
-            # nc2dat
-            if nc2dat_method == 'nc2dat_latlon':
-                sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vname, '-o', oname,
-                    '-ds', datestart, '-de', dateend, '-lat', lat, '-lon', lon,
-                    '-maxd', maxdepth])
-            elif nc2dat_method == 'nc2dat':
-                sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vname, '-o', oname,
-                    '-ds', datestart, '-de', dateend])
+        if not args.l_skip_data:
+            if vtype == 'scalar':
+                # scalar variable
+                vname = child.find('varname').text
+                # nc2dat
+                if nc2dat_method == 'nc2dat_latlon':
+                    sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vname, '-o', oname,
+                        '-ds', datestart, '-de', dateend, '-lat', lat, '-lon', lon,
+                        '-maxd', maxdepth])
+                elif nc2dat_method == 'nc2dat':
+                    sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vname, '-o', oname,
+                        '-ds', datestart, '-de', dateend])
+                else:
+                    print('Invalid nc2dat method: {}. Stop.'.format(nc2dat_method))
+                    sys.exit(1)
+            elif vtype == 'vector':
+                # vector variable
+                vnamex = child.find('varnamex').text
+                vnamey = child.find('varnamey').text
+                # nc2dat
+                if nc2dat_method == 'nc2dat_latlon':
+                    sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey,
+                        '-o', oname, '-ds', datestart, '-de', dateend,
+                        '-lat', lat, '-lon', lon, '-maxd', maxdepth])
+                elif nc2dat_method == 'nc2dat':
+                    sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey,
+                        '-o', oname, '-ds', datestart, '-de', dateend])
+                else:
+                    print('Invalid nc2dat method: {}. Stop.'.format(nc2dat_method))
+                    sys.exit(1)
+            elif vtype == 'meteo':
+                # meteorology data
+                #  u10, v10, air pressure at 2m (hPa),
+                #  air temperature at 2m (either degK or degC),
+                #  relative(%)/specific(kg/kg) humidity (determined by hum_method),
+                #  cloud cover
+                vname_u10 = child.find('varname_u10').text
+                vname_v10 = child.find('varname_v10').text
+                vname_slp = child.find('varname_slp').text
+                vname_sat = child.find('varname_sat').text
+                vname_hum = child.find('varname_hum').text
+                vname_cld = child.find('varname_cld').text
+                # nc2dat
+                if nc2dat_method == 'nc2dat_latlon':
+                    sp.run([nc2dat, '-i', datadir+'/'+fname,
+                        '-v', vname_u10, vname_v10, vname_slp, vname_sat, vname_hum, vname_cld,
+                        '-o', oname, '-ds', datestart, '-de', dateend,
+                        '-lat', lat, '-lon', lon, '-maxd', maxdepth])
+                elif nc2dat_method == 'nc2dat':
+                    sp.run([nc2dat, '-i', datadir+'/'+fname,
+                        '-v', vname_u10, vname_v10, vname_slp, vname_sat, vname_hum, vname_cld,
+                        '-o', oname, '-ds', datestart, '-de', dateend])
+                else:
+                    print('Invalid nc2dat method: {}. Stop.'.format(nc2dat_method))
+                    sys.exit(1)
             else:
-                print('Invalid nc2dat method: {}. Stop.'.format(nc2dat_method))
+                print('Variable type {} not supported.'.format(vtype))
                 sys.exit(1)
-        elif vtype == 'vector':
-            # vector variable
-            vnamex = child.find('varnamex').text
-            vnamey = child.find('varnamey').text
-            # nc2dat
-            if nc2dat_method == 'nc2dat_latlon':
-                sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey,
-                    '-o', oname, '-ds', datestart, '-de', dateend,
-                    '-lat', lat, '-lon', lon, '-maxd', maxdepth])
-            elif nc2dat_method == 'nc2dat':
-                sp.run([nc2dat, '-i', datadir+'/'+fname, '-v', vnamex, vnamey,
-                    '-o', oname, '-ds', datestart, '-de', dateend])
-            else:
-                print('Invalid nc2dat method: {}. Stop.'.format(nc2dat_method))
-                sys.exit(1)
-        elif vtype == 'meteo':
-            # meteorology data
-            #  u10, v10, air pressure at 2m (hPa),
-            #  air temperature at 2m (either degK or degC),
-            #  relative(%)/specific(kg/kg) humidity (determined by hum_method),
-            #  cloud cover
-            vname_u10 = child.find('varname_u10').text
-            vname_v10 = child.find('varname_v10').text
-            vname_slp = child.find('varname_slp').text
-            vname_sat = child.find('varname_sat').text
-            vname_hum = child.find('varname_hum').text
-            vname_cld = child.find('varname_cld').text
-            # nc2dat
-            if nc2dat_method == 'nc2dat_latlon':
-                sp.run([nc2dat, '-i', datadir+'/'+fname,
-                    '-v', vname_u10, vname_v10, vname_slp, vname_sat, vname_hum, vname_cld,
-                    '-o', oname, '-ds', datestart, '-de', dateend,
-                    '-lat', lat, '-lon', lon, '-maxd', maxdepth])
-            elif nc2dat_method == 'nc2dat':
-                sp.run([nc2dat, '-i', datadir+'/'+fname,
-                    '-v', vname_u10, vname_v10, vname_slp, vname_sat, vname_hum, vname_cld,
-                    '-o', oname, '-ds', datestart, '-de', dateend])
-            else:
-                print('Invalid nc2dat method: {}. Stop.'.format(nc2dat_method))
-                sys.exit(1)
+        #
+        if vtype == 'meteo':
             # humidity method
             hum_method = child.find('hum_method').text
             nml = "airsea.nml"
             sp.run([nmlchange, '-f', nml, '-e', 'hum_method', '-v', hum_method])
-        else:
-            print('Variable type {} not supported.'.format(vtype))
-            sys.exit(1)
         #
         # change namelist accordingly
         # choose namelist
