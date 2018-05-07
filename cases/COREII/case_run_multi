@@ -2,7 +2,11 @@
 # Setup and run GOTM for CORE-II
 # Loop over latitude and longitude
 #
-# Qing Li, 20180328
+# This script essentially does the same thing as case_run_multi, but
+# skips the step to preprocess the input data, which is now taken care
+# of my preproc_data
+#
+# Qing Li, 20180503
 
 #######################################################################
 #                              Set path                               #
@@ -17,24 +21,8 @@ scratchdir="${HOME}/scratch"
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
-# data directory
-dataroot="${HOME}/work/data"
-
-# input data - surface fluxes
-datadir="${dataroot}/COREII_IAF"
-
-# input data - waves
-uspdir="${dataroot}/WAVEWATCH_COREII"
-uspdata="ww3.2008-2009_usp.nc"
-wavdir="${dataroot}/WAVEWATCH_COREII"
-wavdata="ww3.2008-2009.nc"
-
-# input data - Argo profiles for initialization
-argodir="${dataroot}/Argo"
-argodata="WOD13_PFL_2000.nc"
-
-# mask data
-maskfile="${dataroot}/mask/ww3_mask_1dx1d.nc"
+# data directory for preprocessed input data
+dataroot="${HOME}/scratch/gotmdata_core2"
 
 #######################################################################
 #                           Set parameters                            #
@@ -57,7 +45,9 @@ nsave=6
 outname="gotm_out"
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20080601"
+# the starting date should match what are available in the
+# input data directory
+datestart="20080615"
 dateend="20091231"
 
 # name of the turbulence model
@@ -65,20 +55,19 @@ dateend="20091231"
 turbmethod="OSMOSIS"
 # turbmethod="KPP-Original"
 
-# flag for dry run
-l_dry_run="no"
-
 #######################################################################
 #                         Loop over locations                         #
 #######################################################################
 lon_start=$1
 lon_end=$2
-# lon_start=2
-# lon_end=360
 dlon=4
 lat_start=-70
 lat_end=70
 dlat=4
+
+# input data starting and ending date
+inputstart="20080115"
+inputend="20091231"
 
 # start outer loop over lon
 lon=${lon_start}
@@ -87,139 +76,120 @@ while [ ${lon} -le ${lon_end} ]; do
 lat=${lat_start}
 while [ ${lat} -le ${lat_end} ]; do
 
-    # check if it is a sea point
-    l_sea=$(${cmd_is_sea} -fmask ${maskfile} -lat ${lat} -lon ${lon})
+    # input data folder name
+    inputname="${title}_LAT${lat}_LON${lon}_${inputstart}-${inputend}"
 
-    # skip if not a sea point
-    if [ ${l_sea} == "yes" ]; then
+    # check if data exists
+    if [ -d ${dataroot}/${inputname} ]; then
 
         # case name
         casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
 
-        # dry run first and check the availability of argo profiles
-        ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-            -r 2 -ds ${datestart} -dr 20 -dry
-        nstate=$?
+        # print case name
+        echo ${casename}
 
-        if [ ${l_dry_run} == "no" ]; then
-            # print case name
-            echo ${casename}
+        # create run directory
+        rundir="${scratchdir}/${casename}"
+        mkdir -p ${rundir}
+        cd ${rundir}
 
-            # skip if no argo profile is available
-            if [ $nstate == 1 ]; then
-                echo "[case_run_multi] No Argo profile available. Skip."
-                lat=$((${lat}+${dlat}))
-                continue
-            fi
+        # set up namelists
+        cp ${nmldir}/*.nml ./
 
-            # create run directory
-            rundir="${scratchdir}/${casename}"
-            mkdir -p ${rundir}
-            cd ${rundir}
+        # copy input data
+        cp ${dataroot}/${inputname}/*_file.dat ./
+        tprof_name="tprof_file.dat"
+        sprof_name="sprof_file.dat"
+        cp ${dataroot}/${inputname}/tprof_file_${datestart}.dat ./${tprof_name}
+        cp ${dataroot}/${inputname}/sprof_file_${datestart}.dat ./${sprof_name}
 
-            # set up namelists
-            cp ${nmldir}/*.nml ./
+        xmlfile=${title}.xml
+        cp ${xmldir}/${xmlfile} ./
+        sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
+        sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
+        sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 
-            xmlfile=${title}.xml
-            cp ${xmldir}/${xmlfile} ./
-            sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
-            sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
-            sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
+        # set run parameters
+        ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} \
+        -ds ${datestart} -de ${dateend} -method nc2dat_latlon -skipdata
+        ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+        ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+        ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+        ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+        ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+        ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
+        ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
-            # set run parameters
-            ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
-                -ds ${datestart} -de ${dateend} -method nc2dat_latlon
-            ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
-            ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
-            ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
-            ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
-            ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
-            ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
-            ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
+        # use meteo data instead of fluxes
+        ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
+        ${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
+        ${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
 
-            # use meteo data instead of fluxes
-            ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
-            ${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
-            ${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
+        # Stokes drift data
+        ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
+        ${cmd_nmlchange} -f obs.nml -e nfreq -v 3
+        ${cmd_nmlchange} -f obs.nml -e usp_file -v "usp_file.dat"
 
-            # processing Stokes drift data
-            ${cmd_nc2dat_core2ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
-                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} -usp
-            ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
-            ${cmd_nmlchange} -f obs.nml -e nfreq -v 3
-            ${cmd_nmlchange} -f obs.nml -e usp_file -v "usp_file.dat"
+        # bulk wave parameter
+        ${cmd_nmlchange} -f obs.nml -e wave_method -v 2
+        ${cmd_nmlchange} -f obs.nml -e wave_file -v "wave_file.dat"
 
-            # processing bulk wave parameter
-            ${cmd_nc2dat_core2ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
-                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} \
-                -v hs fp dir
-            ${cmd_nmlchange} -f obs.nml -e wave_method -v 2
-            ${cmd_nmlchange} -f obs.nml -e wave_file -v "wave_file.dat"
+        # processing Argo data for initialization
+        ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
+        ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
+        ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
+        ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_name}
 
-            # processing Argo data for initialization
-            tprof_name="tprof_file.dat"
-            sprof_name="sprof_file.dat"
-            ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-                -r 2 -ot ${tprof_name} -os ${sprof_name} \
-                -ds ${datestart} -dr 20
-            ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
-            ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
-            ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
-            ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_name}
+        # set turbulence model
+        case ${turbmethod} in
+        "OSMOSIS")
+            ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 98
+            ;;
+        "SMC")
+            ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
+            ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 3
+            ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 9
+            ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
+            ;;
+        "SMCLT")
+            ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
+            ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 4
+            ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 11
+            ${cmd_nmlchange} -f gotmturb.nml -e e6 -v 6.0
+            ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
+            ;;
+        "KPP-CVMix")
+            ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+            ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+            ;;
+        "KPP-GOTM")
+            ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+            ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .false.
+            ;;
+        "KPPLT-EFACTOR")
+            ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+            ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+            ${cmd_nmlchange} -f kpp.nml -e langmuir_method -v 1
+            ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
+            ;;
+        "KPPLT-ENTR")
+            ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
+            ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+            ${cmd_nmlchange} -f kpp.nml -e langmuir_method -v 2
+            ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
+            ;;
+        *)
+            echo "Turbulence method ${turbmethod} not supported. Stop."
+            exit 1
+        esac
 
-            # set turbulence model
-            case ${turbmethod} in
-                "OSMOSIS")
-                    ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 98
-                    ;;
-                "SMC")
-                    ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
-                    ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 3
-                    ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 9
-                    ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
-                    ;;
-                "SMCLT")
-                    ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
-                    ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 4
-                    ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 11
-                    ${cmd_nmlchange} -f gotmturb.nml -e e6 -v 6.0
-                    ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
-                    ;;
-                "KPP-CVMix")
-                    ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
-                    ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
-                    ;;
-                "KPP-GOTM")
-                    ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
-                    ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .false.
-                    ;;
-                "KPPLT-EFACTOR")
-                    ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
-                    ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
-                    ${cmd_nmlchange} -f kpp.nml -e langmuir_method -v 1
-                    ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
-                    ;;
-                "KPPLT-ENTR")
-                    ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
-                    ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
-                    ${cmd_nmlchange} -f kpp.nml -e langmuir_method -v 2
-                    ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
-                    ;;
-                *)
-                    echo "Turbulence method ${turbmethod} not supported. Stop."
-                    exit 1
-            esac
+        # turn off bottom boundary layer
+        ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
 
-            # turn off bottom boundary layer
-            ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
+        # run GOTM
+        gotm 2> log.${outname}
 
-            # run GOTM
-            gotm 2> log.${outname}
-
-            # plot surface forcing and profiles
-            # source ${scpt_case_postproc}
-        fi # l_dry_run
-    fi # l_sea
+    fi # input exist
 
 # end inner loop over lat
 lat=$((${lat}+${dlat}))
