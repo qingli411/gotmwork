@@ -1,0 +1,34 @@
+#!/bin/bash
+# This script sets up test cases to test the sensitivity of different
+# boundary layer schemes to vertical resolution and time step using
+# forcing data from ocean climate station Papa
+#
+# OCS Papa
+# latitude:  50.1
+# longitude: 215.1
+# depth (m): 300.0
+#
+# Qing Li, 20180507
+
+# root directory for gotmwork
+workdir="${HOME}/models/gotm/gotmwork"
+
+# scratch directory to run the case
+scratchdir="${HOME}/work/gotmrun"
+
+# setup paths and tools
+source ${workdir}/set_tools.sh
+
+# directory of base case
+basecase="${workdir}/data/OCSPapa_20120101-20131204"
+
+# starting and ending date - in the format of YYYYMMDD
+# starting from summer solstice
+datestart="20130621"
+dateend="20131201"
+
+# name of the dataset
+title="OCSPapa_${datestart}-${dateend}"
+
+# loop over cases
+source ./case_loop.sh

@@ -18,11 +18,11 @@ scratchdir="${HOME}/work/gotmrun"
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
-# season
+# season (winter or spring)
 season="spring"
 
 # directory of base case
-basecase="${HOME}/work/gotmcases/OSMOSIS_${season}"
+basecase="${workdir}/data/OSMOSIS_${season}"
 
 #######################################################################
 #                           Set parameters                            #

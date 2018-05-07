@@ -19,7 +19,7 @@ scratchdir="${HOME}/work/gotmrun"
 source ${workdir}/set_tools.sh
 
 # directory of base case
-basecase="${HOME}/work/gotmcases/OCSPapa_2012-2013"
+basecase="${workdir}/data/OCSPapa_20120101-20131204"
 
 #######################################################################
 #                           Set parameters                            #
@@ -62,9 +62,6 @@ casename="${title}_${turbmethod}_${datestart}-${dateend}"
 rundir="${scratchdir}/${casename}"
 mkdir -p ${rundir}
 cd ${rundir}
-
-# set up namelists
-cp ${nmldir}/*.nml ./
 
 # copy base case
 cp ${basecase}/* ./
