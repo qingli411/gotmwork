@@ -79,6 +79,10 @@ This folder contains a set of tools to preprocess observational data for input a
 
   `case_postproc.sh`
 
+- Script to set the namelist according to the turbulent methods.
+
+  `case_turbmethod.sh`
+
 ## ./namelist/
 
 Directory for all namelist
@@ -86,19 +90,25 @@ Directory for all namelist
 
 ## ./data/
 
-Directory for data description file in XML. These files are used by `case_preproc`.
+This directory contains preprocessed input data for test cases:
+
+- OCSPapa_20120101-20131204
+- OSMOSIS_winter
+- OSMOSIS_spring
+
+Also included in this directory are the data description files in XML format, which are used by `case_preproc` to preprocess the input data.
 
 
 ## ./cases/
 
-Test cases. In each case, `case_run` sets up the run.
+Test cases. In each case, `case_test` sets up the namelist, preprocess the input data and run the simulation, whereas `case_run` (if exists) runs the simulation from preprocessed input data.
 
 - COREII
 
-  - `case_run_multi` sets up multiple runs under CORE-II forcing, currently one run for each 4 by 4 degree box globally.
-
+  - `case_test_multi` sets up multiple runs under CORE-II forcing, currently one run for each 4 by 4 degree box globally.
+  - `case_run_multi` is similar to `case_test_multi`, but uses preprocessed CORE-II data and is therefore significantly faster.
+  - `preproc_data` preprocesses the CORE-II data.
   - `do_parallel` manually distributes jobs to 8 cores on a Mac Pro.
-
   - `kill_all` kills all the jobs.
 
 - OCSKEO
@@ -106,3 +116,9 @@ Test cases. In each case, `case_run` sets up the run.
 - OCSPapa
 
 - OSMOSIS
+
+- TEST_RES
+Sensitivity test of different boundary layer schemes to different vertical resolutions and time steps.
+   - `case_loop.sh` loops over different turbulent methods, vertical resolutions and time steps.
+   - `OCSPapa` runs test case using OCS Papa data
+   - `OSMOSIS` runs test case using OSMOSIS data
