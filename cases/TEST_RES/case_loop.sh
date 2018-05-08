@@ -36,13 +36,13 @@ for vr in ${vrlist[@]}; do
             grid_method=0
             ddu=0
             ddl=0
-            nlev=300
+            let nlev=depth
             ;;
         "5m")
             grid_method=0
             ddu=0
             ddl=0
-            nlev=60
+            let nlev=depth/5
             ;;
         *)
             echo "Vertical resolution ${vr} not supported. Stop."
@@ -57,7 +57,7 @@ for dt in ${dtlist[@]}; do
     echo ${casename}
 
     # set output frequency (3-hourly output)
-    (( nsave=10800/dt ))
+    let nsave=10800/dt
 
     # create run directory
     rundir="${scratchdir}/${casename}"

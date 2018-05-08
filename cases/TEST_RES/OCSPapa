@@ -30,5 +30,8 @@ dateend="20131201"
 # name of the dataset
 title="OCSPapa_${datestart}-${dateend}"
 
+# depth
+depth=300
+
 # loop over cases
 source ./case_loop.sh
