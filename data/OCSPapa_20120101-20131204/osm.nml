@@ -15,6 +15,6 @@
    osm_sbl = .true.,
    osm_bbl = .false.,
    osm_interior = .true.,
-   h_i = 50.0,
+   h_i = 20.0,
 /
 

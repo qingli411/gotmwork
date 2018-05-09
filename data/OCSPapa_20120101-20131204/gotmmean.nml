@@ -78,7 +78,7 @@
    z0s_min = 0.02,
    charnock = .false.,
    charnock_val = 1400.0,
-   ddu = 2,
+   ddu = 0,
    ddl = 0,
    grid_method = 0,
    c1ad = 0.4,

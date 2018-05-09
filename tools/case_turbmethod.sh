@@ -30,13 +30,11 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
         ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
         ${cmd_nmlchange} -f kpp.nml -e langmuir_method -v 1
-        ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 3
         ;;
     "KPPLT-ENTR")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
         ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
         ${cmd_nmlchange} -f kpp.nml -e langmuir_method -v 2
-        ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 3
         ;;
     *)
         echo "Turbulence method ${turbmethod} not supported. Stop."

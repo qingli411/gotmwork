@@ -20,6 +20,9 @@ scratchdir="${HOME}/work/gotmrun"
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
+# current directory
+curdir=$(pwd)
+
 # season
 seasonlist=(winter spring)
 
@@ -41,5 +44,5 @@ for idx in ${!seasonlist[@]}; do
     depth=${depthlist[idx]}
 
     # loop over cases
-    source ./case_loop.sh
+    source ${curdir}/case_loop.sh
 done

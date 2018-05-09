@@ -70,7 +70,7 @@
    lcvmix = .false.,
    lnoDGat1 = .true.,
    langmuir_method = 0,
-   efactor_method = 1,
+   efactor_method = 4,
    efactor_file = '',
    interp_type = 'quadratic',
    interp_type2 = 'LMD94',
