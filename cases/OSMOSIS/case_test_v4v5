@@ -1,0 +1,97 @@
+#!/bin/bash
+# Run GOTM using preprocessed data for OSMOSIS
+# Require a base case which contains the preprocessed input data
+# and namelist, e.g., as a result of case_test
+# This script set up runs with the samne setting as Alan's run with GOTMv4
+#
+# Qing Li, 20180504
+
+#######################################################################
+#                              Set paths                              #
+#######################################################################
+
+# root directory for gotmwork
+workdir="${HOME}/models/gotm/gotmwork"
+
+# scratch directory to run the case
+scratchdir="${HOME}/work/gotmrun"
+
+# setup paths and tools
+source ${workdir}/set_tools.sh
+
+# season (winter or spring)
+season="winter"
+
+# directory of base case
+basecase="${workdir}/data/OSMOSIS_${season}"
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+# name of the dataset
+title="OSMOSIS_${season}"
+
+# set levels and grid zooming at surface
+ddu=0
+ddl=0
+
+# run parameters
+dt=1800
+if [ ${season} == "winter" ]; then
+    nsave=1
+    nlev=100
+elif [ ${season} == "spring" ]; then
+    nsave=2
+    nlev=240
+else
+    echo "Season ${season} not supported. Stop."
+    exit 1
+fi
+
+
+# name of the turbulence model
+turbmethod="OSMOSIS"
+
+# output file name
+outname="gotm_out"
+
+# case name
+casename="TEST_OSMOSIS/${title}"
+
+#######################################################################
+#                        Preprocess input data                        #
+#######################################################################
+
+# create run directory
+rundir="${scratchdir}/${casename}"
+mkdir -p ${rundir}
+cd ${rundir}
+
+# input data and namelist
+cp ${basecase}/* ./
+
+# set run parameters
+${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+${cmd_nmlchange} -f gotmrun.nml -e name -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
+${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
+${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .true.
+
+# set turbulence method
+source ${scpt_case_turbmethod}
+
+#######################################################################
+#                              Run GOTM                               #
+#######################################################################
+gotm 2> log.${outname}
+
+#######################################################################
+#                           Postprocessing                            #
+#######################################################################
+
+# plot surface forcing and profiles
+source ${scpt_case_postproc}
