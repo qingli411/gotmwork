@@ -62,13 +62,11 @@ fi
 # set location, max depth and levels, grid zooming at surface
 lat=49.0
 lon=0.0
-nlev=128
 ddu=0
 ddl=0
 
 # run parameters
 dt=1800
-nsave=6
 
 # name of the turbulence model
 turbmethod="OSMOSIS"
