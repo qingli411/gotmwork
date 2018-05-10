@@ -14,7 +14,7 @@ def main():
 
     # case
     case_list = ['OSMOSIS_winter', 'OSMOSIS_spring', 'OCSPapa_20130621-20131201']
-    turbmethod_list = ['KPP-CVMix', 'KPPLT-EFACTOR', 'KPPLT-ENTR', 'OSMOSIS', 'SMC']
+    turbmethod_list = ['KPP-CVMix', 'KPPLT-EFACTOR', 'KPPLT-ENTR', 'OSMOSIS', 'SMC', 'SMCLT']
     var_list = ['temp', 'salt']
     dzdt_list = ['VR1m_DT60s', 'VR1m_DT1800s', 'VR5m_DT60s', 'VR5m_DT1800s']
     l_interp = [False, False, True, True]
