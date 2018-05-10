@@ -19,7 +19,7 @@ scratchdir="${HOME}/work/gotmrun"
 source ${workdir}/set_tools.sh
 
 # season (winter or spring)
-season="spring"
+season="winter"
 
 # directory of base case
 basecase="${workdir}/data/OSMOSIS_${season}"
@@ -43,8 +43,8 @@ nsave=6
 # name of the turbulence model
 # turbmethod="OSMOSIS"
 # turbmethod="SMC"
-turbmethod="KPP-CVMix"
-# turbmethod="KPP-GOTM"
+# turbmethod="KPP-CVMix"
+turbmethod="EPBL"
 
 # output file name
 outname="gotm_out"

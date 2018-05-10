@@ -7,17 +7,35 @@
 #                              Set path                               #
 #######################################################################
 
+if [ -f './enviro_file' ]; then
+source ./enviro_file
+fi
+
+if [ -z ${gotmexe} ]; then
+gotmexe='gotm'
+fi
+echo "gotmexe is "${gotmexe}
+
+if [ -z ${workdir} ]; then
 # root directory for gotmwork
 workdir="${HOME}/models/gotm/gotmwork"
+fi
+echo "workdir is "${workdir}
 
+if [ -z ${scratchdir} ]; then
 # scratch directory to run the case
 scratchdir="${HOME}/work/gotmrun"
+fi
+echo "scratchdir is "${scratchdir}
 
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
+if [ -z ${dataroot} ]; then
 # data directory
 dataroot="${HOME}/work/gotmdata"
+fi
+echo "dataroot is "${dataroot}
 
 # input data - surface fluxes
 datadir="${dataroot}/COREII_IAF"
@@ -135,7 +153,7 @@ source ${scpt_case_turbmethod}
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-gotm 2> log.${outname}
+${gotmexe} 2> log.${outname}
 
 fi # l_run_gotm
 #######################################################################

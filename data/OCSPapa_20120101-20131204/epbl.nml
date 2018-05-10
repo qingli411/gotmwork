@@ -1,0 +1,123 @@
+!ePBL Namelist
+
+&epbl
+   !================================================
+   ! NSTAR
+   !   (real)
+   !   Fraction of convectively released TKE that
+   !   is available for mixing
+   nstar = 0.2,
+   !------------------------------------------------
+   !================================================
+   ! MSTAR_MODE
+   !   choice: 0 - constant mstar
+   !   choice: 1 - use old (mld) formula
+   !   choice: 2 - use new (ek) formula
+   mstar_mode = 2,
+   !------------------------------------------------
+   !================================================
+   ! LT_enhance_form
+   !   choice: N - Description
+   LT_Enhance_form = 0,
+   !------------------------------------------------
+   !================================================
+   !Relevant parameters if mstar_mode==0
+   !================================================
+   ! MSTAR
+   !   constant (non-dim) multiplied by u*^3 to get
+   !   energy for mixing
+   mstar = 1.0,
+   ! TKE_DECAY
+   !   constant (non-dim) multipled by z/H_Ek to set
+   !   decay rate of TKE due to rotational effect.
+   !   H_Ek is the Ekman depth, determined via
+   !   the Ekman length scale coefficient below.
+   tke_decay = 2.5,
+   !----------
+   !Common parameters
+   !----------
+   ! MixLenExponent
+   !   Exponent used to set shape of mixing profile
+   mixlenexponent = 2.0,
+   ! MKE_to_TKE_effic
+   !   Efficiency (0 to 1) of conversion of MKE to
+   !   TKE.  Experimental.
+   mke_to_tke_effic = 0.0,
+   ! WStar_UStar_coef
+   !   Ratio (non-dim) multiplied by the
+   !   convectively released energy to convert to
+   !   turbulent velocity relative to the
+   !   mechanically forced TKE.
+   wstar_ustar_coef = 1.0,
+   ! VStar_Scale_Fac
+   !   Nondimensional scaling factor for vstar.
+   !   Note that the Vstar conversion already includes
+   !   the von Karman coefficient.
+   vstar_scale_fac = 1.0,
+   ! Ekman_Scale_Coef
+   !   Nondimensional scaling factor which sets the Ekman
+   !   depth as used for TKE_Decay (MSTAR_MODE==0)
+   ekman_scale_coef = 1.0,
+   ! TransLay_Scale
+   !   Transition Layer Scale for the mixing length
+   !   at the interface between the OSBL and the interior
+   !   A non-zero value accounts for mixing length not
+   !   becoming zero at the interface (could use matching)
+   translay_scale = 0.1,
+   ! MLD_tol
+   !   The tolerence (in meters) for the iteration to
+   !   determine the boundary layer depth.
+   mld_tol = 1.0,
+   ! Min_Mix_Len
+   !   The minimum value of the mixing length in the
+   !   boundary layer.  A negative value disables
+   !   this feature.
+   min_mix_len = -1.0,
+   !----------
+   !Relevant parameters if mstar_mode==0
+   !----------
+   ! N2_Dissipation_Scale_Neg
+   !   Dissipation scale for TKE (with N^2)
+   !   in the vertical due to unstable
+   !   stratification.
+   n2_dissipation_scale_neg = 0.0,
+   ! N2_Dissipation_Scale_Pos
+   !   Dissipation scale for TKE (with N^2)
+   !   in the vertical due to stable
+   !   stratification.
+   n2_dissipation_scale_pos = 0.0,
+   !----------
+   !Relevant parameters if mstar_mode==1
+   !----------
+   ! Here we are relating Mstar to Hf/u*
+   ! via a functional (linear about xint)
+   ! relationship
+   Mstar_slope = 0.85,
+   mstar_xint = -0.3,
+   mstar_xint = 0.095,
+   mstar_n = -2.0,
+   !----------
+   !Relevant parameters if mstar_mode==1
+   !----------
+   !  Here we have used a logarithmic
+   !  relationship to scale mstar with
+   !  Hf/u*.
+   c_ek = 0.17,
+   mstar_coef = 0.3,
+   ! During convection mstar is reduced
+   CNV_MST_FAC = 0.667,
+   !
+   ! Set a cap for mstar
+   mstar_cap = 10.0,
+   ! Langmur turbulence related options.
+   lt_enhance_coef = 0.447,
+   lt_enhance_exp = -1.33,
+   lac_mldoek = -0.87,
+   lac_mldoob_stab = 0.0,
+   lac_ekoob_stab = 0.95,
+   lac_mldoob_un = 0.0,
+   lac_ekoob_un = 0.95,
+   laDepthRatio = 0.04,
+   Max_Enhance_M = 5.0,
+/
+

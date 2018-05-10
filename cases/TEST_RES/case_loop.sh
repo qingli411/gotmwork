@@ -9,7 +9,7 @@
 #######################################################################
 
 # name of the turbulence model
-turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR OSMOSIS SMC SMCLT)
+turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR OSMOSIS EPBL SMC SMCLT)
 
 # vertical resolution
 #  1 m

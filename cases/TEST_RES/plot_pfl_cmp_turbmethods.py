@@ -15,7 +15,7 @@ def main():
     # case
     case_list = ['OSMOSIS_winter', 'OSMOSIS_spring', 'OCSPapa_20130621-20131201']
     var_list = ['temp', 'salt']
-    turbmethod_list = ['KPP-CVMix', 'KPPLT-EFACTOR', 'KPPLT-ENTR', 'OSMOSIS', 'SMC', 'SMCLT']
+    turbmethod_list = ['KPP-CVMix', 'KPPLT-EFACTOR', 'KPPLT-ENTR', 'OSMOSIS', 'EPBL', 'SMC', 'SMCLT']
     cmax_list = np.array([[16, 20, 18], [35.9, 35.9, 33.8]])
     cmin_list = np.array([[12, 12, 4], [35.7, 35.6, 32.2]])
     dmax_list = np.array([[1, 1, 1], [0.05, 0.05, 0.05]])
