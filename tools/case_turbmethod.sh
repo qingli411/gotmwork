@@ -37,6 +37,7 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
         ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
         ${cmd_nmlchange} -f kpp.nml -e langmuir_method -v 2
+        ;;
     "EPBL")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100
 	    ${cmd_nmlchange} -f MOMturb.nml -e Mode -v 0
