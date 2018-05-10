@@ -4,6 +4,7 @@
 case ${turbmethod} in
     "OSMOSIS")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 98
+        ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .true.
         ;;
     "SMC")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
@@ -17,6 +18,7 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 11
         ${cmd_nmlchange} -f gotmturb.nml -e e6 -v 6.0
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
+        ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .true.
         ;;
     "KPP-CVMix")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
