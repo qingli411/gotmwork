@@ -37,27 +37,28 @@ ddu=0
 ddl=0
 
 # run parameters
-dt=1800
+dt=60
+
 if [ ${season} == "winter" ]; then
-    nsave=1
+    let nsave=1800/dt
     nlev=100
 elif [ ${season} == "spring" ]; then
-    nsave=2
+    let nsave=3600/dt
     nlev=240
 else
     echo "Season ${season} not supported. Stop."
     exit 1
 fi
 
-
 # name of the turbulence model
-turbmethod="OSMOSIS"
+# turbmethod="OSMOSIS"
+turbmethod="SMC"
 
 # output file name
 outname="gotm_out"
 
 # case name
-casename="TEST_OSMOSIS/${title}"
+casename="TEST_OSMOSIS/v5/${title}_${turbmethod}"
 
 #######################################################################
 #                        Preprocess input data                        #
@@ -82,7 +83,21 @@ ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .true.
 
 # set turbulence method
-source ${scpt_case_turbmethod}
+case ${turbmethod} in
+    "OSMOSIS")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 98
+        ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .true.
+        ;;
+    "SMC")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
+        ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 3
+        ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 9
+        ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 5
+        ;;
+    *)
+        echo "Turbulence method ${turbmethod} not supported. Stop."
+        exit 1
+esac
 
 #######################################################################
 #                              Run GOTM                               #
