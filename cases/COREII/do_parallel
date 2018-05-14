@@ -11,9 +11,8 @@ for i in {0..7}; do
     lon_end=${lon_elist[i]}
 
     # Preprocess input data
-    ./preproc_data ${lon_start} ${lon_end} > log.${i} &
+    # ./preproc_data ${lon_start} ${lon_end} > log.${i} &
 
     # Run GOTM
-    # ./case_run_multi ${lon_start} ${lon_end} > log.${i} &
-    # ./case_run_multi_fast ${lon_start} ${lon_end} > log.${i} &
+    ./case_run_multi ${lon_start} ${lon_end} > log.${i} &
 done
