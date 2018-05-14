@@ -13,12 +13,26 @@ from netCDF4 import Dataset, num2date
 def main():
 
     # case
-    case_list = ['OSMOSIS_winter', 'OSMOSIS_spring', 'OCSPapa_20130621-20131201']
+    case_list = ['OSMOSIS_winter',
+                 'OSMOSIS_spring',
+                 'OCSPapa_20130621-20131201',
+                 'COREII_LAT2_LON234_20080615-20081231',
+                 'COREII_LAT10_LON86_20080615-20081231',
+                 'COREII_LAT-54_LON254_20080915-20090915']
     var_list = ['temp', 'salt']
-    turbmethod_list = ['KPP-CVMix', 'KPPLT-EFACTOR', 'KPPLT-ENTR', 'OSMOSIS', 'EPBL', 'SMC', 'SMCLT']
-    cmax_list = np.array([[16, 20, 18], [35.9, 35.9, 33.8]])
-    cmin_list = np.array([[12, 12, 4], [35.7, 35.6, 32.2]])
-    dmax_list = np.array([[1, 1, 1], [0.05, 0.05, 0.05]])
+    turbmethod_list = ['KPP-CVMix',
+                       'KPPLT-EFACTOR',
+                       'KPPLT-ENTR',
+                       'OSMOSIS',
+                       'EPBL',
+                       'SMC',
+                       'SMCLT']
+    cmax_list = np.array([[16, 20, 18, 27, 29, 7],
+                          [35.9, 35.9, 33.8, 35.1, 34.6, 34.2]])
+    cmin_list = np.array([[12, 12, 4, 12, 14, 4],
+                          [35.7, 35.6, 32.2, 34.7, 33.3, 33.9]])
+    dmax_list = np.array([[1, 1, 1, 1, 1, 1],
+                          [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]])
 
     # loop over all cases
     nc = len(case_list)
@@ -26,6 +40,7 @@ def main():
     nm = len(turbmethod_list)
     for i in np.arange(nc):
         case = case_list[i]
+        print(case)
         for j in np.arange(nv):
             var = var_list[j]
             c_max = cmax_list[j,i]

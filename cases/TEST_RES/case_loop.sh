@@ -8,20 +8,30 @@
 #                           Loop over cases                           #
 #######################################################################
 
-# name of the turbulence model
-turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR OSMOSIS EPBL SMC SMCLT)
+l_test="no"
 
-# vertical resolution
-#  1 m
-#  5 m
-#  typical regional models (e.g., ROMS)
-#  typical GCMs (e.g., CESM)
-vrlist=(1m 5m)
-
-# time step
-#  1 min
-#  30 min
-dtlist=(60 1800)
+if [ ${l_test} == "yes" ]; then
+    # name of the turbulence model
+    turblist=(KPP-CVMix)
+    # vertical resolution
+    vrlist=(5m)
+    # time step
+    dtlist=(1800)
+else
+    # name of the turbulence model
+    # turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR OSMOSIS EPBL SMC SMCLT)
+    turblist=(KPPLT-EFACTOR KPPLT-ENTR EPBL)
+    # vertical resolution
+    #  1 m
+    #  5 m
+    #  typical regional models (e.g., ROMS)
+    #  typical GCMs (e.g., CESM)
+    vrlist=(1m 5m)
+    # time step
+    #  1 min
+    #  30 min
+    dtlist=(60 1800)
+fi
 
 # output file name
 outname="gotm_out"
@@ -83,6 +93,12 @@ for dt in ${dtlist[@]}; do
         ${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
         ${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
     fi
+    if [ -n "${sprof_file}" ]; then
+        ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_file}
+    fi
+    if [ -n "${tprof_file}" ]; then
+        ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_file}
+    fi
     ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
     ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
     ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
@@ -97,6 +113,11 @@ for dt in ${dtlist[@]}; do
 
     # run
     gotm 2> log.${outname}
+
+    # plot some figures
+    if [ ${l_test} == "yes" ]; then
+        source ${scpt_case_postproc}
+    fi
 
     # clean up input data
     if [ $? == 0 ]; then

@@ -113,6 +113,9 @@ ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 # set turbulence method
 source ${scpt_case_turbmethod}
 
+# calculate Langmuir enhancement factor from Stokes drift
+${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
+
 # set obs
 ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
 ${cmd_nmlchange} -f obs.nml -e t_prof_file -v "tprof_file.dat"
