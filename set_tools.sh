@@ -28,6 +28,7 @@ cmd_nc2dat_latlon="${tooldir}/nc2dat_latlon"
 cmd_plotpfl="${tooldir}/plotpfl"
 cmd_plotts="${tooldir}/plotts"
 cmd_is_sea="${tooldir}/is_sea"
+cmd_gotm_analysis="${tooldir}/gotm_analysis"
 
 # bash script
 scpt_case_postproc="${tooldir}/case_postproc.sh"

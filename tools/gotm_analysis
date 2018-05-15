@@ -85,16 +85,16 @@ def main():
     os.makedirs(dir_out, exist_ok=True)
 
     # output figure name
-    if args.figname:
-        figname = args.figname
+    if args.outname:
+        outname = args.outname
     else:
-        figname = forc_scheme+'_'+turb_scheme+'_'+analysis+'_'+method+'_'+date_start_analy+'-'+date_end_analy+'.png'
+        outname = forc_scheme+'_'+turb_scheme+'_'+analysis+'_'+method+'_'+date_start_analy+'-'+date_end_analy+'.npz'
 
     # netcdf file name
     if args.nc_file:
-        filename = args.nc_file
+        ncfilename = args.nc_file
     else:
-        filename = 'gotm_out.nc'
+        ncfilename = 'gotm_out.nc'
 
     # format of case name to match
     # casefmt = r'^\w+_LAT-{0,1}\d{1,2}_LON\d{1,3}_\w+-{0,1}\w*_\d{8}-\d{8}$'
@@ -134,7 +134,7 @@ def main():
             print('{:3d}%'.format(prct))
             prct += 10
         # check if file exists
-        ncfile = dir_in+'/'+caselist[i]+'/'+filename
+        ncfile = dir_in+'/'+caselist[i]+'/'+ncfilename
         if os.path.isfile(ncfile):
             infile = Dataset(ncfile, 'r')
             lat[i] = infile.variables['lat'][:]
@@ -154,8 +154,7 @@ def main():
     lon[lon==999.] = np.nan
 
     # save data
-    dataname = figname.rsplit('.', 1)[0] + '.npz'
-    np.savez(dir_out+'/'+dataname, dat=dat, lat=lat, lon=lon)
+    np.savez(dir_out+'/'+outname, dat=dat, lat=lat, lon=lon)
 
 if __name__ == "__main__":
     main()
