@@ -27,13 +27,14 @@ title="COREII"
 
 # set max depth and levels, grid zooming at surface
 maxdepth=500
-nlev=128
-ddu=2
+nlev=100
+ddu=0
 ddl=0
 
 # run parameters
-dt=1800
-nsave=6
+dt=60
+# set output frequency (3-hourly output)
+let nsave=10800/dt
 
 # output file name
 outname="gotm_out"
@@ -46,8 +47,12 @@ dateend="20091231"
 
 # name of the turbulence model
 # turbmethod="KPP-CVMix"
-turbmethod="OSMOSIS"
-# turbmethod="KPP-Original"
+# turbmethod="KPPLT-ENTR"
+# turbmethod="OSMOSIS"
+turbmethod="EPBL"
+
+# setup
+setup="VR5m_DT60s"
 
 #######################################################################
 #                         Loop over locations                         #
@@ -77,13 +82,13 @@ while [ ${lat} -le ${lat_end} ]; do
     if [ -d ${dataroot}/${inputname} ]; then
 
         # case name
-        casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
+        casename="${title}_LAT${lat}_LON${lon}_${datestart}-${dateend}"
 
         # print case name
         echo ${casename}
 
         # create run directory
-        rundir="${GOTMRUN_ROOT}/${casename}"
+        rundir="${GOTMRUN_ROOT}/${setup}/${turbmethod}/${casename}"
         mkdir -p ${rundir}
         cd ${rundir}
 
