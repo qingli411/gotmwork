@@ -109,12 +109,12 @@ def main():
     if date_start and date_end:
         datefmt = r'^\d{8}$'
         if re.search(datefmt, date_start) and re.search(datefmt, date_end):
-            casefmt = r'^'+forc_scheme+r'_LAT-{0,1}\d{1,2}_LON\d{1,3}_'+turb_scheme+r'_'+date_start+'-'+date_end+r'$'
+            casefmt = r'^'+forc_scheme+r'_LAT-{0,1}\d{1,2}_LON\d{1,3}_'+date_start+'-'+date_end+r'$'
         else:
             print('The starting date and ending date should be in yyyymmdd format, got {} and {}. Stop.'.format(date_start, date_end))
             sys.exit(1)
     else:
-        casefmt = r'^'+forc_scheme+r'_LAT-{0,1}\d{1,2}_LON\d{1,3}_'+turb_scheme+r'_\d{8}-\d{8}$'
+        casefmt = r'^'+forc_scheme+r'_LAT-{0,1}\d{1,2}_LON\d{1,3}_\d{8}-\d{8}$'
 
     # print(casefmt)
 
