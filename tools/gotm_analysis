@@ -15,8 +15,7 @@ from gotmtool import *
 def main():
     # process input arguments
     parser = argparse.ArgumentParser(description="""
-        Do analysis on multiple GOTM simulations and plot the results as
-        scatters on a map. """)
+        Do analysis on multiple GOTM simulations and save the results in .npz """)
     parser.add_argument('-f', '--forcing', action='store', dest='forc_scheme',
             metavar='FORCING', help='Forcing scheme')
     parser.add_argument('-t', '--turb_scheme', action='store', dest='turb_scheme',
@@ -25,10 +24,6 @@ def main():
             metavar='ANALYSIS', help='Analysis to be conducted')
     parser.add_argument('-m', '--method', action='store', dest='method',
             metavar='METHOD', help='Analysis method')
-    parser.add_argument('-vmax', '--vmax', action='store', dest='vmax',
-            metavar='MAXVALUE', help='Maximum value')
-    parser.add_argument('-vmin', '--vmin', action='store', dest='vmin',
-            metavar='MINVALUE', help='Minimum value')
     parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
             metavar='STARTDATE',
             help='Starting date of input data, in the format of YYYYMMDD')
@@ -41,8 +36,8 @@ def main():
     parser.add_argument('-de_a', '--date_end_analy', action='store', dest='date_end_analy',
             metavar='ENDDATE',
             help='Ending date of analysis, in the format of YYYYMMDD')
-    parser.add_argument('-o', '--output', action='store', dest='figname',
-            metavar='FIGNAME', help='Output figure name')
+    parser.add_argument('-o', '--output', action='store', dest='outname',
+            metavar='OUTNAME', help='Output data name')
     parser.add_argument('-dir_in', '--dir_in', action='store', dest='dir_in',
             metavar='DIRIN', help='Input data directory')
     parser.add_argument('-dir_out', '--dir_out', action='store', dest='dir_out',
@@ -67,9 +62,6 @@ def main():
     analysis = args.analysis
     # method
     method = args.method
-    # max and min values
-    vmax = float(args.vmax)
-    vmin = float(args.vmin)
 
     # starting and ending date (yyyymmdd), empty if find all
     date_start = args.date_start
@@ -160,11 +152,6 @@ def main():
     lon[np.isnan(lon)] = 999.
     lon[lon<0] = lon[lon<0]+360
     lon[lon==999.] = np.nan
-
-    # plot figures
-    plt.figure()
-    outfig = dir_out+'/'+figname
-    plot_map_scatter(lon, lat, dat, outfig, vmax=vmax, vmin=vmin)
 
     # save data
     dataname = figname.rsplit('.', 1)[0] + '.npz'
