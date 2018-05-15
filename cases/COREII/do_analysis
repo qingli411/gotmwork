@@ -1,4 +1,55 @@
 #!/bin/bash
 
-turbmethod="KPPLT-ENTR"
-../tools/plot_map -f COREII -t ${turbmethod} -a mldMean -m deltaR -vmax 0 -vmin -200 -ds 20080615 -de 20091231 -ds_a 20090101 -de_a 20090331 -dir_in /Users/qingli/scratch/VR5m_DT60s/${turbmethod}
+# root directory for gotmwork
+workdir="${HOME}/models/gotm/gotmwork"
+
+# setup paths and tools
+source ${workdir}/set_tools.sh
+
+# scratch directory to run the case
+scratchdir="${HOME}/scratch"
+
+# directory for output
+outdir="${HOME}/work/gotmfigures"
+
+# forcing scheme
+forc_scheme="COREII"
+
+# resolution
+resolution="VR5m_DT60s"
+
+# starting and ending date of simulation
+datestart="20080615"
+dateend="20091231"
+
+# analysis
+analysis="mldMean"
+
+# analysis method
+method="deltaR"
+
+# turbulent method
+for turbmethod in "KPP-CVMix KPPLT-ENTR"; do
+
+    # starting and ending date of analysis
+    case ${month} in
+        "Dec")
+            analystart="20081201"
+            analyend="20081231"
+            ;;
+        "Jun")
+            analystart="20090601"
+            analyend="20090630"
+            ;;
+        *)
+            echo "Month ${month} not supported. Stop."
+            exit 1
+    esac
+
+    # do analysis
+    ${cmd_gotm_analysis} -f ${forc_scheme} -t ${turbmethod} \
+        -a ${analysis} -m ${method} \
+        -ds ${datestart} -de ${dateend} -ds_a ${analystart} -de_a ${analyend} \
+        -dir_in ${scratchdir}/${VR5m_DT60s}/${turbmethod} \
+        -dir_out ${outdir}/${forc_scheme}
+done
