@@ -49,7 +49,9 @@ dateend="20091231"
 # turbmethod="KPP-CVMix"
 # turbmethod="KPPLT-ENTR"
 # turbmethod="OSMOSIS"
-turbmethod="EPBL"
+# turbmethod="EPBL"
+# turbmethod="SMCLT"
+turbmethod="SMC"
 
 # setup
 setup="VR5m_DT60s"

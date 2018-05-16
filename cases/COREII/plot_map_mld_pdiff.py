@@ -12,10 +12,11 @@ from gotmtool import *
 def main():
     forc_scheme = "COREII"
     turb_scheme1 = "KPP-CVMix"
-    turb_scheme2 = "KPPLT-ENTR"
+    # turb_scheme2 = "KPPLT-ENTR"
+    turb_scheme2 = "OSMOSIS"
     analysis = "mldMean"
     method = "deltaR"
-    month = "test"
+    month = "DecY2"
 
     # input directory
     dir_in = os.environ['HOME']+'/work/gotmfigures/'+forc_scheme
@@ -50,14 +51,16 @@ def main():
 
 def get_analy_dates(month):
     adate_start = {
-            "test": "20090101",
-            "Dec": "20081201",
-            "Jun": "20090601"
+            "test":  "20090101",
+            "Dec":   "20081201",
+            "Jun":   "20090601",
+            "DecY2": "20091201"
             }
     adate_end = {
-            "test": "20090331",
-            "Dec": "20081231",
-            "Jun": "20090630"
+            "test":  "20090331",
+            "Dec":   "20081231",
+            "Jun":   "20090630",
+            "DecY2": "20091231"
             }
     return [adate_start.get(month, None), adate_end.get(month, None)]
 
