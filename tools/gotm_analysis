@@ -130,6 +130,7 @@ def main():
     # loop over all cases
     for i in np.arange(ncase):
         # print out the progress
+        # print(caselist[i])
         if np.mod(i,progress) == 0 or i == 0:
             print('{:3d}%'.format(prct))
             prct += 10

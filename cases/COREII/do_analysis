@@ -6,11 +6,12 @@ workdir="${HOME}/models/gotm/gotmwork"
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
-# scratch directory to run the case
-scratchdir="${HOME}/scratch"
+# directory where GOTM data is saved
+# dataindir="${HOME}/scratch"
+inputdatadir="${HOME}/utleydata/qingli/gotmruns"
 
 # directory for output
-outdir="${HOME}/work/gotmfigures"
+outputdatadir="${HOME}/work/gotmfigures"
 
 # forcing scheme
 forc_scheme="COREII"
@@ -28,8 +29,12 @@ analysis="mldMean"
 # analysis method
 method="deltaR"
 
+# loop over month
+for month in Dec Feb Jun Aug DecY2; do
+# for month in DecY2; do
 # turbulent method
-for turbmethod in "KPP-CVMix KPPLT-ENTR"; do
+for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT; do
+# for turbmethod in KPP-CVMix; do
 
     # starting and ending date of analysis
     case ${month} in
@@ -37,9 +42,21 @@ for turbmethod in "KPP-CVMix KPPLT-ENTR"; do
             analystart="20081201"
             analyend="20081231"
             ;;
+        "Feb")
+            analystart="20090201"
+            analyend="20090228"
+            ;;
         "Jun")
             analystart="20090601"
             analyend="20090630"
+            ;;
+        "Aug")
+            analystart="20090801"
+            analyend="20090831"
+            ;;
+        "DecY2")
+            analystart="20091201"
+            analyend="20091231"
             ;;
         *)
             echo "Month ${month} not supported. Stop."
@@ -50,6 +67,7 @@ for turbmethod in "KPP-CVMix KPPLT-ENTR"; do
     ${cmd_gotm_analysis} -f ${forc_scheme} -t ${turbmethod} \
         -a ${analysis} -m ${method} \
         -ds ${datestart} -de ${dateend} -ds_a ${analystart} -de_a ${analyend} \
-        -dir_in ${scratchdir}/${VR5m_DT60s}/${turbmethod} \
-        -dir_out ${outdir}/${forc_scheme}
+        -dir_in ${inputdatadir}/${resolution}/${turbmethod} \
+        -dir_out ${outputdatadir}/${forc_scheme}
+done
 done
