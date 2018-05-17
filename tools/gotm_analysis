@@ -114,7 +114,7 @@ def main():
     lslist = os.listdir(dir_in)
 
     r = re.compile(casefmt)
-    caselist = list(filter(r.search, lslist))
+    caselist = sorted(list(filter(r.search, lslist)))
     ncase = len(caselist)
     print('Total number of cases: {}'.format(ncase))
 
