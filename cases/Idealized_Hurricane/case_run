@@ -1,0 +1,123 @@
+#!/bin/bash
+# Run GOTM using with idealized forcing and initial conditions
+#
+# Brandon Reichl
+
+#######################################################################
+#                              Set paths                              #
+#######################################################################
+
+if [ -f '../../enviro_file' ]; then
+    source ../../enviro_file
+fi
+
+if [ -z ${gotmexe} ]; then
+    gotmexe='gotm'
+fi
+echo "gotmexe is "${gotmexe}
+
+if [ -z ${workdir} ]; then
+    # root directory for gotmwork
+    workdir="${HOME}/models/gotm/gotmwork"
+fi
+echo "workdir is "${workdir}
+
+if [ -z ${scratchdir} ]; then
+    # scratch directory to run the case
+    scratchdir="${HOME}/work/gotmrun"
+fi
+echo "scratchdir is "${scratchdir}
+
+# setup paths and tools
+source ${workdir}/set_tools.sh
+
+# directory of base case
+basecase="${workdir}/data/Idealized_Hurricane"
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+# name of the dataset
+title="Idealized_Hurricane"
+
+# set levels, grid zooming at surface
+nlev=250
+depth=250
+ddu=0
+ddl=0
+
+# set Coriolis
+# set Heat Flux
+# set Wind Stress
+Latitude=27.836
+heatflux=-5
+
+# run parameters
+dt=60
+nsave=60
+
+# starting and ending date - in the format of YYYYMMDD
+datestart="20110401"
+dateend="20110404"
+
+# name of the turbulence model
+# turbmethod="KPPLT-EFACTOR"
+turbmethod="KPPLT-ENTR"
+# turbmethod="KPPLT-RWHGK"
+# turbmethod="EPBL"
+# turbmethod="EPBL-LT"
+#turbmethod="KPP-CVMix"
+# turbmethod="K-EPSILON-SG"
+# turbmethod="SMCLT"
+# turbmethod="SMC"
+
+# output file name
+outname="gotm_out"
+
+# case name
+casename="${title}_${turbmethod}_${datestart}-${dateend}"
+
+#######################################################################
+#                        Preprocess input data                        #
+#######################################################################
+
+# create run directory
+rundir="${scratchdir}/Idealized_Hurricane_Experiment/${casename}"
+mkdir -p ${rundir}/STORAGE
+cd ${rundir}
+
+# copy base case
+cp -r ${basecase}/* ./
+
+for LOC in 046
+do
+    rm momentumflux.dat
+    ln -s ./MomentumFlux/05/momentumflux${LOC}.dat momentumflux.dat
+    ln -s ./SPC/SPC${LOC}.txt SPC.txt
+    
+    # set turbulence method
+    source ${scpt_case_turbmethod}
+
+    # set run parameters
+    start_time="${datestart:0:4}-${datestart:4:2}-${datestart:6:2} 00:00:00"
+    stop_time="${dateend:0:4}-${dateend:4:2}-${dateend:6:2} 00:00:00"
+    ${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
+    ${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
+    ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+    ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+    ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+    ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+    ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+    ${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
+    ${cmd_nmlchange} -f gotmrun.nml -e latitude -v ${Latitude}
+    ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
+    ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
+    ${cmd_nmlchange} -f airsea.nml -e const_heat -v ${heatflux}
+    
+    ###################################################################
+    #                          Run GOTM                               #
+    ###################################################################
+    $gotmexe 2> log.${outname}
+    mv ${outname}.nc STORAGE/${outname}_${LOC}.nc
+done

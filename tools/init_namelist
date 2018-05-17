@@ -1,7 +1,16 @@
 #!/bin/bash
 
+if [ -f '../enviro_file' ]; then
+    source ../enviro_file
+fi
+
+if [ -z ${GOTMDIR} ]; then
+    GOTMDIR="${HOME}"'/models/gotm/code/'
+fi
+echo "gotmdir is "${GOTMDIR}
+
 source activate py27
 
-editscenario --schemadir=${HOME}/models/gotm/code/schemas --targetversion=gotm-5.0 -e nml . ${HOME}/models/gotm/code/schemas/gotm-5.0.defaults --skipvalidation --assignments turb_method=$1
+editscenario --schemadir=${GOTMDIR}/schemas --targetversion=gotm-5.0 -e nml . ${GOTMDIR}/schemas/gotm-5.0.defaults --skipvalidation --assignments turb_method=$1
 
 source deactivate py27

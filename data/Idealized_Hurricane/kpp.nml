@@ -1,0 +1,79 @@
+!-------------------------------------------------------------------------------
+! KPP turbulence model
+!-------------------------------------------------------------------------------
+! kpp_sbl         [bool]
+!                   .true. for active surface boundary layer module
+! kpp_bbl         [bool]
+!                   .true. for active bottom boundary layer module
+! kpp_interior    [bool]
+!                   .true. for active interior mixing
+! clip_mld        [bool]
+!                   .true. for clipping of MLD at MO or Ekman scale
+! Ric             [float]
+!                   critical value of bulk Richardson number
+! lcvmix          [bool]
+!                   .true. for using CVMix
+! lnoDGat1        [bool]
+!                   .true. for setting G'(0) = 0
+! langmuir_method [integer]
+!                   method to include Langmuir turbulence
+!                   0: none
+!                   1: Langmuir mixing from an enhancement factor (Li et al.,
+!                     2016)
+!                   2: Langmuir mixing + Langmuir enhanced entrainment (Li and
+!                     Fox-Kemper, 2017)
+!                   This variable is only used if lcvmix = True
+! efactor_method  [integer]
+!                   method to compute enhancement factor
+!                   1: approximated by a simple enhancement facator model based
+!                     on empirical wave spectrum (Li et al., 2017)
+!                   2: read from file efactor_file
+!                   3: compute from input wave spectrum
+!                   4: compute from Stokes drift
+!                   This variable is only used if langmuir_method = 1
+! efactor_file    [file path]
+!                   file with enhancement factor
+!                   This variable is only used if (langmuir_method = 1 and
+!                     efactor_method = 2)
+! interp_type     [string]
+!                   interpolation method used to interpolate bulk Richardson
+!                     number
+!                   linear: Linear interpolation
+!                   quadratic: Quadratic interpolation (default if not set)
+!                   cubic: Cubic spline interpolation
+! interp_type2    [string]
+!                   interpolation method used to interpolate diff and visc at
+!                     OBL depth
+!                   linear: Linear interpolation
+!                   quadratic: Quadratic interpolation
+!                   cubic: Cubic spline interpolation
+!                   cubic: Following LMD94 (default if not set)
+! MatchTechnique  [string]
+!                   interpolation method used to interpolate diff and visc at
+!                     OBL depth
+!                   SimpleShapes: Shape functions for both the gradient and
+!                     nonlocal terms vanish at interface (default if not set)
+!                   MatchGradient: Shape function for nonlocal term vanishes at
+!                     interface, but gradient term matches interior values
+!                   MatchBoth: Shape functions for both the gradient and
+!                     nonlocal term match interior values at interface
+!                   ParabolicNonLocal: Shape function for the nonlocal term is
+!                     (1-sigma)^2, gradient term is sigma*(1-sigma)^2
+!-------------------------------------------------------------------------------
+
+&kpp
+   kpp_sbl = .true.,
+   kpp_bbl = .false.,
+   kpp_interior = .true.,
+   clip_mld = .false.,
+   Ric = 0.235,
+   lcvmix = .true.,
+   lnoDGat1 = .true.,
+   langmuir_method = 0,
+   efactor_method = 5,
+   efactor_file = '',
+   interp_type = 'quadratic',
+   interp_type2 = 'LMD94',
+   MatchTechnique = 'SimpleShapes',
+/
+
