@@ -96,12 +96,21 @@ while [ ${lat} -le ${lat_end} ]; do
         # set up namelists
         cp ${nmldir}/*.nml ./
 
-        # copy input data
-        cp ${dataroot}/${inputname}/*_file.dat ./
-        tprof_name="tprof_file.dat"
-        sprof_name="sprof_file.dat"
-        cp ${dataroot}/${inputname}/tprof_file_${datestart}.dat ./${tprof_name}
-        cp ${dataroot}/${inputname}/sprof_file_${datestart}.dat ./${sprof_name}
+        # link input data
+        ln -s ${dataroot}/${inputname}/*_file.dat ./
+        # skip if initial temperature and salinity profiles are not available
+        tprofdata=${dataroot}/${inputname}/tprof_file_${datestart}.dat
+        sprofdata=${dataroot}/${inputname}/sprof_file_${datestart}.dat
+        if [ -f ${tprofdata} -a -f ${sprofdata} ]; then
+            tprof_name="tprof_file.dat"
+            sprof_name="sprof_file.dat"
+            ln -s ${tprofdata} ./${tprof_name}
+            ln -s ${sprofdata} ./${sprof_name}
+        else
+            echo "Temperature or salinity profile not found. Skip."
+            lat=$((${lat}+${dlat}))
+            continue
+        fi
 
         xmlfile=${title}.xml
         cp ${xmldir}/${xmlfile} ./
@@ -145,6 +154,8 @@ while [ ${lat} -le ${lat_end} ]; do
 
         # turn off bottom boundary layer
         ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
+        # calculate Langmuir enhancement factor from Stokes drift
+        ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
 
         # run GOTM
         gotm 2> log.${outname}

@@ -58,11 +58,11 @@ argodata="WOD13_PFL_2000.nc"
 title="COREII"
 
 # set location, max depth and levels, grid zooming at surface
-lat=50
-lon=215
+lat=-54
+lon=254
 maxdepth=500
 nlev=128
-ddu=2
+ddu=0
 ddl=0
 
 # run parameters
@@ -73,7 +73,7 @@ nsave=6
 outname="gotm_out"
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20090701"
+datestart="20080115"
 dateend="20091231"
 
 # name of the turbulence model
@@ -149,6 +149,11 @@ ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_name}
 
 # set turbulence method
 source ${scpt_case_turbmethod}
+
+# turn off bottom boundary layer
+${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
+# calculate Langmuir enhancement factor from Stokes drift
+${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
 
 #######################################################################
 #                              Run GOTM                               #

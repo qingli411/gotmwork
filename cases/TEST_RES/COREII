@@ -1,0 +1,73 @@
+#!/bin/bash
+# This script sets up test cases to test the sensitivity of different
+# boundary layer schemes to vertical resolution and time step using
+# forcing data from CORE-II at selected locations
+#
+# East equatorial Pacific
+# latitude:  2.0
+# longitude: 234.0
+# depth (m): 200.0
+#
+# Southern Ocean
+# latitude:  -54.0
+# longitude: 254.0
+# depth (m): 500.0
+#
+# Bay of Bangal
+# latitdue:  10.0
+# longitude: 86.0
+# depth (m): 200.0
+#
+# Qing Li, 20180511
+
+# root directory for gotmwork
+workdir="${HOME}/models/gotm/gotmwork"
+
+# scratch directory to run the case
+scratchdir="${HOME}/work/gotmrun"
+
+# setup paths and tools
+source ${workdir}/set_tools.sh
+
+# current directory
+curdir=$(pwd)
+
+# location
+latlist=(2 -54 10)
+lonlist=(234 254 86)
+
+# depth
+depthlist=(200 500 200)
+
+# starting and ending date - in the format of YYYYMMDD
+startlist=(20080615 20080915 20080615)
+endlist=(20081231 20090915 20081231)
+
+# season (winter or spring)
+# for idx in ${!latlist[@]}; do
+for idx in 1; do
+    # location
+    lat=${latlist[idx]}
+    lon=${lonlist[idx]}
+
+    # starting and ending date - in the format of YYYYMMDD
+    datestart=${startlist[idx]}
+    dateend=${endlist[idx]}
+
+    # name of the dataset
+    case="COREII_LAT${lat}_LON${lon}"
+    title="${case}_${datestart}-${dateend}"
+
+    # directory of base case
+    basecase="${workdir}/data/${case}_20080115-20091231"
+
+    # depth
+    depth=${depthlist[idx]}
+
+    # initial temperature and salinity profile
+    sprof_file="sprof_file_${datestart}.dat"
+    tprof_file="tprof_file_${datestart}.dat"
+
+    # loop over cases
+    source ${curdir}/case_loop.sh
+done
