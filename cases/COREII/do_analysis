@@ -6,9 +6,11 @@ workdir="${HOME}/models/gotm/gotmwork"
 # setup paths and tools
 source ${workdir}/set_tools.sh
 
-# directory where GOTM data is saved
-# dataindir="${HOME}/scratch"
-inputdatadir="${HOME}/utleydata/qingli/gotmruns"
+# scratch directory
+scratchdir="${HOME}/scratch"
+
+# archive directory
+archivedir="${HOME}/utleydata/qingli/gotmruns"
 
 # directory for output
 outputdatadir="${HOME}/work/gotmfigures"
@@ -33,8 +35,8 @@ method="deltaR"
 for month in Dec Feb Jun Aug DecY2; do
 # for month in DecY2; do
 # turbulent method
-for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT; do
-# for turbmethod in KPP-CVMix; do
+for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT SMC; do
+# for turbmethod in SMC; do
 
     # starting and ending date of analysis
     case ${month} in
@@ -64,10 +66,18 @@ for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT; do
     esac
 
     # do analysis
+    if [ -d ${scratchdir}/${resolution}/${turbmethod} ]; then
+        inputdatadir=${scratchdir}/${resolution}/${turbmethod}
+    elif [ -d ${archivedir}/${resolution}/${turbmethod} ]; then
+        inputdatadir=${archivedir}/${resolution}/${turbmethod}
+    else
+        echo "GOTM data for case ${resolution}/${turbmethod} not found. Skip."
+        continue
+    fi
     ${cmd_gotm_analysis} -f ${forc_scheme} -t ${turbmethod} \
         -a ${analysis} -m ${method} \
         -ds ${datestart} -de ${dateend} -ds_a ${analystart} -de_a ${analyend} \
-        -dir_in ${inputdatadir}/${resolution}/${turbmethod} \
+        -dir_in ${inputdatadir} \
         -dir_out ${outputdatadir}/${forc_scheme}
 done
 done
