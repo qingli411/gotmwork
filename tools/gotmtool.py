@@ -298,7 +298,7 @@ def do_analysis(name):
     """Driver to do the analysis
 
     :name: (str) name of the analysis
-    :returns: scalar index of the analysis
+    :returns: (funciton) corresponding function
 
     """
     switcher = {
@@ -327,9 +327,8 @@ def do_analysis_mld_mean(infile, method='maxNsqr', tidx_start=None, tidx_end=Non
 def get_mld(method):
     """Find the mixed layer depth
 
-    :infile: (Dataset) netcdf file
     :method: (str) method to calculate the mixed layer depth
-    :returns: (Numpy array) mixed layer depth
+    :returns: (function) corresponding function
 
     """
     switcher = {
@@ -429,6 +428,68 @@ def get_mld_deltaR(infile, deltaR=0.03, zRef=-10, tidx_start=None, tidx_end=None
         else:
             mld[i] = np.min(z[i,:])
     return mld
+
+#--------------------------------
+# Langmuir number
+#--------------------------------
+
+def get_la(method):
+    """Find the Langmuir number
+
+    :method: (str) method to calculate Langmuir number
+    :returns: (function) corresponding function
+
+    """
+    switcher = {
+            'LaTurb': get_la_turb
+            }
+    return switcher.get(method)
+
+def get_la_turb(infile, tidx_start=None, tidx_end=None):
+    """Find the turbulent Langmuir number defined as
+       La_t = sqrt{u^*/u^S}
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (Numpy array) Langmuir number
+
+    """
+    ustar = infile.variables['u_taus'][tidx_start:tidx_end,0,0]
+    usx = infile.variables['u0_stokes'][tidx_start:tidx_end,0,0]
+    usy = infile.variables['v0_stokes'][tidx_start:tidx_end,0,0]
+    us = np.sqrt(usx**2.+usy**2.)
+    la = np.sqrt(ustar/us)
+    return la
+
+#--------------------------------
+# stability parameter h/L
+#--------------------------------
+
+# def get_h_over_L(infile, tidx_start=None, tidx_end=None):
+#     """Find the stability parameter defined as h/L
+#        where h is the boundary layer depth
+#        and L is the Monin–Obukhov length
+
+#     :infile: (Dataset) netcdf file
+#     :tidx_start: (int, optional) starting index
+#     :tidx_end: (int, optional) ending index
+#     :returns: (Numpy array) stability parameter
+
+#     """
+#     ustar = infile.variables['u_taus'][tidx_start:tidx_end,0,0]
+#     temp0 = infile.variables['temp'][tidx_start:tidx_end,-1,0,0]
+#     salt0 = infile.variables['salt'][tidx_start:tidx_end,-1,0,0]
+#     tflux = infile.variables['heat'][tidx_start:tidx_end,0,0]
+#           + infile.variables['I_0'][tidx_start:tidx_end,0,0]
+#     sflux = -(infile.variables['precip'][tidx_start:tidx_end,0,0]
+#           + infile.variables['evap'][tidx_start:tidx_end,0,0])*salt0
+#     bflux = g*eos.alpha*tflux-g*eos.beta*sflux
+#     bld = get_mld('maxNsqr')(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+
+
+
+
 
 ###############################################################################
 #                                visualization                                #

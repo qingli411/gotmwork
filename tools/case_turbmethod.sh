@@ -10,7 +10,9 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
         ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 3
         ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 9
+        ${cmd_nmlchange} -f gotmturb.nml -e scnd_method  -v 1
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
+        ${cmd_nmlchange} -f gotmturb.nml -e length_lim -v .true.
         ;;
     "SMCLT")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3

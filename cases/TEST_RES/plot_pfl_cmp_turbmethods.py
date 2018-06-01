@@ -19,7 +19,7 @@ def main():
                  'COREII_LAT2_LON234_20080615-20081231',
                  'COREII_LAT10_LON86_20080615-20081231',
                  'COREII_LAT-54_LON254_20080915-20090915']
-    var_list = ['temp', 'salt']
+    var_list = ['temp', 'salt', 'rho']
     turbmethod_list = ['KPP-CVMix',
                        'KPPLT-EFACTOR',
                        'KPPLT-ENTR',
@@ -28,11 +28,15 @@ def main():
                        'SMC',
                        'SMCLT']
     cmax_list = np.array([[16, 20, 18, 27, 29, 7],
-                          [35.9, 35.9, 33.8, 35.1, 34.6, 34.2]])
+                          [35.9, 35.9, 33.8, 35.1, 34.6, 34.2],
+                          [1027.3, 1027.2, 1026.8, 1026.4, 1026.2, 1027.1]])
     cmin_list = np.array([[12, 12, 4, 12, 14, 4],
-                          [35.7, 35.6, 32.2, 34.7, 33.3, 33.9]])
+                          [35.7, 35.6, 32.2, 34.7, 33.3, 33.9],
+                          [1026.0, 1025.3, 1023.2, 1022.7, 1020.9, 1026.7]])
     dmax_list = np.array([[1, 1, 1, 1, 1, 1],
-                          [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]])
+                          [0.05, 0.05, 0.05, 0.05, 0.05, 0.05],
+                          [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]])
+    depth_list = np.array([-200, -240, -120, -150, -120, -400])
 
     # loop over all cases
     nc = len(case_list)
@@ -40,15 +44,16 @@ def main():
     nm = len(turbmethod_list)
     for i in np.arange(nc):
         case = case_list[i]
+        depth = depth_list[i]
         print(case)
         for j in np.arange(nv):
             var = var_list[j]
             c_max = cmax_list[j,i]
             c_min = cmin_list[j,i]
             d_max = dmax_list[j,i]
-            plot_pfl_cmp_turbmethods(turbmethod_list, case, var, c_max, c_min, d_max)
+            plot_pfl_cmp_turbmethods(turbmethod_list, case, var, c_max, c_min, d_max, depth)
 
-def plot_pfl_cmp_turbmethods(turbmethod_list, case, var, c_max, c_min, d_max):
+def plot_pfl_cmp_turbmethods(turbmethod_list, case, var, c_max, c_min, d_max, depth):
 
     # input data directory
     dataroot = '/Users/qingli/work/gotmrun/TEST_RES/'+case
@@ -90,6 +95,7 @@ def plot_pfl_cmp_turbmethods(turbmethod_list, case, var, c_max, c_min, d_max):
     # contourf plot
     im0 = axarr[0].contourf(dttime0, z0, np.transpose(fld0), levels0, extend='both', cmap='rainbow')
     axarr[0].set_ylabel('Depth (m)')
+    axarr[0].set_ylim([depth, 0])
     title0 = case+' '+var+' '+turbmethod_list[0]
     axarr[0].set_title(title0, fontsize=10)
     cb0 = plt.colorbar(im0, ax=axarr[0])
@@ -109,6 +115,7 @@ def plot_pfl_cmp_turbmethods(turbmethod_list, case, var, c_max, c_min, d_max):
 
         im1 = axarr[j].contourf(dttime1, z1, np.transpose(fld1-fld0), levels1, extend='both', cmap='RdBu_r')
         axarr[j].set_ylabel('Depth (m)')
+        axarr[j].set_ylim([depth, 0])
         title1 = 'Diff. '+turbmethod_list[j]+' $-$ '+turbmethod_list[0]
         axarr[j].set_title(title1, fontsize=10)
         cb1 = plt.colorbar(im1, ax=axarr[j])
@@ -117,6 +124,9 @@ def plot_pfl_cmp_turbmethods(turbmethod_list, case, var, c_max, c_min, d_max):
 
     # auto adjust the x-axis label
     plt.gcf().autofmt_xdate()
+
+    # reduce margin
+    plt.tight_layout()
 
     # save figure
     plt.savefig(figname, dpi = 300)

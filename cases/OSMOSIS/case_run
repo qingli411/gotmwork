@@ -38,7 +38,9 @@ nsave=6
 # turbmethod="OSMOSIS"
 # turbmethod="SMC"
 # turbmethod="KPP-CVMix"
-turbmethod="EPBL"
+# turbmethod="KPPLT-EFACTOR"
+turbmethod="KPPLT-ENTR"
+# turbmethod="EPBL"
 
 # output file name
 outname="gotm_out"

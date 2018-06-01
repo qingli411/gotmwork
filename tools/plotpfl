@@ -205,6 +205,9 @@ def main():
     # auto adjust the x-axis label
     plt.gcf().autofmt_xdate()
 
+    # reduce margin
+    plt.tight_layout()
+
     # save figure
     if args.fname_out:
         figname = args.fname_out

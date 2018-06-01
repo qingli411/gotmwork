@@ -13,12 +13,8 @@ from netCDF4 import Dataset, num2date
 def main():
 
     # case
-    case_list = ['OSMOSIS_winter',
-                 'OSMOSIS_spring',
-                 'OCSPapa_20130621-20131201',
-                 'COREII_LAT2_LON234_20080615-20081231',
-                 'COREII_LAT10_LON86_20080615-20081231',
-                 'COREII_LAT-54_LON254_20080915-20090915']
+    case_list = ['OCSPapa_20130621-20131201']
+    var_list = ['temp', 'salt']
     turbmethod_list = ['KPP-CVMix',
                        'KPPLT-EFACTOR',
                        'KPPLT-ENTR',
@@ -26,16 +22,12 @@ def main():
                        'EPBL',
                        'SMC',
                        'SMCLT']
-    var_list = ['temp', 'salt']
-    dzdt_list = ['VR1m_DT60s', 'VR1m_DT1800s', 'VR5m_DT60s', 'VR5m_DT1800s']
-    l_interp = [False, False, True, True]
-    cmax_list = np.array([[16, 20, 18, 27, 29, 7],
-                          [35.9, 35.9, 33.8, 35.1, 34.6, 34.2]])
-    cmin_list = np.array([[12, 12, 4, 12, 14, 4],
-                          [35.7, 35.6, 32.2, 34.7, 33.3, 33.9]])
-    dmax_list = np.array([[1, 1, 1, 1, 1, 1],
-                          [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]])
-    depth_list = np.array([-200, -240, -120, -150, -120, -400])
+    cmax_list = np.array([[18],
+                          [33.8]])
+    cmin_list = np.array([[4],
+                          [32.2]])
+    dmax_list = np.array([[3],
+                          [0.2]])
 
     # loop over all cases
     nc = len(case_list)
@@ -43,36 +35,33 @@ def main():
     nm = len(turbmethod_list)
     for i in np.arange(nc):
         case = case_list[i]
-        depth = depth_list[i]
         print(case)
         for j in np.arange(nv):
             var = var_list[j]
             c_max = cmax_list[j,i]
             c_min = cmin_list[j,i]
             d_max = dmax_list[j,i]
-            for k in np.arange(nm):
-                turbmethod = turbmethod_list[k]
-                plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth)
+            plot_pfl_cmp_turbmethods_obs(turbmethod_list, case, var, c_max, c_min, d_max)
 
-def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth):
+def plot_pfl_cmp_turbmethods_obs(turbmethod_list, case, var, c_max, c_min, d_max):
 
-    # input data
+    # input data directory
     dataroot = '/Users/qingli/work/gotmrun/TEST_RES/'+case
 
     # output figure name
     figdir = '/Users/qingli/work/gotmfigures/TEST_RES/'+case
     os.makedirs(figdir, exist_ok=True)
-    figname = figdir+'/Pfl_cmp_'+turbmethod+'_'+var+'.png'
+    figname = figdir+'/Pfl_cmp_turbmethods_obs_'+var+'.png'
 
-    # number of dz dt cases
-    nzt = len(dzdt_list)
+    # number of turbulence methods
+    nm = len(turbmethod_list)
 
     # use the first in the list as the reference case
-    data0 = dataroot+'/'+turbmethod+'_'+dzdt_list[0]+'/gotm_out.nc'
+    data0 = dataroot+'/'+turbmethod_list[0]+'_VR1m_DT60s/gotm_out.nc'
 
     # read data
     infile0 = Dataset(data0, 'r')
-    ncvar0 = infile0.variables[var]
+    ncvar0 = infile0.variables[var+'_obs']
     fld0 = ncvar0[:,:,0,0]
     nctime0 = infile0.variables['time']
     t_cal = 'standard'
@@ -81,10 +70,10 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
 
     # figure
     fig_width = 6
-    fig_height = 2+2*(nzt-1)
+    fig_height = 2+2*(nm-1)
 
     # plot figure
-    f, axarr = plt.subplots(nzt, sharex=True)
+    f, axarr = plt.subplots(nm+1, sharex=True)
     f.set_size_inches(fig_width, fig_height)
 
     # contour levels
@@ -96,39 +85,28 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
     # contourf plot
     im0 = axarr[0].contourf(dttime0, z0, np.transpose(fld0), levels0, extend='both', cmap='rainbow')
     axarr[0].set_ylabel('Depth (m)')
-    axarr[0].set_ylim([depth, 0])
-    title0 = case+' '+var+' '+dzdt_list[0]
+    axarr[0].set_ylim([-120, 0])
+    title0 = case+' '+var+': OBS'
     axarr[0].set_title(title0, fontsize=10)
     cb0 = plt.colorbar(im0, ax=axarr[0])
     cb0.formatter.set_powerlimits((-2, 2))
     cb0.update_ticks()
 
     # loop over other turbmethods
-    for i in np.arange(nzt-1):
+    for i in np.arange(nm):
         j = i+1
-        data1 = dataroot+'/'+turbmethod+'_'+dzdt_list[j]+'/gotm_out.nc'
+        data1 = dataroot+'/'+turbmethod_list[i]+'_VR1m_DT60s/gotm_out.nc'
         infile1 = Dataset(data1, 'r')
         ncvar1 = infile1.variables[var]
-        fld1_tmp = ncvar1[:,:,0,0]
+        fld1 = ncvar1[:,:,0,0]
         nctime1 = infile1.variables['time']
         dttime1 = num2date(nctime1[:], units=nctime1.units, calendar=t_cal)
-        z1_tmp = read_z(infile1, ncvar1)
-
-        # interpolate to z0
-        if l_interp[j]:
-            nt = fld0.shape[0]
-            fld1 = np.zeros(fld0.shape)
-            for k in np.arange(nt):
-                fld1[k,:] = np.interp(z0, z1_tmp, fld1_tmp[k,:])
-            z1 = z0
-        else:
-            fld1 = fld1_tmp
-            z1 = z1_tmp
+        z1 = read_z(infile1, ncvar1)
 
         im1 = axarr[j].contourf(dttime1, z1, np.transpose(fld1-fld0), levels1, extend='both', cmap='RdBu_r')
         axarr[j].set_ylabel('Depth (m)')
-        axarr[j].set_ylim([depth, 0])
-        title1 = 'Diff. '+dzdt_list[j]+' $-$ '+dzdt_list[0]
+        axarr[j].set_ylim([-120, 0])
+        title1 = 'Diff. from OBS: '+turbmethod_list[i]
         axarr[j].set_title(title1, fontsize=10)
         cb1 = plt.colorbar(im1, ax=axarr[j])
         cb1.formatter.set_powerlimits((-2, 2))

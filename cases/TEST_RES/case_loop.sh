@@ -8,19 +8,19 @@
 #                           Loop over cases                           #
 #######################################################################
 
-l_test="no"
+l_test="yes"
 
 if [ ${l_test} == "yes" ]; then
     # name of the turbulence model
-    turblist=(KPP-CVMix)
+    turblist=(SMCLT)
     # vertical resolution
-    vrlist=(5m)
+    vrlist=(1m)
     # time step
-    dtlist=(1800)
+    dtlist=(60)
 else
     # name of the turbulence model
     # turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR OSMOSIS EPBL SMC SMCLT)
-    turblist=(KPPLT-EFACTOR KPPLT-ENTR EPBL)
+    turblist=(SMCLT)
     # vertical resolution
     #  1 m
     #  5 m
