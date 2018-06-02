@@ -1,40 +1,22 @@
-!MOMturb Namelist
+!-------------------------------------------------------------------------------
+! MOM turbulence model
+!-------------------------------------------------------------------------------
+! mode            [integer]
+!                   Choose mode of MOMturbulence
+!                   0: Max of ePBL and JHL.
+!                   1: ePBL.
+!                   2: JHLL.
+!                   3: ePBL + JHL.
+! langmuir_method [integer]
+!                   1 to enable Langmuir turbulence in MOMturb methods.
+! efactor_method  [integer]
+!                   1 to enable Langmuir turbulence in MOMturb methods from
+!                     theory wave.
+!-------------------------------------------------------------------------------
 
 &momturb
-  !===========================================================
-  ! Mode
-  !   (integer)
-  !   Used to set ePBL/JHL mixing scheme combinations
-  !   0 - Use Maximum mixing coefficient from ePBL
-  !       and JHL08
-  !   1 - Use ePBL mixing coefficient only
-  !       note: not well-behaved for tropical latitudes
-  !   2 - Use JHL mixing coefficient only
-  !       note: does not include convection
-  !   3 - Use ePBL + JHL08 mixing coefficient
-   Mode = 2,
-  !===========================================================
-  ! Langmuir_Method
-  !   (integer)
-  !   Used to enable or disable Langmuir (but an integer so
-  !   that more options can be added
-  !   0 (no Langmuir) 1 (yes Langmuir)
-   Langmuir_Method = 0,
-  !===========================================================
-  ! Efactor_Method
-  !   (integer)
-  !   Used to determine how to solve for Langmuir number
-  !   e.g. whether to estimate from wind, read from file,
-  !   etc.
-  ! 1 (Efactor Model),
-  ! 2 (Efactor Read),
-  ! 3 (Efactor Spec),
-  ! 4 (Efactor Stokes),
-   Efactor_Method=0,
-  !===========================================================
-  ! Efactor_file
-  !  (presently unused)
-  !  Will allow to read from given filename if added.
-   Efactor_file='null',
-  !===========================================================
+   mode = 2,
+   langmuir_method = 0,
+   efactor_method = 0,
 /
+

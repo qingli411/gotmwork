@@ -95,7 +95,7 @@ do
     rm momentumflux.dat
     ln -s ./MomentumFlux/05/momentumflux${LOC}.dat momentumflux.dat
     ln -s ./SPC/SPC${LOC}.txt SPC.txt
-    
+
     # set turbulence method
     source ${scpt_case_turbmethod}
 
@@ -114,7 +114,7 @@ do
     ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
     ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
     ${cmd_nmlchange} -f airsea.nml -e const_heat -v ${heatflux}
-    
+
     ###################################################################
     #                          Run GOTM                               #
     ###################################################################
