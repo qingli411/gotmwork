@@ -7,7 +7,7 @@ The script `build_src.sh` is used to compile the source code. Change `${blddir}`
 
 The script `set_tools.sh` is used by `case_run` (in case/) to set paths and tools.
 
-Note: The script `setup.sh` downloads and sets up the **original** GOTM source code, test cases and tools from Github. It was only used when I initially set up the codebase.
+Note: The script `setup.sh` downloads and sets up the **original** GOTM source code, test cases and tools from Github. It was only used when I initially set up the codebase.   
 
 ## ./tools/
 
@@ -74,11 +74,11 @@ This folder contains a set of tools to preprocess observational data for input a
 - Matlab script to convert Argo profile data from MAT to netCDF.
 
   `argo_mat2nc.m`
-
+  
 - Script to postprocess a single run, used by `case_run`.
 
   `case_postproc.sh`
-
+  
 - Script to set the namelist according to the turbulent methods.
 
   `case_turbmethod.sh`
@@ -95,6 +95,11 @@ This directory contains preprocessed input data for test cases:
 - OCSPapa_20120101-20131204
 - OSMOSIS_winter
 - OSMOSIS_spring
+- COREII_LAT-54_LON254_20080115-20091231
+- COREII_LAT10_LON86_20080115-20091231
+- COREII_LAT2_LON234_20080115-20091231
+- Idealized
+- Idealized_Hurricane
 
 Also included in this directory are the data description files in XML format, which are used by `case_preproc` to preprocess the input data.
 
@@ -107,7 +112,7 @@ Test cases. In each case, `case_test` sets up the namelist, preprocess the input
 
   - `case_test_multi` sets up multiple runs under CORE-II forcing, currently one run for each 4 by 4 degree box globally.
   - `case_run_multi` is similar to `case_test_multi`, but uses preprocessed CORE-II data and is therefore significantly faster.
-  - `preproc_data` preprocesses the CORE-II data.
+  - `preproc_data` preprocesses the CORE-II data. 
   - `do_parallel` manually distributes jobs to 8 cores on a Mac Pro.
   - `kill_all` kills all the jobs.
 
@@ -122,3 +127,6 @@ Sensitivity test of different boundary layer schemes to different vertical resol
    - `case_loop.sh` loops over different turbulent methods, vertical resolutions and time steps.
    - `OCSPapa` runs test case using OCS Papa data
    - `OSMOSIS` runs test case using OSMOSIS data
+
+- Idealized_Tests
+- Idealized_Hurricane
