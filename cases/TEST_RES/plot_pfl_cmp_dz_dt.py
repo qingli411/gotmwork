@@ -5,51 +5,28 @@ Qing Li, 20180508
 
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
 import os
-import datetime
 from netCDF4 import Dataset, num2date
+from testrestool import *
 
 def main():
 
-    # case
-    case_list = ['OSMOSIS_winter',
-                 'OSMOSIS_spring',
-                 'OCSPapa_20130621-20131201',
-                 'COREII_LAT2_LON234_20080615-20081231',
-                 'COREII_LAT10_LON86_20080615-20081231',
-                 'COREII_LAT-54_LON254_20080915-20090915']
-    turbmethod_list = ['KPP-CVMix',
-                       'KPPLT-EFACTOR',
-                       'KPPLT-ENTR',
-                       'OSMOSIS',
-                       'EPBL',
-                       'SMC',
-                       'SMCLT']
-    var_list = ['temp', 'salt']
     dzdt_list = ['VR1m_DT60s', 'VR1m_DT1800s', 'VR5m_DT60s', 'VR5m_DT1800s']
     l_interp = [False, False, True, True]
-    cmax_list = np.array([[16, 20, 18, 27, 29, 7],
-                          [35.9, 35.9, 33.8, 35.1, 34.6, 34.2]])
-    cmin_list = np.array([[12, 12, 4, 12, 14, 4],
-                          [35.7, 35.6, 32.2, 34.7, 33.3, 33.9]])
-    dmax_list = np.array([[1, 1, 1, 1, 1, 1],
-                          [0.05, 0.05, 0.05, 0.05, 0.05, 0.05]])
-    depth_list = np.array([-200, -240, -120, -150, -120, -400])
 
     # loop over all cases
     nc = len(case_list)
-    nv = len(var_list)
+    nv = len(pfl_list)
     nm = len(turbmethod_list)
     for i in np.arange(nc):
         case = case_list[i]
         depth = depth_list[i]
         print(case)
         for j in np.arange(nv):
-            var = var_list[j]
-            c_max = cmax_list[j,i]
-            c_min = cmin_list[j,i]
-            d_max = dmax_list[j,i]
+            var = pfl_list[j]
+            c_max = pfl_cmax_list[j,i]
+            c_min = pfl_cmin_list[j,i]
+            d_max = pfl_dmax_list[j,i]
             for k in np.arange(nm):
                 turbmethod = turbmethod_list[k]
                 plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth)
@@ -57,10 +34,10 @@ def main():
 def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth):
 
     # input data
-    dataroot = '/Users/qingli/work/gotmrun/TEST_RES/'+case
+    dataroot = dir_in+'/'+case
 
     # output figure name
-    figdir = '/Users/qingli/work/gotmfigures/TEST_RES/'+case
+    figdir = dir_out+'/'+case
     os.makedirs(figdir, exist_ok=True)
     figname = figdir+'/Pfl_cmp_'+turbmethod+'_'+var+'.png'
 
@@ -72,12 +49,10 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
 
     # read data
     infile0 = Dataset(data0, 'r')
-    ncvar0 = infile0.variables[var]
-    fld0 = ncvar0[:,:,0,0]
+    fld0, z0 = read_pfl(infile0, var)
     nctime0 = infile0.variables['time']
     t_cal = 'standard'
     dttime0 = num2date(nctime0[:], units=nctime0.units, calendar=t_cal)
-    z0 = read_z(infile0, ncvar0)
 
     # figure
     fig_width = 6
@@ -108,11 +83,9 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
         j = i+1
         data1 = dataroot+'/'+turbmethod+'_'+dzdt_list[j]+'/gotm_out.nc'
         infile1 = Dataset(data1, 'r')
-        ncvar1 = infile1.variables[var]
-        fld1_tmp = ncvar1[:,:,0,0]
+        fld1_tmp, z1_tmp = read_pfl(infile1, var)
         nctime1 = infile1.variables['time']
         dttime1 = num2date(nctime1[:], units=nctime1.units, calendar=t_cal)
-        z1_tmp = read_z(infile1, ncvar1)
 
         # interpolate to z0
         if l_interp[j]:
@@ -145,29 +118,6 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
 
     # close figure
     plt.close()
-
-def read_z(infile, ncvar):
-    """Read the z coordinate of a variable in GOTM output assuming fixed layer
-
-    :infile: (netCDF4 Dataset) input netCDF file
-    :ncvar: (netCDF variable) variable
-    :returns: z coordinate (negative below the surface)
-
-    """
-    # choose veritcal coordinate
-    varlist = infile.variables.keys()
-    # GOTM output (fixed z)
-    try:
-        coord = ncvar.coordinates
-    except AttributeError:
-        coord = 'v4'
-    if 'zi' in coord:
-        z = infile.variables['zi'][0,:,0,0]
-    elif 'z' in coord:
-        z = infile.variables['z'][0,:,0,0]
-    else:
-        z = infile.variables['z'][:]
-    return z
 
 if __name__ == "__main__":
     main()

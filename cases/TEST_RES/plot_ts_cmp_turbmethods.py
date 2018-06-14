@@ -5,37 +5,14 @@ Qing Li, 20180516
 
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
 import os
-import datetime
 from netCDF4 import Dataset, num2date
+from testrestool import *
 
 def main():
 
-    # case
-    case_list = ['OSMOSIS_winter',
-                 'OSMOSIS_spring',
-                 'OCSPapa_20130621-20131201',
-                 'COREII_LAT2_LON234_20080615-20081231',
-                 'COREII_LAT10_LON86_20080615-20081231',
-                 'COREII_LAT-54_LON254_20080915-20090915']
-    var_list = ['Epot', 'Ekin']
-    turbmethod_list = ['KPP-CVMix',
-                       'KPPLT-EFACTOR',
-                       'KPPLT-ENTR',
-                       'OSMOSIS',
-                       'EPBL',
-                       'SMC',
-                       'SMCLT']
-    legend_list = ['KPP-CVMix',
-                   'KPPLT-VR12',
-                   'KPPLT-LF17',
-                   'OSMOSIS',
-                   'ePBL',
-                   'SMC-KC94',
-                   'SMCLT-H15']
-
-    ylabel = ['PE', 'KE']
+    var_list = ['Epot', 'dPEdt']
+    ylabel = ['$E_P$', '$dE_P/dt$']
     color = ['k', 'b', 'r', 'g', 'm', 'c', 'y']
 
     # loop over all cases
@@ -52,10 +29,10 @@ def main():
 def plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel, color, legend_list):
 
     # input data directory
-    dataroot = os.environ['HOME']+'/work/gotmrun/TEST_RES/'+case
+    dataroot = dir_in+'/'+case
 
     # output figure name
-    figdir = os.environ['HOME']+'/work/gotmfigures/TEST_RES/'+case
+    figdir = dir_out+'/'+case
     os.makedirs(figdir, exist_ok=True)
     figname = figdir+'/TS_cmp_turbmethods_'+var+'.png'
 
@@ -67,8 +44,7 @@ def plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel, color, legend_li
 
     # read data
     infile0 = Dataset(data0, 'r')
-    ncvar0 = infile0.variables[var]
-    fld0 = ncvar0[:,0,0]
+    fld0 = read_ts(infile0, var)
     nctime0 = infile0.variables['time']
     t_cal = 'standard'
     dttime0 = num2date(nctime0[:], units=nctime0.units, calendar=t_cal)
@@ -89,8 +65,7 @@ def plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel, color, legend_li
         j = i+1
         data1 = dataroot+'/'+turbmethod_list[j]+'_VR1m_DT60s/gotm_out.nc'
         infile1 = Dataset(data1, 'r')
-        ncvar1 = infile1.variables[var]
-        fld1 = ncvar1[:,0,0]
+        fld1 = read_ts(infile1, var)
         nctime1 = infile1.variables['time']
         dttime1 = num2date(nctime1[:], units=nctime1.units, calendar=t_cal)
         axarr[1].plot(dttime1, fld1-fld0, '-', color=color[j], linewidth=1.5, label=legend_list[j])

@@ -5,9 +5,7 @@ Qing Li, 20180508
 
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
 import os
-import datetime
 from netCDF4 import Dataset, num2date
 
 def main():

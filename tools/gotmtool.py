@@ -451,20 +451,23 @@ def get_mld_deltaR(infile, deltaR=0.03, zRef=-10, tidx_start=None, tidx_end=None
     return mld
 
 #--------------------------------
-# dimensionless parameters
+# derived variables
 #--------------------------------
 
-def get_parameter(method):
-    """Find the parmameter given by the method
+def get_variable(method):
+    """Find the derived variable
 
-    :method: (str) parameter name
+    :method: (str) variable name
     :returns: (function) corresponding function
 
     """
     switcher = {
             'LaTurb': get_la_turb,
             'LaSL': get_la_sl,
-            'hoL': get_h_over_L
+            'hoLmo': get_h_over_lmo,
+            'buoyancy': get_buoyancy,
+            'spice': get_spice,
+            'dPEdt': get_dpedt
             }
     return switcher.get(method)
 
@@ -527,7 +530,7 @@ def get_la_sl(infile, tidx_start=None, tidx_end=None):
     la = np.sqrt(ustar/np.sqrt(ussl**2.+vssl**2.))
     return la
 
-def get_h_over_L(infile, tidx_start=None, tidx_end=None):
+def get_h_over_lmo(infile, tidx_start=None, tidx_end=None):
     """Find the stability parameter defined as h/L
        where h is the boundary layer depth
        and L is the Monin–Obukhov length
@@ -550,7 +553,7 @@ def get_h_over_L(infile, tidx_start=None, tidx_end=None):
     # correction for solar radiation
     rad   = infile.variables['rad'][tidx_start:tidx_end,:,0,0]
     z     = infile.variables['z'][tidx_start:tidx_end,:,0,0]
-    nt    = hbl.shape[0]
+    nt    = ustar.shape[0]
     rflux = np.zeros(nt)
     for i in np.arange(nt):
         ihbl = np.argmin(np.abs(z[i,:]-hbl[i]))
@@ -568,23 +571,6 @@ def get_h_over_L(infile, tidx_start=None, tidx_end=None):
     # h over L
     hoL = -abs(hbl)/Lmo
     return hoL
-
-#--------------------------------
-# derived variables
-#--------------------------------
-
-def get_variable(method):
-    """Find the variable
-
-    :method: (str) variable name
-    :returns: (function) corresponding function
-
-    """
-    switcher = {
-            'buoyancy': get_buoyancy,
-            'spice': get_spice
-            }
-    return switcher.get(method)
 
 def get_buoyancy(infile, tidx_start=None, tidx_end=None):
     """Calculate the buoyancy from temperature and salinity
@@ -619,6 +605,27 @@ def get_spice(infile, tidx_start=None, tidx_end=None):
     # spice
     spice  = g*alpha_0*(temp-T_0)+g*beta_0*(salt-S_0)
     return spice
+
+def get_dpedt(infile, tidx_start=None, tidx_end=None):
+    """Calculate the rate of change in the total potential energy (PE)
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) rate of change in PE
+
+    """
+    # time series of potential energy
+    epot = infile.variables['Epot'][tidx_start:tidx_end,0,0]
+    # time (sec)
+    time = infile.variables['time'][tidx_start:tidx_end]
+    # get the time derivative
+    nt = time.shape[0]
+    dpedt = np.zeros(nt)
+    dpedt[1:-1] = (epot[2:]-epot[0:-2])/(time[2:]-time[0:-2])
+    dpedt[0] = (epot[1]-epot[0])(time[1]-time[0])
+    dpedt[-1] = (epot[-1]-epot[-2])/(time[-1]-time[-2])
+    return dpedt
 
 ###############################################################################
 #                                visualization                                #

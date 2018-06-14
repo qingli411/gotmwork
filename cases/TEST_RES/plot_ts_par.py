@@ -5,31 +5,21 @@ Qing Li, 20180516
 
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
 import os
-import datetime
 from netCDF4 import Dataset, num2date
-tooldir_default = os.environ['HOME']+'/models/gotm/gotmwork/tools'
-sys.path.append(os.environ.get('tooldir', tooldir_default))
-from gotmtool import *
+from testrestool import *
 
 def main():
 
     # case
-    case_list = ['OSMOSIS_winter',
-                 'OSMOSIS_spring',
-                 'OCSPapa_20130621-20131201',
-                 'COREII_LAT2_LON234_20080615-20081231',
-                 'COREII_LAT10_LON86_20080615-20081231',
-                 'COREII_LAT-54_LON254_20080915-20090915']
-    var_list = ['LaTurb', 'LaSL', 'hoL']
+    var_list = ['LaTurb', 'LaSL', 'hoLmo']
     ylabel = ['$La_t$', '$La_{SL}$', '$-h_b/L_{MO}$']
 
     # test
     l_test = True
     l_test = False
     i_test = 1
-    j_test = 1
+    j_test = 2
 
     if l_test:
         plot_ts_var(case_list[i_test], var_list[j_test], ylabel[j_test])
@@ -47,10 +37,10 @@ def main():
 def plot_ts_var(case, var, ylabel):
 
     # input data directory
-    dataroot = os.environ['HOME']+'/work/gotmrun/TEST_RES/'+case
+    dataroot = dir_in+'/'+case
 
     # output figure name
-    figdir = os.environ['HOME']+'/work/gotmfigures/TEST_RES/'+case
+    figdir = dir_out+'/'+case
     os.makedirs(figdir, exist_ok=True)
     figname = figdir+'/TS_'+var+'.png'
 
@@ -61,7 +51,7 @@ def plot_ts_var(case, var, ylabel):
     tidx_start = 1
     tidx_end = None
     infile0 = Dataset(data0, 'r')
-    fld0 = get_parameter(var)(infile0, tidx_start=tidx_start, tidx_end=tidx_end)
+    fld0 = read_ts(infile0, var, tidx_start=tidx_start, tidx_end=tidx_end)
     # remove negative values
     fld0 = np.ma.array(fld0, mask=(fld0<=0))
 
