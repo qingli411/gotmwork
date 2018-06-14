@@ -60,7 +60,7 @@ case ${turbmethod} in
         ;;
     "EPBL")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100
-        ${cmd_nmlchange} -f MOMturb.nml -e Mode -v 0
+        ${cmd_nmlchange} -f MOMturb.nml -e mode -v 0
         ;;
     "EPBL-LT")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100

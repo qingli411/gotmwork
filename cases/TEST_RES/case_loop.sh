@@ -8,7 +8,7 @@
 #                           Loop over cases                           #
 #######################################################################
 
-l_test="yes"
+l_test="no"
 
 if [ ${l_test} == "yes" ]; then
     # name of the turbulence model
@@ -19,8 +19,7 @@ if [ ${l_test} == "yes" ]; then
     dtlist=(60)
 else
     # name of the turbulence model
-    # turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR OSMOSIS EPBL SMC SMCLT)
-    turblist=(SMCLT)
+    turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR OSMOSIS EPBL SMC SMCLT)
     # vertical resolution
     #  1 m
     #  5 m
@@ -104,6 +103,7 @@ for dt in ${dtlist[@]}; do
     ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
     ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
     ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+    ${cmd_nmlchange} -f gotmrun.nml -e eq_state_method -v 4
     ${cmd_nmlchange} -f gotmmean.nml -e grid_method -v ${grid_method}
     ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
     ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
