@@ -623,7 +623,7 @@ def get_dpedt(infile, tidx_start=None, tidx_end=None):
     nt = time.shape[0]
     dpedt = np.zeros(nt)
     dpedt[1:-1] = (epot[2:]-epot[0:-2])/(time[2:]-time[0:-2])
-    dpedt[0] = (epot[1]-epot[0])(time[1]-time[0])
+    dpedt[0] = (epot[1]-epot[0])/(time[1]-time[0])
     dpedt[-1] = (epot[-1]-epot[-2])/(time[-1]-time[-2])
     return dpedt
 

@@ -15,16 +15,25 @@ def main():
     ylabel = ['$E_P$', '$dE_P/dt$']
     color = ['k', 'b', 'r', 'g', 'm', 'c', 'y']
 
-    # loop over all cases
-    nc = len(case_list)
-    nv = len(var_list)
-    nm = len(turbmethod_list)
-    for i in np.arange(nc):
+    l_test = True
+
+    if l_test:
+        i = 1
+        j = 0
         case = case_list[i]
-        print(case)
-        for j in np.arange(nv):
-            var = var_list[j]
-            plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel[j], color, legend_list)
+        var = var_list[j]
+        plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel[j], color, legend_list)
+    else:
+        # loop over all cases
+        nc = len(case_list)
+        nv = len(var_list)
+        nm = len(turbmethod_list)
+        for i in np.arange(nc):
+            case = case_list[i]
+            print(case)
+            for j in np.arange(nv):
+                var = var_list[j]
+                plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel[j], color, legend_list)
 
 def plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel, color, legend_list):
 
@@ -69,6 +78,7 @@ def plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel, color, legend_li
         nctime1 = infile1.variables['time']
         dttime1 = num2date(nctime1[:], units=nctime1.units, calendar=t_cal)
         axarr[1].plot(dttime1, fld1-fld0, '-', color=color[j], linewidth=1.5, label=legend_list[j])
+        # axarr[1].plot(dttime1, fld1, '-', color=color[j], linewidth=1.5, label=legend_list[j])
 
     # ylabel
     axarr[1].set_ylabel(ylabel+' Diff.')

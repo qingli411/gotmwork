@@ -14,7 +14,6 @@ def main():
     l_ens = True
     # loop over all cases
     nc = len(case_list)
-    print(nc)
     nv = len(pfl_list)
     nm = len(turbmethod_list)
     for i in np.arange(nc):
@@ -121,21 +120,24 @@ def plot_pfl_cmp_turbmethods_ens(turbmethod_list, case, var, c_max, c_min, d_max
     # number of turbulence methods
     nm = len(turbmethod_list)
 
-    # use ensemble mean as the reference
+    # use ensemble median as the reference
     for i in np.arange(nm):
         data0 = dataroot+'/'+turbmethod_list[i]+'_VR1m_DT60s/gotm_out.nc'
         # read data
         infile0 = Dataset(data0, 'r')
         if i == 0:
-            fld0, z0 = read_pfl(infile0, var)
+            nctime0 = infile0.variables['time']
+            t_cal = 'standard'
+            dttime0 = num2date(nctime0[:], units=nctime0.units, calendar=t_cal)
+            nt = nctime0[:].shape[0]
+            tmp, z0 = read_pfl(infile0, var)
+            nz = z0.shape[0]
+            tmp0 = np.zeros([nm, nt, nz])
+            tmp0[i,:,:], z0 = read_pfl(infile0, var)
         else:
-            tmp0, z0 = read_pfl(infile0, var)
-            fld0 = fld0 + tmp0
-    # get the mean
-    fld0 = fld0/nm
-    nctime0 = infile0.variables['time']
-    t_cal = 'standard'
-    dttime0 = num2date(nctime0[:], units=nctime0.units, calendar=t_cal)
+            tmp0[i,:,:], z0 = read_pfl(infile0, var)
+    # get the median
+    fld0 = np.median(tmp0, axis=0)
 
     # figure
     fig_width = 6
@@ -155,7 +157,7 @@ def plot_pfl_cmp_turbmethods_ens(turbmethod_list, case, var, c_max, c_min, d_max
     im0 = axarr[0].contourf(dttime0, z0, np.transpose(fld0), levels0, extend='both', cmap='rainbow')
     axarr[0].set_ylabel('Depth (m)')
     axarr[0].set_ylim([depth, 0])
-    title0 = case+' '+var+' Ens. Mean'
+    title0 = case+' '+var+' Ens. Median'
     axarr[0].set_title(title0, fontsize=10)
     cb0 = plt.colorbar(im0, ax=axarr[0])
     cb0.formatter.set_powerlimits((-2, 2))
@@ -173,7 +175,7 @@ def plot_pfl_cmp_turbmethods_ens(turbmethod_list, case, var, c_max, c_min, d_max
         im1 = axarr[j].contourf(dttime1, z1, np.transpose(fld1-fld0), levels1, extend='both', cmap='RdBu_r')
         axarr[j].set_ylabel('Depth (m)')
         axarr[j].set_ylim([depth, 0])
-        title1 = 'Diff. '+turbmethod_list[i]+' $-$ Ens. Mean'
+        title1 = 'Diff. '+turbmethod_list[i]+' $-$ Ens. Median'
         axarr[j].set_title(title1, fontsize=10)
         cb1 = plt.colorbar(im1, ax=axarr[j])
         cb1.formatter.set_powerlimits((-2, 2))
@@ -191,7 +193,5 @@ def plot_pfl_cmp_turbmethods_ens(turbmethod_list, case, var, c_max, c_min, d_max
     # close figure
     plt.close()
 
-if __name__ == "__main__":
-    main()
 if __name__ == "__main__":
     main()

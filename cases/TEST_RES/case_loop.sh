@@ -1,6 +1,6 @@
 # This is the main loop over turbulent methods, vertical resolution
 # and time step.
-# Used by: OCSPapa, OSMOSIS
+# Used by: OCSPapa, OSMOSIS, COREII
 #
 # Qing Li, 20180507
 
@@ -19,7 +19,7 @@ if [ ${l_test} == "yes" ]; then
     dtlist=(60)
 else
     # name of the turbulence model
-    turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR OSMOSIS EPBL SMC SMCLT)
+    turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL SMC SMCLT K-EPSILON-SG)
     # vertical resolution
     #  1 m
     #  5 m
