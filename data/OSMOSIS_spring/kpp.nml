@@ -22,19 +22,9 @@
 !                     2016)
 !                   2: Langmuir mixing + Langmuir enhanced entrainment (Li and
 !                     Fox-Kemper, 2017)
+!                   3: Langmuir mixing + Langmuir enhanced Vt2 (Reichl et al.,
+!                     2016)
 !                   This variable is only used if lcvmix = True
-! efactor_method  [integer]
-!                   method to compute enhancement factor
-!                   1: approximated by a simple enhancement facator model based
-!                     on empirical wave spectrum (Li et al., 2017)
-!                   2: read from file efactor_file
-!                   3: compute from input wave spectrum
-!                   4: compute from Stokes drift
-!                   This variable is only used if langmuir_method = 1
-! efactor_file    [file path]
-!                   file with enhancement factor
-!                   This variable is only used if (langmuir_method = 1 and
-!                     efactor_method = 2)
 ! interp_type     [string]
 !                   interpolation method used to interpolate bulk Richardson
 !                     number
@@ -70,8 +60,6 @@
    lcvmix = .false.,
    lnoDGat1 = .true.,
    langmuir_method = 0,
-   efactor_method = 4,
-   efactor_file = '',
    interp_type = 'quadratic',
    interp_type2 = 'LMD94',
    MatchTechnique = 'SimpleShapes',

@@ -9,6 +9,7 @@
 !                    3: second-order model
 !                    98: OSMOSIS model
 !                    99: KPP model
+!                    100: MOM turbulence model
 ! tke_method       [integer]
 !                    type of equation for TKE
 !                    1: algebraic equation
@@ -44,7 +45,7 @@
 !-------------------------------------------------------------------------------
 
 &turbulence
-   turb_method = 3,
+   turb_method = 98,
    tke_method = 2,
    len_scale_method = 8,
    stab_method = 3,
@@ -144,9 +145,9 @@
    cw = 100.0,
    compute_kappa = .false.,
    kappa = 0.4,
-   compute_c3 = .false.,
+   compute_c3 = .true.,
    Ri_st = 0.25,
-   length_lim = .false.,
+   length_lim = .true.,
    galp = 0.53,
    const_num = 0.0005,
    const_nuh = 0.0005,
@@ -261,8 +262,12 @@
 !                /gotmturb/turbulence/len_scale_method = 11
 ! sq         [float]
 !              turbulent diffusivities of q**2 (= 2k)
+!              This variable is not used if
+!                /gotmturb/turbulence/len_scale_method = 11
 ! sl         [float]
 !              turbulent diffusivities of q**2 l
+!              This variable is not used if
+!                /gotmturb/turbulence/len_scale_method = 11
 ! my_length  [integer]
 !              prescribed barotropic lengthscale in q**2 l equation of MY
 !              1: parabolic
