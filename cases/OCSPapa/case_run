@@ -9,17 +9,11 @@
 #                              Set paths                              #
 #######################################################################
 
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-
-# scratch directory to run the case
-scratchdir="${HOME}/work/gotmrun"
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
+source "../../set_tools.sh"
 
 # directory of base case
-basecase="${workdir}/data/OCSPapa_20120101-20131204"
+basecase="${GOTMWORK_ROOT}/data/OCSPapa_20120101-20131204"
 
 #######################################################################
 #                           Set parameters                            #
@@ -59,7 +53,7 @@ casename="${title}_${turbmethod}_${datestart}-${dateend}"
 #######################################################################
 
 # create run directory
-rundir="${scratchdir}/${casename}"
+rundir="${GOTMRUN_ROOT}/${casename}"
 mkdir -p ${rundir}
 cd ${rundir}
 
@@ -90,7 +84,7 @@ source ${scpt_case_turbmethod}
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-gotm 2> log.${outname}
+${cmd_gotm} 2> log.${outname}
 
 #######################################################################
 #                           Postprocessing                            #

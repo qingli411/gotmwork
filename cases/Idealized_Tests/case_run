@@ -7,32 +7,11 @@
 #                              Set paths                              #
 #######################################################################
 
-if [ -f '../../enviro_file' ]; then
-    source ../../enviro_file
-fi
-
-if [ -z ${gotmexe} ]; then
-    gotmexe='gotm'
-fi
-echo "gotmexe is "${gotmexe}
-
-if [ -z ${workdir} ]; then
-    # root directory for gotmwork
-    workdir="${HOME}/models/gotm/gotmwork"
-fi
-echo "workdir is "${workdir}
-
-if [ -z ${scratchdir} ]; then
-    # scratch directory to run the case
-    scratchdir="${HOME}/work/gotmrun"
-fi
-echo "scratchdir is "${scratchdir}
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
+source "../../set_tools.sh"
 
 # directory of base case
-basecase="${workdir}/data/Idealized"
+basecase="${GOTMWORK_ROOT}/data/Idealized"
 
 #######################################################################
 #                           Set parameters                            #
@@ -84,7 +63,7 @@ casename="${title}_${turbmethod}_${datestart}-${dateend}"
 #######################################################################
 
 # create run directory
-rundir="${scratchdir}/${casename}"
+rundir="${GOTMRUN_ROOT}/${casename}"
 mkdir -p ${rundir}
 cd ${rundir}
 
@@ -120,7 +99,7 @@ source ${scpt_case_turbmethod}
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-$gotmexe 2> log.${outname}
+${cmd_gotm} 2> log.${outname}
 
 #######################################################################
 #                           Postprocessing                            #

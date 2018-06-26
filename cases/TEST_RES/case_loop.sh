@@ -70,7 +70,7 @@ for dt in ${dtlist[@]}; do
     let nsave=10800/dt
 
     # create run directory
-    rundir="${scratchdir}/${casename}"
+    rundir="${GOTMRUN_ROOT}/${casename}"
     mkdir -p ${rundir}
     cd ${rundir}
 
@@ -112,7 +112,7 @@ for dt in ${dtlist[@]}; do
     source ${scpt_case_turbmethod}
 
     # run
-    gotm 2> log.${outname}
+    ${cmd_gotm} 2> log.${outname}
 
     # plot some figures
     if [ ${l_test} == "yes" ]; then

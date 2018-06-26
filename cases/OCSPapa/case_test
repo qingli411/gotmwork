@@ -7,24 +7,15 @@
 #                              Set paths                              #
 #######################################################################
 
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-
-# scratch directory to run the case
-scratchdir="${HOME}/work/gotmrun"
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
-
-# input data root directory
-dataroot="${HOME}/work/gotmdata"
+source "../../set_tools.sh"
 
 # input data - surface fluxes
-datadir="${dataroot}/OCS/Papa/Papa_20100616-20150101"
-# datadir="${dataroot}/OCS/Papa/Papa_2008-2009"
+fluxdata="${GOTMDATA_ROOT}/OCS/Papa/Papa_20100616-20150101"
+# fluxdata="${GOTMDATA_ROOT}/OCS/Papa/Papa_2008-2009"
 
 # input data - waves
-specdata="${dataroot}/CDIP/Papa/166p1_historic.nc"
+specdata="${GOTMDATA_ROOT}/CDIP/Papa/166p1_historic.nc"
 
 #######################################################################
 #                           Set parameters                            #
@@ -64,7 +55,7 @@ casename="${title}_${turbmethod}_${datestart}-${dateend}"
 #######################################################################
 
 # create run directory
-rundir="${scratchdir}/${casename}"
+rundir="${GOTMRUN_ROOT}/${casename}"
 mkdir -p ${rundir}
 cd ${rundir}
 
@@ -74,7 +65,7 @@ cp ${nmldir}/*.nml ./
 # set run parameters
 xmlfile=${title}.xml
 cp ${xmldir}/${xmlfile} ./
-${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
+${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} -data ${fluxdata} \
     -ds ${datestart} -de ${dateend}
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
@@ -103,7 +94,7 @@ ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 3
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-gotm 2> log.${outname}
+${cmd_gotm} 2> log.${outname}
 
 #######################################################################
 #                           Postprocessing                            #

@@ -11,14 +11,8 @@
 #
 # Qing Li, 20180507
 
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-
-# scratch directory to run the case
-scratchdir="${HOME}/work/gotmrun"
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
+source "../..set_tools.sh"
 
 # current directory
 curdir=$(pwd)
@@ -35,7 +29,7 @@ for idx in ${!seasonlist[@]}; do
     season=${seasonlist[idx]}
 
     # directory of base case
-    basecase="${workdir}/data/OSMOSIS_${season}"
+    basecase="${GOTMWORK_ROOT}/data/OSMOSIS_${season}"
 
     # name of the dataset
     title="OSMOSIS_${season}"

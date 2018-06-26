@@ -12,17 +12,11 @@
 #                              Set path                               #
 #######################################################################
 
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-
-# scratch directory to run the case
-scratchdir="${HOME}/scratch"
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
+source "../../set_tools.sh"
 
 # data directory for preprocessed input data
-dataroot="${HOME}/scratch/gotmdata_core2"
+dataroot="${GOTMRUN_ROOT}/gotmdata_core2"
 
 #######################################################################
 #                           Set parameters                            #
@@ -89,7 +83,7 @@ while [ ${lat} -le ${lat_end} ]; do
         echo ${casename}
 
         # create run directory
-        rundir="${scratchdir}/${casename}"
+        rundir="${GOTMRUN_ROOT}/${casename}"
         mkdir -p ${rundir}
         cd ${rundir}
 
@@ -119,7 +113,7 @@ while [ ${lat} -le ${lat_end} ]; do
         sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 
         # set run parameters
-        ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} \
+        ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} \
         -ds ${datestart} -de ${dateend} -method nc2dat_latlon -skipdata
         ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
         ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
@@ -158,7 +152,7 @@ while [ ${lat} -le ${lat_end} ]; do
         ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
 
         # run GOTM
-        gotm 2> log.${outname}
+        ${cmd_gotm} 2> log.${outname}
 
     fi # input exist
 

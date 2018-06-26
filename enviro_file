@@ -1,5 +1,0 @@
-export workdir="/home/brandon/Models/GOTM_CV/gotm_KITP/gotmwork/"
-export scratchdir="/home/brandon/WORK/gotmrun"
-export dataroot="/media/brandon/TOSHIBA_EXT/VM/GOTM_TEST/gotmdata/"
-export gotmexe="/home/brandon/Models/GOTM_CV/gotm_KITP/gotm_CVMix/tmp/gotmbuild/gotm"
-export GOTMDIR="/home/brandon/Models/GOTM_CV/gotm_KITP/gotm_CVMix/"

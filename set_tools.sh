@@ -1,9 +1,21 @@
 # This script set up paths and tools used by case_run
 
+# gotmwork environment file
+gotmwork_env_file="${HOME}/.gotmwork_env.sh"
+if [ -f ${gotmwork_env_file} ]; then
+    source ${gotmwork_env_file}
+else
+    echo "GOTMWORK environment not set. Use setup_gotmwork.sh to set it up."
+    exit 1
+fi
+
+# gotm executable
+cmd_gotm="${GOTMEXE_ROOT}/bin/gotm"
+
 # paths
-tooldir="${workdir}/tools"
-nmldir="${workdir}/namelist"
-xmldir="${workdir}/data"
+tooldir="${GOTMWORK_ROOT}/tools"
+nmldir="${GOTMWORK_ROOT}/namelist"
+xmldir="${GOTMWORK_ROOT}/data"
 
 # tools
 cmd_nmlchange="${tooldir}/nmlchange"

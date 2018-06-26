@@ -1,7 +1,6 @@
 #!/bin/bash
 #
-# This script sets up code, test cases and necessary tools
-# to run GOTM
+# This script installs python tools for GOTM
 #
 # Qing Li, 20171024
 
@@ -28,28 +27,10 @@ mkdir -p ${gotm_root}
 cd ${gotm_root}
 
 # github repositories
-gitrep_code="https://github.com/gotm-model/code.git"
-gitrep_cases="https://github.com/gotm-model/cases.git"
 gitrep_editscenario="https://github.com/BoldingBruggeman/editscenario.git"
 gitrep_xmlstore="https://github.com/BoldingBruggeman/xmlstore.git"
 gitrep_xmlplot="https://github.com/BoldingBruggeman/xmlplot.git"
 gitrep_gotmgui="https://github.com/BoldingBruggeman/gotmgui.git"
-
-# clone source code
-for f in code cases
-do
-    # check if installed
-    if [[ -d ${gotm_root}/${f}/.git ]]; then
-        echo "${f} installed. Skip."
-    else
-        # clone source code from github
-        mkdir -p ${f}
-        gvar="gitrep_${f}"
-        gitrep=$(eval echo \$${gvar})
-        echo "Cloning source code from ${gitrep} ..."
-        git clone ${gitrep} ${f}
-    fi
-done
 
 # clone tools
 tools_root="${gotm_root}/tools"

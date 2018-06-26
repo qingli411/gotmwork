@@ -10,20 +10,14 @@
 #                              Set paths                              #
 #######################################################################
 
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-
-# scratch directory to run the case
-scratchdir="${HOME}/work/gotmrun"
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
+source "../../set_tools.sh"
 
 # season (winter or spring)
 season="winter"
 
 # directory of base case
-basecase="${workdir}/data/OSMOSIS_${season}"
+basecase="${GOTMWORK_ROOT}/data/OSMOSIS_${season}"
 
 #######################################################################
 #                           Set parameters                            #
@@ -38,10 +32,10 @@ ddl=0
 
 # run parameters
 dt=1800
-if [ ${season} == "winter" ]; then
+if [[ ${season} == "winter" ]]; then
     nsave=1
     nlev=100
-elif [ ${season} == "spring" ]; then
+elif [[ ${season} == "spring" ]]; then
     nsave=2
     nlev=240
 else
@@ -64,7 +58,7 @@ casename="TEST_OSMOSIS/${title}"
 #######################################################################
 
 # create run directory
-rundir="${scratchdir}/${casename}"
+rundir="${GOTMRUN_ROOT}/${casename}"
 mkdir -p ${rundir}
 cd ${rundir}
 
@@ -87,7 +81,7 @@ source ${scpt_case_turbmethod}
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-gotm 2> log.${outname}
+${cmd_gotm} 2> log.${outname}
 
 #######################################################################
 #                           Postprocessing                            #

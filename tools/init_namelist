@@ -1,16 +1,21 @@
 #!/bin/bash
+# This script initializes namelist from the schemas in the GOTM source code
+# The python tool `editscenario` is required, which uses python2
 
-if [ -f '../enviro_file' ]; then
-    source ../enviro_file
+# gotmwork environment file
+gotmwork_env_file="${HOME}/.gotmwork_env.sh"
+if [ -f ${gotmwork_env_file} ]; then
+    source ${gotmwork_env_file}
+else
+    echo "GOTMWORK environment not set. Use setup_gotmwork.sh to set it up."
+    exit 1
 fi
 
-if [ -z ${GOTMDIR} ]; then
-    GOTMDIR="${HOME}"'/models/gotm/code/'
-fi
-echo "gotmdir is "${GOTMDIR}
-
+# enter python2 environment (can be set up using Anaconda)
 source activate py27
 
-editscenario --schemadir=${GOTMDIR}/schemas --targetversion=gotm-5.0 -e nml . ${GOTMDIR}/schemas/gotm-5.0.defaults --skipvalidation --assignments turb_method=$1
+# use editscenario to generate the namelist from schemas
+editscenario --schemadir=${GOTMCODE_ROOT}/schemas --targetversion=gotm-5.0 -e nml . ${GOTMCODE_ROOT}/schemas/gotm-5.0.defaults --skipvalidation --assignments turb_method=$1
 
+# exit python2 environment
 source deactivate py27

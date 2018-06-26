@@ -20,14 +20,8 @@
 #
 # Qing Li, 20180511
 
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-
-# scratch directory to run the case
-scratchdir="${HOME}/work/gotmrun"
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
+source "../../set_tools.sh"
 
 # current directory
 curdir=$(pwd)
@@ -59,7 +53,7 @@ for idx in 1; do
     title="${case}_${datestart}-${dateend}"
 
     # directory of base case
-    basecase="${workdir}/data/${case}_20080115-20091231"
+    basecase="${GOTMWORK_ROOT}/data/${case}_20080115-20091231"
 
     # depth
     depth=${depthlist[idx]}

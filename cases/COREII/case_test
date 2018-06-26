@@ -7,47 +7,20 @@
 #                              Set path                               #
 #######################################################################
 
-if [ -f './enviro_file' ]; then
-source ./enviro_file
-fi
-
-if [ -z ${gotmexe} ]; then
-gotmexe='gotm'
-fi
-echo "gotmexe is "${gotmexe}
-
-if [ -z ${workdir} ]; then
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-fi
-echo "workdir is "${workdir}
-
-if [ -z ${scratchdir} ]; then
-# scratch directory to run the case
-scratchdir="${HOME}/work/gotmrun"
-fi
-echo "scratchdir is "${scratchdir}
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
-
-if [ -z ${dataroot} ]; then
-# data directory
-dataroot="${HOME}/work/gotmdata"
-fi
-echo "dataroot is "${dataroot}
+source "../../set_tools.sh"
 
 # input data - surface fluxes
-datadir="${dataroot}/COREII_IAF"
+datadir="${GOTMDATA_ROOT}/COREII_IAF"
 
 # input data - waves
-uspdir="${dataroot}/WAVEWATCH_COREII"
+uspdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
 uspdata="ww3.2008-2009_usp.nc"
-wavdir="${dataroot}/WAVEWATCH_COREII"
+wavdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
 wavdata="ww3.2008-2009.nc"
 
 # input data - Argo profiles for initialization
-argodir="${dataroot}/Argo"
+argodir="${GOTMDATA_ROOT}/Argo"
 argodata="WOD13_PFL_2000.nc"
 
 #######################################################################
@@ -92,7 +65,7 @@ l_run_gotm="yes"
 #######################################################################
 
 # create run directory
-rundir="${scratchdir}/${casename}"
+rundir="${GOTMRUN_ROOT}/${casename}"
 mkdir -p ${rundir}
 cd ${rundir}
 
@@ -107,7 +80,7 @@ sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 
 # set run parameters
-${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
+${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} -data ${datadir} \
     -ds ${datestart} -de ${dateend} -method nc2dat_latlon
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
@@ -158,7 +131,7 @@ ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-${gotmexe} 2> log.${outname}
+${cmd_gotm} 2> log.${outname}
 
 fi # l_run_gotm
 #######################################################################

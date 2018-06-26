@@ -7,14 +7,8 @@
 #                              Set path                               #
 #######################################################################
 
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-
-# scratch directory to run the case
-scratchdir="${HOME}/work/gotmrun"
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
+source "../../set_tools.sh"
 
 # input data - surface fluxes
 datadir="/Volumes/Qing_Work/data/yellowstone/b1850_f19_gx1_vr12-ma_v2"
@@ -53,7 +47,7 @@ l_run_gotm="yes"
 #######################################################################
 
 # create run directory
-rundir="${scratchdir}/${casename}"
+rundir="${GOTMRUN_ROOT}/${casename}"
 mkdir -p ${rundir}
 cd ${rundir}
 
@@ -68,7 +62,7 @@ sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
 sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 
 # set run parameters
-${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
+${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} -data ${datadir} \
     -ds ${datestart} -de ${dateend} -method nc2dat_latlon
 ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
 ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
@@ -87,7 +81,7 @@ ${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-gotm 2> log.${outname}
+${cmd_gotm} 2> log.${outname}
 
 fi # l_run_gotm
 #######################################################################

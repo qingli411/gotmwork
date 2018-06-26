@@ -3,11 +3,11 @@
 This is my work directory to setup, test and run  [GOTM](http://gotm.net) and is continually growing. A set of scripts and tools are described in the following.
 
 ## ./
-The script `build_src.sh` is used to compile the source code. Change `${blddir}` (temporary directory for builing the code) and `${srcdir}` (directory of the source code) accordingly before running it.
+Use `setup_gotmwork.sh` to check Python version (3.x) and required Python module, and set up the necessary environment variables. It only needs to be used once. It will generate a file `.gotmwork_env.sh` in the HOME directory which saves all the necessary environment variables.
+
+The script `build_src.sh` is used to compile the source code. Use `build_src.sh -clean` to clean the old build, `build_src.sh -clean -build` to do a clean build.
 
 The script `set_tools.sh` is used by `case_run` (in case/) to set paths and tools.
-
-Note: The script `setup.sh` downloads and sets up the **original** GOTM source code, test cases and tools from Github. It was only used when I initially set up the codebase.   
 
 ## ./tools/
 
@@ -74,14 +74,16 @@ This folder contains a set of tools to preprocess observational data for input a
 - Matlab script to convert Argo profile data from MAT to netCDF.
 
   `argo_mat2nc.m`
-  
+
 - Script to postprocess a single run, used by `case_run`.
 
   `case_postproc.sh`
-  
+
 - Script to set the namelist according to the turbulent methods.
 
   `case_turbmethod.sh`
+
+Note: The script `install_python_tools.sh` downloads and sets up some other Python tools for GOTM from Github. A particularly useful one is `editscenario`, which is used in `init_namelist` to initialize the namelist.
 
 ## ./namelist/
 
@@ -112,7 +114,7 @@ Test cases. In each case, `case_test` sets up the namelist, preprocess the input
 
   - `case_test_multi` sets up multiple runs under CORE-II forcing, currently one run for each 4 by 4 degree box globally.
   - `case_run_multi` is similar to `case_test_multi`, but uses preprocessed CORE-II data and is therefore significantly faster.
-  - `preproc_data` preprocesses the CORE-II data. 
+  - `preproc_data` preprocesses the CORE-II data.
   - `do_parallel` manually distributes jobs to 8 cores on a Mac Pro.
   - `kill_all` kills all the jobs.
 
