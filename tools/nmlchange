@@ -32,8 +32,9 @@ def main():
     # test string_nmlvalue
     if args.nml_test:
         print('Testing the funtion of parsing entry value')
-        alltest = ['2', '2.', '2.45', '2e3', '2E-10', '3.234e-8', 'T', 'false', '.true.',
-                   'False', 'Test', 'Flow', '2001-03-25 00:00:00', './']
+        alltest = ['2', '-10', '2.', '3.14', '-2.45', '2e3', '2E-10', '3.234e-8',
+                   'T', 'F', 'true', 'false', '.true.', '.false.', 'True', 'False',
+                   'Test', 'Flow', '2001-03-25 00:00:00', './']
         for stest in alltest:
             print('{} -> {}'.format(stest, string_nmlvalue(stest)))
         sys.exit(0)
@@ -111,7 +112,7 @@ def string_nmlvalue(value):
 
     """
     re_int = r'^[-0-9]+$'
-    re_float = r'^[0-9]+\.[0-9]*$'
+    re_float = r'^[-0-9]+\.[0-9]*$'
     re_exp = r'^[0-9]+\.*[0-9]*[eE][+-]*[0-9]+$'
     re_false = r'^[Ff]alse$|^\.false\.$'
     re_true = r'^[Tt]rue$|^\.true\.$'
