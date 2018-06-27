@@ -15,7 +15,6 @@
 !                 Coefficient for decay of TKE due to stratification.  Range in
 !                   paper is 0.24 to 0.28.
 ! c_s           [float]
-! c_n           [float]
 !                 Coefficient for decay of TKE due to shear.  Range in paper is
 !                   0.12 to 0.14
 ! lambda        [float]
@@ -42,10 +41,10 @@
 
 &jhl
    rino_crit = 0.25,
+   shearmix_rate = 0.087,
    fri_curvature = -0.97,
    c_n = 0.24,
    c_s = 0.14,
-   c_n = 0.24,
    lambda = 0.82,
    lambda2_n_s = 0.0,
    tke_bg = 0.24,

@@ -157,5 +157,6 @@
    lac_ekoob_stab = 0.95,
    lac_mldoob_un = 0.0,
    lac_ekoob_un = 0.95,
+   max_enhance_m = 5.0,
 /
 

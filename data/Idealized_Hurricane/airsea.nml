@@ -184,7 +184,7 @@
    precip_method = 0,
    const_precip = 0.0,
    precip_file = '',
-   precip_factor = 2.77778e-7,
+   precip_factor = 1.0,
    sst_method = 0,
    sst_file = '',
    sss_method = 0,

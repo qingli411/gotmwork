@@ -45,7 +45,7 @@
 !-------------------------------------------------------------------------------
 
 &turbulence
-   turb_method = 98,
+   turb_method = 99,
    tke_method = 2,
    len_scale_method = 8,
    stab_method = 3,
@@ -282,7 +282,7 @@
    e1 = 1.8,
    e2 = 1.33,
    e3 = 1.8,
-   e6 = 4.0,
+   e6 = 6.0,
    sq = 0.2,
    sl = 0.2,
    my_length = 3,

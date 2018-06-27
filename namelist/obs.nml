@@ -541,7 +541,8 @@
 !                  4: calculated from the surface Stokes drift and penetration
 !                    depth assumingexponential profile
 !                  5: calculated from the theory wave approach of Li et al.,
-!                    2016.
+!                    2017
+!                  6: calculated from the hurricane spectrum
 ! nfreq          [integer]
 !                  number of frequency bands
 !                  This variable is only used if (ustokes_method = 2 or
