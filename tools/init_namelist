@@ -2,6 +2,14 @@
 # This script initializes namelist from the schemas in the GOTM source code
 # The python tool `editscenario` is required, which uses python2
 
+function python_version() {
+    # Return 2 if in Python 2.x environment, 3 if in Python 3.x environment
+    python -c "import sys; print(sys.version_info[0])"
+}
+
+# argument
+turbmethod=$1
+
 # gotmwork environment file
 gotmwork_env_file="${HOME}/.gotmwork_env.sh"
 if [ -f ${gotmwork_env_file} ]; then
@@ -11,11 +19,25 @@ else
     exit 1
 fi
 
-# enter python2 environment (can be set up using Anaconda)
-source activate py27
+# check python version
+if [[ $(python_version) == 3 ]]; then
+    l_python3=true
+fi
 
-# use editscenario to generate the namelist from schemas
-editscenario --schemadir=${GOTMCODE_ROOT}/schemas --targetversion=gotm-5.0 -e nml . ${GOTMCODE_ROOT}/schemas/gotm-5.0.defaults --skipvalidation --assignments turb_method=$1
+if [[ "${l_python3}" == "true" ]]; then
+    # enter python2 environment (can be set up using Anaconda)
+    source activate py27
+fi
 
-# exit python2 environment
-source deactivate py27
+if [ -x "$(command -v editscenario)" ]; then
+    # use editscenario to generate the namelist from schemas
+    editscenario --schemadir=${GOTMCODE_ROOT}/schemas --targetversion=gotm-5.0 -e nml . ${GOTMCODE_ROOT}/schemas/gotm-5.0.defaults --skipvalidation --assignments turb_method=${turbmethod}
+else
+    echo "Python tool editscenario not found. Stop."
+    exit 1
+fi
+
+if [[ "${l_python3}" == "true" ]]; then
+    # exit python2 environment
+    source deactivate py27
+fi

@@ -16,6 +16,12 @@ function if_python_module() {
     python -c "import pkgutil; print(1 if pkgutil.find_loader(\"$1\") else 0)"
 }
 
+function if_python3_module() {
+    # Return 1 if the module (name as argument) is installed in the current
+    # Python environment, 0 otherwise
+    python3 -c "import pkgutil; print(1 if pkgutil.find_loader(\"$1\") else 0)"
+}
+
 function inquire_dir() {
     local msg=$1
     local dft_val=$2
@@ -38,16 +44,21 @@ function get_inquire() {
 }
 
 # check if in python3 environment
-if [[ $(python_version) == 2 ]]; then
-    echo "Require Python 3.x environment. Stop."
-    exit 1
+if [ -x "$(command -v python3)" ]; then
+    cmd_if_python_module="if_python3_module"
+else
+    cmd_if_python_module="if_python_module"
+    if [[ $(python_version) == 2 ]]; then
+        echo "Require Python 3.x environment. Stop."
+        exit 1
+    fi
 fi
 
 # check if required python modules are installed
 python_module_list="argparse matplotlib mpl_toolkits.basemap netCDF4 numpy scipy subprocess xml.etree.ElementTree"
 pm_counter=0
 for pm in ${python_module_list}; do
-    if [[ $(if_python_module ${pm}) == 0 ]]; then
+    if [[ $(${cmd_if_python_module} ${pm}) == 0 ]]; then
         echo "Require Python module ${pm}. Not found."
         pm_counter=$((pm_counter+1))
     fi
