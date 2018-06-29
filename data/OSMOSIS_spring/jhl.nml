@@ -41,13 +41,13 @@
 
 &jhl
    rino_crit = 0.25,
-   shearmix_rate = 0.087,
+   shearmix_rate = 0.089,
    fri_curvature = -0.97,
    c_n = 0.24,
    c_s = 0.14,
    lambda = 0.82,
    lambda2_n_s = 0.0,
-   tke_bg = 0.24,
+   tke_bg = 0.0,
    kappa_0 = 1e-07,
    kappa_tol_err = 0.1,
    prandtl_turb = 1.0,

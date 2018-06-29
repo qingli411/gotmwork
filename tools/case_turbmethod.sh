@@ -61,13 +61,15 @@ case ${turbmethod} in
     "EPBL")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100
         ${cmd_nmlchange} -f MOMturb.nml -e mode -v 0
+	;;
+    "JHL")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100
+        ${cmd_nmlchange} -f MOMturb.nml -e mode -v 2
         ;;
     "EPBL-LT")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100
         ${cmd_nmlchange} -f MOMturb.nml -e mode -v 0
-        ${cmd_nmlchange} -f MOMturb.nml -e langmuir_method -v 1
         ${cmd_nmlchange} -f epbl.nml -e lt_enhance_form -v 3
-        ${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 1
         ;;
     "K-EPSILON-SG")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 2
