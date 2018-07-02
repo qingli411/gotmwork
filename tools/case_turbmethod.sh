@@ -13,6 +13,7 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_method  -v 1
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
         ${cmd_nmlchange} -f gotmturb.nml -e length_lim -v .true.
+        ${cmd_nmlchange} -f gotmturb.nml -e compute_c3 -v .false.
         ;;
     "SMCLT")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
@@ -23,6 +24,7 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_method  -v 4
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
         ${cmd_nmlchange} -f gotmturb.nml -e length_lim -v .true.
+        ${cmd_nmlchange} -f gotmturb.nml -e compute_c3 -v .false.
         ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .true.
         ;;
     "KPP-CVMix")
@@ -61,7 +63,7 @@ case ${turbmethod} in
     "EPBL")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100
         ${cmd_nmlchange} -f MOMturb.nml -e mode -v 0
-	;;
+        ;;
     "JHL")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100
         ${cmd_nmlchange} -f MOMturb.nml -e mode -v 2
