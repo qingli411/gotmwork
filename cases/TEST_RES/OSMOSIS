@@ -12,7 +12,7 @@
 # Qing Li, 20180507
 
 # setup paths and tools
-source "../..set_tools.sh"
+source "../../set_tools.sh"
 
 # current directory
 curdir=$(pwd)
