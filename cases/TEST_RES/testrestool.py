@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 import os
-tooldir_default = os.environ['HOME']+'/models/gotm/gotmwork/tools'
+tooldir_default = os.environ['GOTMWORK_ROOT']+'/tools'
 sys.path.append(os.environ.get('tooldir', tooldir_default))
 from gotmtool import get_variable
 
@@ -16,9 +16,9 @@ from gotmtool import get_variable
 # common variables
 #--------------------------------
 # input directory
-dir_in = os.environ['HOME']+'/work/gotmrun/TEST_RES/'
+dir_in = os.environ['GOTMRUN_ROOT']+'/TEST_RES/'
 # output directory
-dir_out = os.environ['HOME']+'/work/gotmfigures/TEST_RES/'
+dir_out = os.environ['GOTMFIG_ROOT']+'/TEST_RES/'
 # list of cases
 case_list = ['OSMOSIS_winter',
              'OSMOSIS_spring',
@@ -35,6 +35,7 @@ turbmethod_list = ['KPP-CVMix',
                    # 'KPPLT-RWHGK',
                    'OSMOSIS',
                    'EPBL',
+                   'EPBL-LT',
                    'K-EPSILON-SG',
                    'SMC']
 # list of legend for turbulent methods
@@ -43,7 +44,7 @@ legend_list = ['KPP-CVMix',
                'KPPLT-LF17',
                # 'KPPLT-RWHGK16',
                'OSMOSIS',
-               'ePBL',
+               'ePBL-LT',
                'k-epsilon',
                'SMC-KC94']
                # 'SMCLT-H15']
