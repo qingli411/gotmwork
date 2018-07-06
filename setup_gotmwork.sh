@@ -88,6 +88,7 @@ if [ ! -f ${gotmwork_env_file} ]; then
     dft_gotmbuild_root="${dft_gotm_root}/build"
     dft_gotmrun_root="${dft_gotm_root}/run"
     dft_gotmdata_root="${dft_gotm_root}/data"
+    dft_gotmfig_root="${dft_gotm_root}/fig"
 
     # instruction
     echo -e "Type in the full path of the directories. Leave it"
@@ -106,6 +107,8 @@ if [ ! -f ${gotmwork_env_file} ]; then
     gotmexe_root=$(get_inquire ${dft_gotmexe_root})
     inquire_dir "Directory to run GOTM" ${dft_gotmrun_root}
     gotmrun_root=$(get_inquire ${dft_gotmrun_root})
+    inquire_dir "Directory for visualizations of the results" ${dft_gotmfig_root}
+    gotmfig_root=$(get_inquire ${dft_gotmfig_root})
 
     # write to the environment file
     echo "--------------------------------"
@@ -123,6 +126,7 @@ export GOTMDATA_ROOT=${gotmdata_root}
 export GOTMBUILD_ROOT=${gotmbuild_root}
 export GOTMEXE_ROOT=${gotmexe_root}
 export GOTMRUN_ROOT=${gotmrun_root}
+export GOTMFIG_ROOT=${gotmfig_root}
 export CVMIX_ROOT=${cvmix_root}
 
 GOTMWORK_ENV
