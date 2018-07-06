@@ -1,0 +1,133 @@
+#!/bin/bash
+# Run GOTM using preprocessed data for CORE-II
+# at selected locations
+#
+# East equatorial Pacific
+# latitude:  2.0
+# longitude: 234.0
+# depth (m): 200.0
+#
+# Southern Ocean
+# latitude:  -54.0
+# longitude: 254.0
+# depth (m): 500.0
+#
+# Bay of Bangal
+# latitdue:  10.0
+# longitude: 86.0
+# depth (m): 200.0
+#
+# Qing Li, 20180706
+
+# setup paths and tools
+source "../../set_tools.sh"
+
+# current directory
+curdir=$(pwd)
+
+# location
+latlist=(2 -54 10)
+lonlist=(234 254 86)
+
+# depth
+depthlist=(200 500 200)
+
+# starting and ending date - in the format of YYYYMMDD
+startlist=(20080615 20080915 20080615)
+endlist=(20081231 20090915 20081231)
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+# set levels and grid zooming at surface
+nlev=128
+ddu=0
+ddl=0
+
+# run parameters
+dt=1800
+nsave=6
+
+# name of the turbulence model
+# turbmethod="KPP-GOTM"
+turbmethod="KPP-CVMix"
+# turbmethod="KPPLT-EFACTOR"
+# turbmethod="KPPLT-ENTR"
+# turbmethod="KPPLT-RWHGK"
+# turbmethod="OSMOSIS"
+# turbmethod="EPBL"
+# turbmethod="EPBL-LT"
+# turbmethod="SMC"
+# turbmethod="SMCLT"
+# turbmethod="K-EPSILON-SG"
+
+# output file name
+outname="gotm_out"
+
+#######################################################################
+#                        Loop over cases                              #
+#######################################################################
+
+# season (winter or spring)
+for idx in ${!latlist[@]}; do
+    # location
+    lat=${latlist[idx]}
+    lon=${lonlist[idx]}
+
+    # starting and ending date - in the format of YYYYMMDD
+    datestart=${startlist[idx]}
+    dateend=${endlist[idx]}
+
+    # name of the dataset
+    case="COREII_LAT${lat}_LON${lon}"
+    title="${case}_${datestart}-${dateend}"
+
+    # case name
+    casename="${title}_${turbmethod}"
+
+    # directory of base case
+    basecase="${GOTMWORK_ROOT}/data/${case}_20080115-20091231"
+
+    # depth
+    depth=${depthlist[idx]}
+
+    # initial temperature and salinity profile
+    sprof_file="sprof_file_${datestart}.dat"
+    tprof_file="tprof_file_${datestart}.dat"
+
+    # create run directory
+    rundir="${GOTMRUN_ROOT}/${casename}"
+    mkdir -p ${rundir}
+    cd ${rundir}
+
+    # input data and namelist
+    cp ${basecase}/* ./
+
+    # set run parameters
+    start_time="${datestart:0:4}-${datestart:4:2}-${datestart:6:2} 00:00:00"
+    stop_time="${dateend:0:4}-${dateend:4:2}-${dateend:6:2} 00:00:00"
+
+    ${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
+    ${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
+    ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+    ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+    ${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
+    ${cmd_nmlchange} -f gotmrun.nml -e name -v ${title}
+    ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+    ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+    ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
+    ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
+    ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_file}
+    ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_file}
+
+    # set turbulence method
+    source ${scpt_case_turbmethod}
+
+    # Run GOTM
+    ${cmd_gotm} 2> log.${outname}
+
+    # plot surface forcing and profiles
+    source ${scpt_case_postproc}
+
+done
