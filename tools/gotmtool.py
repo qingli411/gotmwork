@@ -12,6 +12,27 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 
 ###############################################################################
+#                                  constants                                  #
+###############################################################################
+
+# gravitational acceleration (m/s^2)
+g = 9.81
+# specific heat of seawater (J/kg/degC)
+cp = 3985.0
+# Von Karman constant
+kappa = 0.4
+# reference density of seawater (kg/m^3)
+rho_0 = 1027.0
+# reference salinity (psu)
+S_0 = 35.0
+# reference temperature (degC)
+T_0 = 10.0
+# constant thermal expansion coefficient (1/degC)
+alpha_0 = 1.65531e-4
+# constant saline contraction coefficient (1/psu)
+beta_0 = 7.59494e-4
+
+###############################################################################
 #                                preprocessing                                #
 ###############################################################################
 
@@ -298,7 +319,7 @@ def do_analysis(name):
     """Driver to do the analysis
 
     :name: (str) name of the analysis
-    :returns: scalar index of the analysis
+    :returns: (funciton) corresponding function
 
     """
     switcher = {
@@ -327,9 +348,8 @@ def do_analysis_mld_mean(infile, method='maxNsqr', tidx_start=None, tidx_end=Non
 def get_mld(method):
     """Find the mixed layer depth
 
-    :infile: (Dataset) netcdf file
     :method: (str) method to calculate the mixed layer depth
-    :returns: (Numpy array) mixed layer depth
+    :returns: (function) corresponding function
 
     """
     switcher = {
@@ -349,7 +369,7 @@ def get_mld_maxNsqr(infile, tidx_start=None, tidx_end=None):
     :infile: (Dataset) netcdf file
     :tidx_start: (int, optional) starting index
     :tidx_end: (int, optional) ending index
-    :returns: (Numpy array) mixed layer depth
+    :returns: (numpy array) mixed layer depth
 
     """
     Nsqr = infile.variables['NN'][tidx_start:tidx_end,:,0,0]
@@ -372,7 +392,7 @@ def get_mld_deltaT(infile, deltaT=0.2, zRef=-10, tidx_start=None, tidx_end=None)
     :zRef: (float, optional) depth of the reference level
     :tidx_start: (int, optional) starting index
     :tidx_end: (int, optional) ending index
-    :returns: (Numpy array) mixed layer depth
+    :returns: (numpy array) mixed layer depth
 
     """
     Temp = infile.variables['temp'][tidx_start:tidx_end,:,0,0]
@@ -406,7 +426,7 @@ def get_mld_deltaR(infile, deltaR=0.03, zRef=-10, tidx_start=None, tidx_end=None
     :zRef: (float, optional) depth of the reference level
     :tidx_start: (int, optional) starting index
     :tidx_end: (int, optional) ending index
-    :returns: (Numpy array) mixed layer depth
+    :returns: (numpy array) mixed layer depth
 
     """
     Rho = infile.variables['rho'][tidx_start:tidx_end,:,0,0]
@@ -430,6 +450,183 @@ def get_mld_deltaR(infile, deltaR=0.03, zRef=-10, tidx_start=None, tidx_end=None
             mld[i] = np.min(z[i,:])
     return mld
 
+#--------------------------------
+# derived variables
+#--------------------------------
+
+def get_variable(method):
+    """Find the derived variable
+
+    :method: (str) variable name
+    :returns: (function) corresponding function
+
+    """
+    switcher = {
+            'LaTurb': get_la_turb,
+            'LaSL': get_la_sl,
+            'hoLmo': get_h_over_lmo,
+            'buoyancy': get_buoyancy,
+            'spice': get_spice,
+            'dPEdt': get_dpedt
+            }
+    return switcher.get(method)
+
+def get_la_turb(infile, tidx_start=None, tidx_end=None):
+    """Find the turbulent Langmuir number defined as
+       La_t = sqrt{u^*/u^S}
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) Langmuir number
+
+    """
+    # friction velocity
+    ustar = infile.variables['u_taus'][tidx_start:tidx_end,0,0]
+    # surface Stokes drift
+    usx = infile.variables['u0_stokes'][tidx_start:tidx_end,0,0]
+    usy = infile.variables['v0_stokes'][tidx_start:tidx_end,0,0]
+    us = np.sqrt(usx**2.+usy**2.)
+    # calculate Langmuir number
+    la = np.sqrt(ustar/us)
+    return la
+
+def get_la_sl(infile, tidx_start=None, tidx_end=None):
+    """Find the surface layer averaged Langmuir number defined as
+       La_{SL} = sqrt{u^*/<u^S>_{SL}}, where
+       <u^S>_{SL} = int_{-0.2h_b}^0 u^S(z) dz
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) Langmuir number
+
+    """
+    # friction velocity
+    ustar = infile.variables['u_taus'][tidx_start:tidx_end,0,0]
+    # Stokes drift profiles
+    ustokes = infile.variables['u_stokes'][tidx_start:tidx_end,:,0,0]
+    vstokes = infile.variables['v_stokes'][tidx_start:tidx_end,:,0,0]
+    zi = infile.variables['zi'][tidx_start:tidx_end,:,0,0]
+    h = infile.variables['h'][tidx_start:tidx_end,:,0,0]
+    # boundary layer depth
+    hbl = get_mld('deltaR')(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    # surface layer: upper 20% of the boundary layer
+    hsl = 0.2*hbl
+    # loop over time to calculate the surface layer averaged Stokes drift
+    # note that zi has indices 0:nlev whereas z has indices 0:nlev-1, this is
+    # different from the indices in GOTM
+    nt = ustar.shape[0]
+    ussl = np.zeros(nt)
+    vssl = np.zeros(nt)
+    for i in np.arange(nt):
+        ihsl = np.argmin(zi[i,:]<hsl[i])
+        dzb = zi[i,ihsl]-hsl[i]
+        ussl[i] = np.sum(ustokes[i,ihsl:]*h[i,ihsl:])+ustokes[i,ihsl-1]*dzb
+        vssl[i] = np.sum(vstokes[i,ihsl:]*h[i,ihsl:])+vstokes[i,ihsl-1]*dzb
+    ussl = ussl/np.abs(hsl)
+    vssl = vssl/np.abs(hsl)
+    # surface layer averaged Langmuir number
+    la = np.sqrt(ustar/np.sqrt(ussl**2.+vssl**2.))
+    return la
+
+def get_h_over_lmo(infile, tidx_start=None, tidx_end=None):
+    """Find the stability parameter defined as h/L
+       where h is the boundary layer depth
+       and L is the Monin–Obukhov length
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) stability parameter
+
+    """
+    # get boundary layer depth
+    hbl   = get_mld('deltaR')(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    # friction velocity
+    ustar = infile.variables['u_taus'][tidx_start:tidx_end,0,0]
+    # surface temperature and salinity
+    temp0 = infile.variables['temp'][tidx_start:tidx_end,-1,0,0]
+    salt0 = infile.variables['salt'][tidx_start:tidx_end,-1,0,0]
+    # surface temperature flux
+    tflux = infile.variables['heat'][tidx_start:tidx_end,0,0]/cp/rho_0
+    # correction for solar radiation
+    rad   = infile.variables['rad'][tidx_start:tidx_end,:,0,0]
+    z     = infile.variables['z'][tidx_start:tidx_end,:,0,0]
+    nt    = ustar.shape[0]
+    rflux = np.zeros(nt)
+    for i in np.arange(nt):
+        ihbl = np.argmin(np.abs(z[i,:]-hbl[i]))
+        rflux[i] = rad[i,-1]-rad[i,ihbl]
+    tflux = tflux+rflux/cp/rho_0
+    # surface salinity flux
+    sflux = -(infile.variables['precip'][tidx_start:tidx_end,0,0]
+          + infile.variables['evap'][tidx_start:tidx_end,0,0])*salt0
+    # surface buoyancy flux (positive for stable condition)
+    bflux = g*alpha_0*tflux-g*beta_0*sflux
+    # Monin-Obukhov length
+    Lmo = ustar**3.0/kappa/bflux
+    # filter out zeros
+    Lmo = np.ma.array(Lmo, mask=(Lmo==0))
+    # h over L
+    hoL = -abs(hbl)/Lmo
+    return hoL
+
+def get_buoyancy(infile, tidx_start=None, tidx_end=None):
+    """Calculate the buoyancy from temperature and salinity
+    assuming linear equation of state
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) buoyancy
+
+    """
+    # temperature and salinity
+    temp  = infile.variables['temp'][tidx_start:tidx_end,:,0,0]
+    salt  = infile.variables['salt'][tidx_start:tidx_end,:,0,0]
+    # buoyancy
+    buoy  = g*alpha_0*(temp-T_0)-g*beta_0*(salt-S_0)
+    return buoy
+
+def get_spice(infile, tidx_start=None, tidx_end=None):
+    """Calculate the spice from temperature and salinity
+    assuming linear equation of state
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) spice
+
+    """
+    # temperature and salinity
+    temp  = infile.variables['temp'][tidx_start:tidx_end,:,0,0]
+    salt  = infile.variables['salt'][tidx_start:tidx_end,:,0,0]
+    # spice
+    spice  = g*alpha_0*(temp-T_0)+g*beta_0*(salt-S_0)
+    return spice
+
+def get_dpedt(infile, tidx_start=None, tidx_end=None):
+    """Calculate the rate of change in the total potential energy (PE)
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) rate of change in PE
+
+    """
+    # time series of potential energy
+    epot = infile.variables['Epot'][tidx_start:tidx_end,0,0]
+    # time (sec)
+    time = infile.variables['time'][tidx_start:tidx_end]
+    # get the time derivative
+    nt = time.shape[0]
+    dpedt = np.zeros(nt)
+    dpedt[1:-1] = (epot[2:]-epot[0:-2])/(time[2:]-time[0:-2])
+    dpedt[0] = (epot[1]-epot[0])/(time[1]-time[0])
+    dpedt[-1] = (epot[-1]-epot[-2])/(time[-1]-time[-2])
+    return dpedt
+
 ###############################################################################
 #                                visualization                                #
 ###############################################################################
@@ -437,9 +634,9 @@ def get_mld_deltaR(infile, deltaR=0.03, zRef=-10, tidx_start=None, tidx_end=None
 def plot_map_scatter(rlon, rlat, dat, figname, vmax=None, vmin=None, cmap='rainbow'):
     """Plot scatters on a map
 
-    :rlon: (Numpy array) 1D array of longitude
-    :rlat: (Numpy array) 1D array of latitude
-    :dat: (Numpy array) 1D array of data to plot
+    :rlon: (numpy array) 1D array of longitude
+    :rlat: (numpy array) 1D array of latitude
+    :dat: (numpy array) 1D array of data to plot
     :return: none
     """
     # plot map
@@ -467,15 +664,15 @@ def get_value_lat_lon(indata, lat2d, lon2d, rlat, rlon, imethod='nearest'):
     """Return the value of a variable at a given location (latitude and
     longitude).
 
-    :lat2d: (2d Numpy array) latitude in 2d array
-    :lon2d: (2d Numpy array) longitude in 2d array
-    :indata: (2d/3d/4d Numpy array) the value of variables in 2d/3d/4d array
+    :lat2d: (2d numpy array) latitude in 2d array
+    :lon2d: (2d numpy array) longitude in 2d array
+    :indata: (2d/3d/4d numpy array) the value of variables in 2d/3d/4d array
                                     last two dimensions should be consistent
                                     with lat2d and lon2d
-    :rlat: (float or 1d Numpy array) output latitude
-    :rlon: (float or 1d Numpy array) output longitude
+    :rlat: (float or 1d numpy array) output latitude
+    :rlon: (float or 1d numpy array) output longitude
     :imethod: (str) interpolation method
-    :returns: (float or 1d Numpy array) value(s) of the variable at given
+    :returns: (float or 1d numpy array) value(s) of the variable at given
                                         latitude and longitude
 
     """
@@ -509,3 +706,87 @@ def get_value_lat_lon(indata, lat2d, lon2d, rlat, rlon, imethod='nearest'):
 
     # return the interpolated data
     return outdata
+
+#--------------------------------
+# UNESCO equation of state for sea water
+#--------------------------------
+
+def unesco_eos_rho(S, T, p, pcorr=True):
+    """Compute the in-situ density according to the UNESCO equation of state
+    for sea water. The pressure correction can be switched off by pcorr=False.
+    Borrowed from GOTM source code
+
+    :S: (float or numpy array) salinity in psu
+    :T: (float or numpy array) potential temperature in degC
+    :p: (float or numpy array) pressure (absolute pressure - 1.01325 bar) in bar
+    :pcorr: (logical) switch to turn on pressure correction
+    :returns: density in kg/m^3
+
+    """
+    T2 = T*T
+    T3 = T*T2
+    T4 = T2*T2
+    T5 = T*T4
+    S15= S**1.5
+    S2 = S*S
+    S3 = S*S2
+
+    x=999.842594+6.793952e-02*T-9.09529e-03*T2+1.001685e-04*T3
+    x=x-1.120083e-06*T4+6.536332e-09*T5
+    x=x+S*(0.824493-4.0899e-03*T+7.6438e-05*T2-8.2467e-07*T3)
+    x=x+S*5.3875e-09*T4
+    x=x+np.sqrt(S3)*(-5.72466e-03+1.0227e-04*T-1.6546e-06*T2)
+    x=x+4.8314e-04*S2
+
+    if pcorr:
+        if np.any(p<0):
+            raise ValueError ('p should be greater than 0')
+        p2 = p*p
+        K = 19652.21 \
+            +148.4206     *T          -2.327105    *T2 \
+            +  1.360477e-2*T3         -5.155288e-5 *T4 \
+            +  3.239908      *p       +1.43713e-3  *T *p \
+            +  1.16092e-4 *T2*p       -5.77905e-7  *T3*p \
+            +  8.50935e-5    *p2      -6.12293e-6  *T *p2 \
+            +  5.2787e-8  *T2*p2 \
+            + 54.6746             *S  -0.603459    *T    *S \
+            +  1.09987e-2 *T2     *S  -6.1670e-5   *T3   *S \
+            +  7.944e-2           *S15+1.6483e-2   *T    *S15 \
+            -  5.3009e-4  *T2     *S15+2.2838e-3      *p *S \
+            -  1.0981e-5  *T *p   *S  -1.6078e-6   *T2*p *S \
+            +  1.91075e-4    *p   *S15-9.9348e-7      *p2*S \
+            +  2.0816e-8  *T *p2*S    +9.1697e-10  *T2*p2*S
+        x=x/(1.-p/K)
+    return x
+
+def unesco_eos_alpha(S, T, p, pcorr):
+    """Compute the thermal expansion coefficient
+
+    :S: (float or numpy array) salinity in psu
+    :T: (float or numpy array) potential temperature in degC
+    :p: (float or numpy array) pressure (absolute pressure - 1.01325 bar) in bar
+    :pcorr: (logical) switch to turn on pressure correction
+    :returns: (float or numpy array) thermal expansion coefficient in 1/degC
+
+    """
+    delta = 0.01
+    rho_a = unesco_eos_rho(S, T+0.5*delta, p, pcorr=pcorr)
+    rho_b = unesco_eos_rho(S, T-0.5*delta, p, pcorr=pcorr)
+    alpha = - (rho_a - rho_b) / (rho_0*delta)
+    return alpha
+
+def unesco_eos_beta(S, T, p, pcorr):
+    """Compute the saline contraction coefficient
+
+    :S: (float or numpy array) salinity in psu
+    :T: (float or numpy array) potential temperature in degC
+    :p: (float or numpy array) pressure (absolute pressure - 1.01325 bar) in bar
+    :pcorr: (logical) switch to turn on pressure correction
+    :returns: (float or numpy array) saline contraction coefficient in 1/psu
+
+    """
+    delta = 0.01
+    rho_a = unesco_eos_rho(S+0.5*delta, T, p, pcorr=pcorr)
+    rho_b = unesco_eos_rho(S-0.5*delta, T, p, pcorr=pcorr)
+    beta = (rho_a - rho_b) / (rho_0*delta)
+    return beta

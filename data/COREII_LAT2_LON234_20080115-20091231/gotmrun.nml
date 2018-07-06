@@ -174,7 +174,7 @@
 
 &eqstate
    eq_state_mode = 1,
-   eq_state_method = 2,
+   eq_state_method = 4,
    T0 = 10.0,
    S0 = 35.0,
    p0 = 0.0,

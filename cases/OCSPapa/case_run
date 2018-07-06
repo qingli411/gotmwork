@@ -38,7 +38,8 @@ dateend="20131201"
 # name of the turbulence model
 # turbmethod="KPPLT-EFACTOR"
 # turbmethod="KPPLT-ENTR"
-turbmethod="KPP-CVMix"
+turbmethod="KPPLT-RWHGK"
+# turbmethod="KPP-CVMix"
 # turbmethod="SMCLT"
 # turbmethod="SMC"
 

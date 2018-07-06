@@ -1,0 +1,68 @@
+#!/bin/bash
+
+source "../../set_tools.sh"
+
+cp ../../namelist/*.nml ./
+
+#--------------------------------
+# MOMturb.nml
+#--------------------------------
+# airsea.nml
+nml="airsea.nml"
+${cmd_nmlchange} -f ${nml} -e const_heat -v -5.0
+${cmd_nmlchange} -f ${nml} -e swr_method -v 0
+${cmd_nmlchange} -f ${nml} -e albedo_method -v 0
+${cmd_nmlchange} -f ${nml} -e momentum_method -v 2
+${cmd_nmlchange} -f ${nml} -e const_tx -v 0.1
+${cmd_nmlchange} -f ${nml} -e momentumflux_file -v 'momentumflux.dat'
+${cmd_nmlchange} -f ${nml} -e u10_method -v 1
+${cmd_nmlchange} -f ${nml} -e const_u10 -v 10
+#--------------------------------
+# epbl.nml
+#--------------------------------
+# gotmmean.nml
+nml="gotmmean.nml"
+${cmd_nmlchange} -f ${nml} -e grid_method -v 2
+${cmd_nmlchange} -f ${nml} -e grid_file -v 'Depth.txt'
+#--------------------------------
+# gotmrun.nml
+nml="gotmrun.nml"
+${cmd_nmlchange} -f ${nml} -e title -v 'Idealized'
+${cmd_nmlchange} -f ${nml} -e nlev -v 250
+${cmd_nmlchange} -f ${nml} -e dt -v 100
+${cmd_nmlchange} -f ${nml} -e name -v 'Idealized'
+${cmd_nmlchange} -f ${nml} -e latitude -v 27.836
+${cmd_nmlchange} -f ${nml} -e depth -v 250.0
+${cmd_nmlchange} -f ${nml} -e start -v '2012-01-01 00:00:00'
+${cmd_nmlchange} -f ${nml} -e stop -v '2013-12-04 19:00:00'
+${cmd_nmlchange} -f ${nml} -e nsave -v 6
+${cmd_nmlchange} -f ${nml} -e sync_out -v 0
+${cmd_nmlchange} -f ${nml} -e eq_state_method -v 4
+${cmd_nmlchange} -f ${nml} -e dtr0 -v -0.2
+#--------------------------------
+# gotmturb.nml
+#--------------------------------
+# jhl.nml
+#--------------------------------
+# kpp.nml
+nml="kpp.nml"
+${cmd_nmlchange} -f ${nml} -e Ric -v 0.235
+${cmd_nmlchange} -f ${nml} -e lcvmix -v .true.
+#--------------------------------
+# langmuir.nml
+nml="langmuir.nml"
+${cmd_nmlchange} -f ${nml} -e langmuir_number_method -v 5
+#--------------------------------
+# obs.nml
+nml="obs.nml"
+${cmd_nmlchange} -f ${nml} -e s_prof_method -v 2
+${cmd_nmlchange} -f ${nml} -e s_prof_file -v 'sprof_file.dat'
+${cmd_nmlchange} -f ${nml} -e t_prof_method -v 2
+${cmd_nmlchange} -f ${nml} -e t_prof_file -v 'tprof_file.dat'
+${cmd_nmlchange} -f ${nml} -e ustokes_method -v 6
+${cmd_nmlchange} -f ${nml} -e spec_file -v 'spec_file.dat'
+#--------------------------------
+# osm.nml
+#--------------------------------
+# seagrass.nml
+#--------------------------------

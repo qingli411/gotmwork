@@ -22,9 +22,9 @@
 !-------------------------------------------------------------------------------
 
 &model_setup
-   title = 'shear-driven entrainment',
+   title = '',
    nlev = 100,
-   dt = 60.0,
+   dt = 600.0,
    cnpar = 1.0,
    buoy_method = 1,
 /
@@ -43,10 +43,10 @@
 !-------------------------------------------------------------------------------
 
 &station
-   name = 'equator',
+   name = 'gotm_test',
    latitude = 0.0,
    longitude = 0.0,
-   depth = 50.0,
+   depth = 200.0,
 /
 
 !-------------------------------------------------------------------------------
@@ -74,8 +74,8 @@
 &time
    timefmt = 2,
    MaxN = 800,
-   start = '2005-01-01 00:00:00',
-   stop = '2005-01-02 00:00:00',
+   start = '2013-12-25 00:00:00',
+   stop = '2014-01-01 00:00:00',
 /
 
 !-------------------------------------------------------------------------------
@@ -122,10 +122,10 @@
    list_fields = .false.,
    out_fmt = 2,
    out_dir = '.',
-   out_fn = 'entrainment',
+   out_fn = 'gotm_out',
    nfirst = 0,
-   nsave = 60,
-   sync_out = 0,
+   nsave = 144,
+   sync_out = 1,
    diagnostics = .false.,
    mld_method = 1,
    diff_k = 1e-05,
@@ -174,7 +174,7 @@
 
 &eqstate
    eq_state_mode = 1,
-   eq_state_method = 2,
+   eq_state_method = 1,
    T0 = 10.0,
    S0 = 35.0,
    p0 = 0.0,

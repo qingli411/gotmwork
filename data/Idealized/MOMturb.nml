@@ -9,14 +9,9 @@
 !                   3: ePBL + JHL.
 ! langmuir_method [integer]
 !                   1 to enable Langmuir turbulence in MOMturb methods.
-! efactor_method  [integer]
-!                   1 to enable Langmuir turbulence in MOMturb methods from
-!                     theory wave.
 !-------------------------------------------------------------------------------
 
 &momturb
    mode = 2,
    langmuir_method = 0,
-   efactor_method = 0,
 /
-

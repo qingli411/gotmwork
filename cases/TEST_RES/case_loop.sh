@@ -1,6 +1,6 @@
 # This is the main loop over turbulent methods, vertical resolution
 # and time step.
-# Used by: OCSPapa, OSMOSIS
+# Used by: OCSPapa, OSMOSIS, COREII
 #
 # Qing Li, 20180507
 
@@ -12,15 +12,14 @@ l_test="no"
 
 if [ ${l_test} == "yes" ]; then
     # name of the turbulence model
-    turblist=(KPP-CVMix)
+    turblist=(SMCLT)
     # vertical resolution
-    vrlist=(5m)
+    vrlist=(1m)
     # time step
-    dtlist=(1800)
+    dtlist=(60)
 else
     # name of the turbulence model
-    # turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR OSMOSIS EPBL SMC SMCLT)
-    turblist=(KPPLT-EFACTOR KPPLT-ENTR EPBL)
+    turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG)
     # vertical resolution
     #  1 m
     #  5 m
@@ -104,6 +103,7 @@ for dt in ${dtlist[@]}; do
     ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
     ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
     ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+    ${cmd_nmlchange} -f gotmrun.nml -e eq_state_method -v 4
     ${cmd_nmlchange} -f gotmmean.nml -e grid_method -v ${grid_method}
     ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
     ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}

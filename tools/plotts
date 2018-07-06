@@ -107,6 +107,9 @@ def main():
     # x label date
     plt.gcf().autofmt_xdate()
 
+    # reduce margin
+    plt.tight_layout()
+
     # save figure
     figname = args.fname_out
     plt.savefig(figname, dpi=300)

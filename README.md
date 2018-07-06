@@ -87,7 +87,7 @@ Note: The script `install_python_tools.sh` downloads and sets up some other Pyth
 
 ## ./namelist/
 
-Directory for all namelist
+Directory for all namelist. Use `./tools/init_namelist` to update namelist from schemas in the source code.
 
 
 ## ./data/
@@ -102,6 +102,8 @@ This directory contains preprocessed input data for test cases:
 - COREII_LAT2_LON234_20080115-20091231
 - Idealized
 - Idealized_Hurricane
+
+In each directory the tool `update_nml` can be used to update the namelist from `./namelist/` in the case where new entries are added.
 
 Also included in this directory are the data description files in XML format, which are used by `case_preproc` to preprocess the input data.
 
