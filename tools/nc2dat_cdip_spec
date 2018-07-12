@@ -55,7 +55,7 @@ def main():
     spec = infile.variables['waveEnergyDensity'][:]
     # band mean direction that wave is coming from, in degree clockwise from the true North
     mdir = infile.variables['waveMeanDirection'][:]
-    theta = 90.0-mdir # angle in degree counterclockwise from East
+    theta = -90.0-mdir # angle in degree counterclockwise from East
     d2r = np.pi/180.0
     xcmp = np.cos(theta*d2r)
     ycmp = np.sin(theta*d2r)
