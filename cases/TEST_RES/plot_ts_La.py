@@ -9,7 +9,7 @@ import sys
 import os
 import datetime
 from netCDF4 import Dataset, num2date
-tooldir_default = os.environ['HOME']+'/models/gotm/gotmwork/tools'
+tooldir_default = os.environ['GOTMWORK_ROOT']+'/tools'
 sys.path.append(os.environ.get('tooldir', tooldir_default))
 from gotmtool import *
 
@@ -38,10 +38,10 @@ def main():
 def plot_ts_var(case, var, ylabel):
 
     # input data directory
-    dataroot = os.environ['HOME']+'/work/gotmrun/TEST_RES/'+case
+    dataroot = os.environ['GOTMRUN_ROOT']+'/TEST_RES/'+case
 
     # output figure name
-    figdir = os.environ['HOME']+'/work/gotmfigures/TEST_RES/'+case
+    figdir = os.environ['GOTMFIG_ROOT']+'/TEST_RES/'+case
     os.makedirs(figdir, exist_ok=True)
     figname = figdir+'/TS_LaTurb_'+var+'.png'
 
