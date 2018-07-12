@@ -37,17 +37,19 @@ turbmethod_list = ['KPP-CVMix',
                    'EPBL',
                    'EPBL-LT',
                    'K-EPSILON-SG',
-                   'SMC']
+                   'SMC',
+                   'SMCLT']
 # list of legend for turbulent methods
 legend_list = ['KPP-CVMix',
                'KPPLT-VR12',
                'KPPLT-LF17',
                # 'KPPLT-RWHGK16',
                'OSMOSIS',
+               'ePBL',
                'ePBL-LT',
                'k-epsilon',
-               'SMC-KC94']
-               # 'SMCLT-H15']
+               'SMC-KC94',
+               'SMCLT-H15']
 # list of profiles
 pfl_list = ['temp', 'salt', 'rho', 'buoy', 'spice']
 # max and min values for colorbar ([ncase, nprofile])
