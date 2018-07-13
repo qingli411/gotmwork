@@ -16,7 +16,7 @@
 source "../../set_tools.sh"
 
 # data directory for preprocessed input data
-dataroot="${GOTMRUN_ROOT}/gotmdata_core2"
+dataroot="${GOTMDATA_ROOT}/gotmdata_core2"
 
 #######################################################################
 #                           Set parameters                            #
@@ -27,12 +27,12 @@ title="COREII"
 
 # set max depth and levels, grid zooming at surface
 maxdepth=500
-nlev=100
+nlev=500
 ddu=0
 ddl=0
 
 # run parameters
-dt=60
+dt=600
 # set output frequency (3-hourly output)
 let nsave=10800/dt
 
@@ -43,7 +43,7 @@ outname="gotm_out"
 # the starting date should match what are available in the
 # input data directory
 datestart="20080615"
-dateend="20091231"
+dateend="20090901"
 
 # name of the turbulence model
 # turbmethod="KPP-CVMix"
@@ -54,7 +54,7 @@ dateend="20091231"
 turbmethod="SMC"
 
 # setup
-setup="VR5m_DT60s"
+setup="VR1m_DT600s"
 
 #######################################################################
 #                         Loop over locations                         #
