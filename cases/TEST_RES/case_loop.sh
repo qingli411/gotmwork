@@ -28,8 +28,9 @@ else
     vrlist=(1m 5m)
     # time step
     #  1 min
+    #  10 min
     #  30 min
-    dtlist=(60 1800)
+    dtlist=(60 600 1800)
 fi
 
 # output file name
