@@ -10,9 +10,6 @@
 # setup paths and tools
 source "../../set_tools.sh"
 
-# data directory
-dataroot="${HOME}/data_local"
-
 # input data - surface fluxes
 datadir="${GOTMDATA_ROOT}/COREII_IAF"
 
@@ -42,7 +39,7 @@ datestart="20080601"
 dateend="20091231"
 
 # flag for dry run
-l_dry_run="yes"
+l_dry_run="no"
 
 #######################################################################
 #                         Loop over locations                         #
@@ -83,7 +80,7 @@ while [ ${lat} -le ${lat_end} ]; do
 
             # skip if no argo profile is available
             if [ $nstate == 1 ]; then
-                echo "[case_run_multi] No Argo profile available. Skip."
+                echo "[preproc_data] No Argo profile available. Skip."
                 lat=$((${lat}+${dlat}))
                 continue
             fi
