@@ -70,12 +70,13 @@ def nctime_indices(nctime, date_start, date_end):
     # return the indices
     return [tidx_start, tidx_end]
 
-def nctime_to_datetime(nctime, tidx_start=None, tidx_end=None):
+def nctime_to_datetime(nctime, tidx_start=None, tidx_end=None, tidx_arr=None):
     """Convert from nctime object to datetime object.
 
     :nctime: (netCDF time object) nctime object
     :tidx_start: (int) starting index
     :tidx_end: (int) ending index
+    :tidx_arr: (1D numpy array of int) indices
     :returns: (datetime object) datetime object
 
     """
@@ -86,7 +87,10 @@ def nctime_to_datetime(nctime, tidx_start=None, tidx_end=None):
     except AttributeError :
         t_cal = 'standard'
     # return sliced datetime
-    return num2date(nctime[tidx_start:tidx_end], units=t_units, calendar=t_cal)
+    if tidx_arr is None:
+        return num2date(nctime[tidx_start:tidx_end], units=t_units, calendar=t_cal)
+    else:
+        return num2date(nctime[tidx_arr], units=t_units, calendar=t_cal)
 
 def print_dttime_range(dttime):
     """Print the range of dttime.

@@ -6,6 +6,7 @@
 import argparse
 import sys
 import numpy as np
+import pandas as pd
 import datetime
 from netCDF4 import Dataset, date2num, num2date
 from gotmtool import nctime_to_datetime, nctime_indices, write_pfl
@@ -15,14 +16,9 @@ def main():
     parser = argparse.ArgumentParser(description="""
             Read the Argo profile data in netCDF format and
             output the temperature and salinity profiles in a text
-            file in the GOTM input file format. The argument -r RANGE
-            set the searching radius in degrees.
-
-            Two date mode:
-              1) search for all the profiles covering the starting and ending date
-                 if the ending date is set using -de ENDDATE.
-              2) search for a single profile within the searching range set by
-                 -dr DATERANGE, only work if the ending date is not set.
+            file in the GOTM input file format.
+            The argument -r RANGE sets the searching radius in degrees.
+            The argument -dr DATERANGE sets the searching date range in days.
               """)
     parser.add_argument('-i', '--input', action='store', dest='fname_in',
             metavar='NCFILENAME', required=True, help='Input netCDF filename')
@@ -35,12 +31,9 @@ def main():
     parser.add_argument('-r', '--range', action='store', dest='range',
             metavar='RANGE', required=True,
             help='Range in degrees of the searching radius')
-    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
-            metavar='STARTDATE', required=True,
-            help='Starting date of input data, in the format of YYYYMMDD')
-    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
-            metavar='ENDDATE',
-            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-d', '--date', action='store', dest='date',
+            metavar='DATE', required=True,
+            help='The target date of search, in the format of YYYYMMDD')
     parser.add_argument('-dr', '--date_range', action='store', dest='date_range',
             metavar='DATERANGE',
             help='Date range in days for searching the initial profiles before or after the starting date')
@@ -53,6 +46,9 @@ def main():
     parser.add_argument('-maxd', '--max_depth', action='store',
             dest='max_depth', metavar='MAXDEPTH',
             help='Max depth of the profiles')
+    parser.add_argument('-iy', '--ignore_year', action='store_true',
+            dest='l_ignore_year',
+            help='Ignore the year when searching profiles within the time range')
     parser.add_argument('-dry', '--dry', action='store_true', dest='l_dry_run',
             help='Check the available profiles without outputting them into files')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
@@ -64,17 +60,10 @@ def main():
     rlat = float(args.lat)
     rlon = float(args.lon)
     dr = float(args.range)
-    date_start = args.date_start
+    l_ignore_year = args.l_ignore_year
 
-    if args.date_end:
-        l_single = False
-        date_end = args.date_end
-    elif args.date_range:
-        l_single = True
-        date_range = float(args.date_range)
-    else:
-        parser.print_help()
-        sys.exit(1)
+    date_base = args.date
+    date_range = float(args.date_range)
 
     if rlon >= 180:
         rlon = rlon - 360.0
@@ -110,55 +99,49 @@ def main():
     idx_loc = np.where(np.all([lat>=rlat-dr, lat<rlat+dr, lon>=rlon-dr,
         lon<rlon+dr], axis=0))[0]
 
-    # read time
-    nctime = infile.variables['time']
-    nptime = nctime[idx_loc]
-
-    # check if attributes exist
-    t_units = nctime.units
-    try:
-        t_cal = nctime.calendar
-    except AttributeError :
-        t_cal = 'standard'
-
-    # get starting and ending indices
-    dtformat = '%Y%m%d'
-    dt_start = datetime.datetime.strptime(date_start, dtformat)
-    dnum_start = date2num(dt_start, units=t_units, calendar=t_cal)
-    if l_single:
-        # search around starting date
-        tmp = dnum_start
-        dnum_start = tmp-date_range
-        dnum_end = tmp+date_range
-        tidx_start = np.searchsorted(nptime, dnum_start, side='right')
-        tidx_end = np.searchsorted(nptime, dnum_end, side='left')-1
-    else:
-        # cover the whole range set by the starting to ending date
-        dt_end = datetime.datetime.strptime(date_end, dtformat)
-        dnum_end = date2num(dt_end, units=t_units, calendar=t_cal)
-        tidx_start = np.searchsorted(nptime, dnum_start, side='left')-1
-        tidx_end = np.searchsorted(nptime, dnum_end, side='right')
-
     # check if any profiles are found
-    if tidx_end < tidx_start:
+    if idx_loc.size == 0:
         # no message if dry run
         if not args.l_dry_run:
-            print("Profile not available. Skip.")
+            print("Argo profile at location [lon={}, lat={}] not available. Skip.".format(rlon, rlat))
         sys.exit(1)
 
-    # time in datetime format
-    dttime = num2date(nptime[tidx_start:tidx_end+1], units=t_units, calendar=t_cal)
-
-    # truncate time to seconds
-    ntime = tidx_end+1-tidx_start
-    tdat = [dttime[i].isoformat(' ', 'seconds')
-            for i in range(ntime)]
+    # read time
+    nctime = infile.variables['time']
+    dttime = nctime_to_datetime(nctime, tidx_arr=idx_loc)
 
     # read cast number to get the indices in the full record
     cast = infile.variables['cast'][idx_loc]
 
-    # indices in the full record
-    idx_cast = cast[tidx_start:tidx_end+1]-1
+    # pandas Series data type
+    cast_series = pd.Series(cast, index=dttime)
+
+    # get starting and ending indices
+    dt_base = pd.to_datetime(date_base)
+
+    if l_ignore_year:
+        ystart = np.int(cast_series.index.min().strftime('%Y'))
+        yend   = np.int(cast_series.index.max().strftime('%Y'))
+        idx_cast_list = []
+        for yyyy in np.arange(ystart, yend+1):
+            dt_tmp = dt_base.replace(year=yyyy)
+            dt_start = dt_tmp - pd.DateOffset(date_range)
+            dt_end   = dt_tmp + pd.DateOffset(date_range)
+            idx_cast_tmp = cast_series[dt_start:dt_end]
+            if not idx_cast_tmp.empty:
+                idx_cast_list.extend(idx_cast_tmp.values.tolist())
+        idx_cast = np.array(idx_cast_list)-1
+    else:
+        dt_start = dt_base - pd.DateOffset(date_range)
+        dt_end   = dt_base + pd.DateOffset(date_range)
+        idx_cast = cast_series[dt_start:dt_end].values-1
+
+    # check if any profiles are found
+    if idx_cast.size == 0:
+        # no message if dry run
+        if not args.l_dry_run:
+            print("Argo profile at time {} not available. Skip.".format(date_base))
+        sys.exit(1)
 
     # read depth (limited to upper max_depth)
     depth = infile.variables['depth'][:]
@@ -219,35 +202,30 @@ def main():
     salt_avail = salt[idx_pass, :]
 
     # write in file
-    if l_single:
-        # select the profile which has the median of near surface temperature
-        # (averaged temperature between -10 m and -50 m)
-        idx_depth_avg1 = np.searchsorted(depth, 10, side='left')
-        idx_depth_avg2 = np.searchsorted(depth, 50, side='left')
-        temp_smp = temp_avail[:,idx_depth_avg1:idx_depth_avg2+1]
-        temp_smp[temp_smp==gmvalue] = np.NaN
-        temp_avg = np.nanmean(temp_smp, axis=1)
-        # find the index of the median
-        idx_temp_median = np.argsort(temp_avg)[(len(temp_avg)-1)//2]
-        # set the date to the starting date
-        tdat_sgl = dt_start
-        # write profiles
-        if args.l_dry_run:
-            # print("Number of profiles: {}".format(len(temp_avg)))
-            # print("Date of output profile: {}".format(tdat[idx_temp_median]))
-            # print("Longitude: {}".format(lon[idx_cast[idx_temp_median]]))
-            # print("Latitude: {}".format(lat[idx_cast[idx_temp_median]]))
-            print("{:s} {:6.2f} {:6.2f} {:3d} {:6.2f} {:6.2f} {:6.2f}".format(tdat[idx_temp_median],
-                lon[idx_cast_new[idx_temp_median]], lat[idx_cast_new[idx_temp_median]],
-                len(temp_avg), rlon, rlat, temp_avg[idx_temp_median]))
-        else:
-            write_pfl(fname_out_temp, [tdat_sgl], ddat, [temp_avail[[idx_temp_median],:]], mask=gmvalue)
-            write_pfl(fname_out_salt, [tdat_sgl], ddat, [salt_avail[[idx_temp_median],:]], mask=gmvalue)
+    # select the profile which has the median of near surface temperature
+    # (averaged temperature between -10 m and -50 m)
+    idx_depth_avg1 = np.searchsorted(depth, 10, side='left')
+    idx_depth_avg2 = np.searchsorted(depth, 50, side='left')
+    temp_smp = temp_avail[:,idx_depth_avg1:idx_depth_avg2+1]
+    temp_smp[temp_smp==gmvalue] = np.NaN
+    temp_avg = np.nanmean(temp_smp, axis=1)
+    # find the index of the median
+    idx_temp_median = np.argsort(temp_avg)[(len(temp_avg)-1)//2]
+    # set the date to the starting date
+    tdat_sgl = dt_base
+    # write profiles
+    if args.l_dry_run:
+        # print("Number of profiles: {}".format(len(temp_avg)))
+        # print("Date of output profile: {}".format(tdat[idx_temp_median]))
+        # print("Longitude: {}".format(lon[idx_cast[idx_temp_median]]))
+        # print("Latitude: {}".format(lat[idx_cast[idx_temp_median]]))
+        tmdn = nctime_to_datetime(nctime, tidx_arr=idx_cast_new[idx_temp_median])
+        print("{:} {:6.2f} {:6.2f} {:3d} {:6.2f} {:6.2f} {:6.2f}".format(tmdn.strftime('%Y-%m-%d %H:%M:%S'),
+            lon[idx_cast_new[idx_temp_median]], lat[idx_cast_new[idx_temp_median]],
+            len(temp_avg), rlon, rlat, temp_avg[idx_temp_median]))
     else:
-        # write all data
-        if not args.l_dry_run:
-            write_pfl(fname_out_temp, tdat, ddat, [temp_avail], mask=gmvalue)
-            write_pfl(fname_out_salt, tdat, ddat, [salt_avail], mask=gmvalue)
+        write_pfl(fname_out_temp, [tdat_sgl], ddat, [temp_avail[[idx_temp_median],:]], mask=gmvalue)
+        write_pfl(fname_out_salt, [tdat_sgl], ddat, [salt_avail[[idx_temp_median],:]], mask=gmvalue)
 
 if __name__ == "__main__":
     main()
