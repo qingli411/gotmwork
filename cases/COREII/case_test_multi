@@ -89,7 +89,7 @@ while [ ${lat} -le ${lat_end} ]; do
 
         # dry run first and check the availability of argo profiles
         ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-            -r 2 -ds ${datestart} -dr 20 -dry
+            -r 2 -d ${datestart} -dr 20 -dry -iy
         nstate=$?
 
         if [ ${l_dry_run} == "no" ]; then
@@ -152,7 +152,7 @@ while [ ${lat} -le ${lat_end} ]; do
             sprof_name="sprof_file.dat"
             ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
                 -r 2 -ot ${tprof_name} -os ${sprof_name} \
-                -ds ${datestart} -dr 20
+                -d ${datestart} -dr 20 -iy
             ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
             ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
             ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
