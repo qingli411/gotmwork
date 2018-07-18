@@ -116,7 +116,11 @@ while [ ${lat} -le ${lat_end} ]; do
             # save 12 initialization profiles
             for i in {1..12}; do
                 mm=$(printf '%02d' ${i})
-                argostart="${datestart:0:4}${mm}${datestart:6:2}"
+                if [ ${i} -ge ${datestart:4:2} ]; then
+                    argostart="${datestart:0:4}${mm}${datestart:6:2}"
+                else
+                    argostart="$((${datestart:0:4}+1))${mm}${datestart:6:2}"
+                fi
                 tprof_name="tprof_file_${argostart}.dat"
                 sprof_name="sprof_file_${argostart}.dat"
                 ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
