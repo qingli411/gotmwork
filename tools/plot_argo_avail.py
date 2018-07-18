@@ -35,7 +35,7 @@ def main():
             npfl[i] = float(npfl_str)
             temp[i] = float(temp_str)
             dt_str_tmp = date+' '+time
-            dt_tmp = datetime.datetime.strptime(dt_str_tmp, dtformat)
+            dt_tmp = datetime.datetime.strptime(dt_str_tmp, dtformat).replace(year=2008)
             dt_ref = datetime.datetime.strptime(dt_str_ref, dtformat)
             ndt[i] = (dt_tmp-dt_ref).days
             i += 1
@@ -51,15 +51,18 @@ def main():
     # plot figures
     plt.figure()
     outfig = datadir+'/npfl.png'
-    plot_map_scatter(rlon, rlat, npfl, outfig, vmax=40, vmin=0)
+    plot_map_scatter(rlon, rlat, npfl, vmax=100, vmin=0)
+    plt.savefig(outfig, dpi = 300)
 
     plt.figure()
     outfig = datadir+'/ndt.png'
-    plot_map_scatter(rlon, rlat, ndt, outfig, vmax=30, vmin=-30, cmap='RdBu')
+    plot_map_scatter(rlon, rlat, ndt, vmax=30, vmin=-30, cmap='RdBu')
+    plt.savefig(outfig, dpi = 300)
 
     plt.figure()
     outfig = datadir+'/temp.png'
-    plot_map_scatter(rlon, rlat, temp, outfig, vmax=30, vmin=-2)
+    plot_map_scatter(rlon, rlat, temp, vmax=30, vmin=-2)
+    plt.savefig(outfig, dpi = 300)
 
 if __name__ == "__main__":
     main()
