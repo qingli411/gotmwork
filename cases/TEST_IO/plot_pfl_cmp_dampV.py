@@ -1,18 +1,18 @@
 #!/usr/bin/env python3
 """
-Qing Li, 20180508
+Qing Li, 20180718
 """
 
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 from netCDF4 import Dataset, num2date
-from testrestool import *
+from testiotool import *
 
 def main():
 
-    dzdt_list = ['VR1m_DT60s', 'VR1m_DT600s', 'VR1m_DT1800s', 'VR5m_DT60s', 'VR5m_DT600s', 'VR5m_DT1800s']
-    l_interp = [False, False, False, True, True, True]
+    cmp_list = ['dampV_none', 'dampV_10d', 'dampV_1d']
+    l_interp = [False, False, False]
 
     # loop over all cases
     nc = len(case_list)
@@ -29,9 +29,9 @@ def main():
             d_max = pfl_dmax_list[j,i]
             for k in np.arange(nm):
                 turbmethod = turbmethod_list[k]
-                plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth)
+                plot_pfl_cmp(cmp_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth)
 
-def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth):
+def plot_pfl_cmp(cmp_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth):
 
     # input data
     dataroot = dir_in+'/'+case
@@ -42,10 +42,10 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
     figname = figdir+'/Pfl_cmp_'+turbmethod+'_'+var+'.png'
 
     # number of dz dt cases
-    nzt = len(dzdt_list)
+    ncmp = len(cmp_list)
 
     # use the first in the list as the reference case
-    data0 = dataroot+'/'+turbmethod+'_'+dzdt_list[0]+'/gotm_out.nc'
+    data0 = dataroot+'/'+turbmethod+'_'+cmp_list[0]+'/gotm_out.nc'
 
     # read data
     infile0 = Dataset(data0, 'r')
@@ -56,10 +56,10 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
 
     # figure
     fig_width = 6
-    fig_height = 2+2*(nzt-1)
+    fig_height = 2+2*(ncmp-1)
 
     # plot figure
-    f, axarr = plt.subplots(nzt, sharex=True)
+    f, axarr = plt.subplots(ncmp, sharex=True)
     f.set_size_inches(fig_width, fig_height)
 
     # contour levels
@@ -72,16 +72,16 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
     im0 = axarr[0].contourf(dttime0, z0, np.transpose(fld0), levels0, extend='both', cmap='rainbow')
     axarr[0].set_ylabel('Depth (m)')
     axarr[0].set_ylim([depth, 0])
-    title0 = case+' '+var+' '+dzdt_list[0]
+    title0 = case+' '+var+' '+cmp_list[0]
     axarr[0].set_title(title0, fontsize=10)
     cb0 = plt.colorbar(im0, ax=axarr[0])
     cb0.formatter.set_powerlimits((-2, 2))
     cb0.update_ticks()
 
     # loop over other turbmethods
-    for i in np.arange(nzt-1):
+    for i in np.arange(ncmp-1):
         j = i+1
-        data1 = dataroot+'/'+turbmethod+'_'+dzdt_list[j]+'/gotm_out.nc'
+        data1 = dataroot+'/'+turbmethod+'_'+cmp_list[j]+'/gotm_out.nc'
         infile1 = Dataset(data1, 'r')
         fld1_tmp, z1_tmp = gotm_read_pfl(infile1, var)
         nctime1 = infile1.variables['time']
@@ -101,7 +101,7 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
         im1 = axarr[j].contourf(dttime1, z1, np.transpose(fld1-fld0), levels1, extend='both', cmap='RdBu_r')
         axarr[j].set_ylabel('Depth (m)')
         axarr[j].set_ylim([depth, 0])
-        title1 = 'Diff. '+dzdt_list[j]+' $-$ '+dzdt_list[0]
+        title1 = 'Diff. '+cmp_list[j]+' $-$ '+cmp_list[0]
         axarr[j].set_title(title1, fontsize=10)
         cb1 = plt.colorbar(im1, ax=axarr[j])
         cb1.formatter.set_powerlimits((-2, 2))

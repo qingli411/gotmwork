@@ -13,7 +13,7 @@ def main():
 
     # test
     l_test = True
-    l_test = False
+    # l_test = False
     i_test = 5
     j_test = 4
     k_test = 0
@@ -59,7 +59,7 @@ def plot_pfl(turbmethod, case, var, depth, c_max=None, c_min=None):
 
     # read data
     infile0 = Dataset(data0, 'r')
-    fld0, z0 = read_pfl(infile0, var)
+    fld0, z0 = gotm_read_pfl(infile0, var)
     nctime0 = infile0.variables['time']
     t_cal = 'standard'
     dttime0 = num2date(nctime0[:], units=nctime0.units, calendar=t_cal)

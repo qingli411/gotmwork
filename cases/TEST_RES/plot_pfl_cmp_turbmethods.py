@@ -48,7 +48,7 @@ def plot_pfl_cmp_turbmethods(turbmethod_list, case, var, c_max, c_min, d_max, de
 
     # read data
     infile0 = Dataset(data0, 'r')
-    fld0, z0 = read_pfl(infile0, var)
+    fld0, z0 = gotm_read_pfl(infile0, var)
     nctime0 = infile0.variables['time']
     t_cal = 'standard'
     dttime0 = num2date(nctime0[:], units=nctime0.units, calendar=t_cal)
@@ -82,7 +82,7 @@ def plot_pfl_cmp_turbmethods(turbmethod_list, case, var, c_max, c_min, d_max, de
         j = i+1
         data1 = dataroot+'/'+turbmethod_list[j]+'_VR1m_DT60s/gotm_out.nc'
         infile1 = Dataset(data1, 'r')
-        fld1, z1 = read_pfl(infile1, var)
+        fld1, z1 = gotm_read_pfl(infile1, var)
         nctime1 = infile1.variables['time']
         dttime1 = num2date(nctime1[:], units=nctime1.units, calendar=t_cal)
 
@@ -130,12 +130,12 @@ def plot_pfl_cmp_turbmethods_ens(turbmethod_list, case, var, c_max, c_min, d_max
             t_cal = 'standard'
             dttime0 = num2date(nctime0[:], units=nctime0.units, calendar=t_cal)
             nt = nctime0[:].shape[0]
-            tmp, z0 = read_pfl(infile0, var)
+            tmp, z0 = gotm_read_pfl(infile0, var)
             nz = z0.shape[0]
             tmp0 = np.zeros([nm, nt, nz])
-            tmp0[i,:,:], z0 = read_pfl(infile0, var)
+            tmp0[i,:,:], z0 = gotm_read_pfl(infile0, var)
         else:
-            tmp0[i,:,:], z0 = read_pfl(infile0, var)
+            tmp0[i,:,:], z0 = gotm_read_pfl(infile0, var)
     # get the median
     fld0 = np.median(tmp0, axis=0)
 
@@ -168,7 +168,7 @@ def plot_pfl_cmp_turbmethods_ens(turbmethod_list, case, var, c_max, c_min, d_max
         j = i+1
         data1 = dataroot+'/'+turbmethod_list[i]+'_VR1m_DT60s/gotm_out.nc'
         infile1 = Dataset(data1, 'r')
-        fld1, z1 = read_pfl(infile1, var)
+        fld1, z1 = gotm_read_pfl(infile1, var)
         nctime1 = infile1.variables['time']
         dttime1 = num2date(nctime1[:], units=nctime1.units, calendar=t_cal)
 
