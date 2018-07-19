@@ -307,6 +307,47 @@ def ncread_ts(ncvar, tidx_start=None, tidx_end=None):
         dat = None
     return dat
 
+def gotm_read_pfl(infile, var, tidx_start=None, tidx_end=None):
+    """Read profile variable and z (fixed in time) from GOTM file
+
+    :infile: (netCDF4 Dataset) input netCDF file
+    :var: (str) variable name
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) profile, z
+
+    """
+    varlist = infile.variables.keys()
+    if var in varlist:
+        dat = infile.variables[var][tidx_start:tidx_end,:,0,0]
+        coord = infile.variables[var].coordinates
+        if 'zi' in coord:
+            z = infile.variables['zi'][0,:,0,0]
+        elif 'z' in coord:
+            z = infile.variables['z'][0,:,0,0]
+        else:
+            raise AttributeError('z coordinate not fould.')
+    else:
+        dat, z = get_variable(var)(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    return dat, z
+
+def gotm_read_ts(infile, var, tidx_start=None, tidx_end=None):
+    """Read time series of variable from GOTM file
+
+    :infile: (netCDF4 Dataset) input netCDF file
+    :var: (str) variable name
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) time series
+
+    """
+    varlist = infile.variables.keys()
+    if var in varlist:
+        dat = infile.variables[var][tidx_start:tidx_end,0,0]
+    else:
+        dat = get_variable(var)(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    return dat
+
 ###############################################################################
 #                                  analysis                                   #
 ###############################################################################
@@ -587,7 +628,9 @@ def get_buoyancy(infile, tidx_start=None, tidx_end=None):
     salt  = infile.variables['salt'][tidx_start:tidx_end,:,0,0]
     # buoyancy
     buoy  = g*alpha_0*(temp-T_0)-g*beta_0*(salt-S_0)
-    return buoy
+    # z
+    z     = infile.variables['z'][0,:,0,0]
+    return buoy, z
 
 def get_spice(infile, tidx_start=None, tidx_end=None):
     """Calculate the spice from temperature and salinity
@@ -604,7 +647,9 @@ def get_spice(infile, tidx_start=None, tidx_end=None):
     salt  = infile.variables['salt'][tidx_start:tidx_end,:,0,0]
     # spice
     spice  = g*alpha_0*(temp-T_0)+g*beta_0*(salt-S_0)
-    return spice
+    # z
+    z     = infile.variables['z'][0,:,0,0]
+    return spice, z
 
 def get_dpedt(infile, tidx_start=None, tidx_end=None):
     """Calculate the rate of change in the total potential energy (PE)

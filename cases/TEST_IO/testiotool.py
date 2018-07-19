@@ -16,9 +16,9 @@ from gotmtool import gotm_read_pfl, gotm_read_ts
 # common variables
 #--------------------------------
 # input directory
-dir_in = os.environ['GOTMRUN_ROOT']+'/TEST_RES/'
+dir_in = os.environ['GOTMRUN_ROOT']+'/TEST_IO/'
 # output directory
-dir_out = os.environ['GOTMFIG_ROOT']+'/TEST_RES/'
+dir_out = os.environ['GOTMFIG_ROOT']+'/TEST_IO/'
 # list of cases
 case_list = ['OSMOSIS_winter',
              'OSMOSIS_spring',

@@ -54,9 +54,9 @@ def main():
         turbmethod = turbmethod_list[i]
         data0 = dataroot+'/'+turbmethod+'_VR1m_DT60s/gotm_out.nc'
         infile0 = Dataset(data0, 'r')
-        fld0[i,:] = read_ts(infile0, var, tidx_start=tidx_start, tidx_end=tidx_end)
-        xx0[i,:] = read_ts(infile0, coord1, tidx_start=tidx_start, tidx_end=tidx_end)
-        yy0[i,:] = read_ts(infile0, coord2, tidx_start=tidx_start, tidx_end=tidx_end)
+        fld0[i,:] = gotm_read_ts(infile0, var, tidx_start=tidx_start, tidx_end=tidx_end)
+        xx0[i,:] = gotm_read_ts(infile0, coord1, tidx_start=tidx_start, tidx_end=tidx_end)
+        yy0[i,:] = gotm_read_ts(infile0, coord2, tidx_start=tidx_start, tidx_end=tidx_end)
     # remove negative values
     # fld0 = np.ma.array(fld0, mask=(fld0<=0))
 
