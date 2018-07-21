@@ -5,17 +5,18 @@ import matplotlib.pyplot as plt
 import os
 import re
 import sys
-tooldir_default = os.environ['HOME']+'/models/gotm/gotmwork/tools'
+tooldir_default = os.environ['GOTMWORK_ROOT']+'/tools'
 sys.path.append(os.environ.get('tooldir', tooldir_default))
 from gotmtool import *
 from core2tool import *
 
 def main():
+    # turb_scheme0 = 'KPP-CVMix'
+    # turb_scheme1_list = ['KPPLT-ENTR', 'OSMOSIS', 'EPBL', 'SMC']
     turb_scheme0 = 'KPP-CVMix'
-    turb_scheme1_list = ['KPPLT-ENTR', 'OSMOSIS', 'EPBL', 'SMC']
-    # turb_scheme0 = 'SMC'
-    # turb_scheme1_list = ['SMCLT']
-    month_list = ['Dec', 'Feb', 'Jun', 'Aug', 'DecY2']
+    turb_scheme1_list = ['KPPLT-ENTR']
+    # month_list = ['Dec', 'Feb', 'Jun', 'Aug', 'DecY2']
+    month_list = ['Jun']
     analysis = 'mldMean'
     method = 'deltaR'
     nturb = len(turb_scheme1_list)

@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import sys
-tooldir_default = os.environ['HOME']+'/models/gotm/gotmwork/tools'
+tooldir_default = os.environ['GOTMWORK_ROOT']+'/tools'
 sys.path.append(os.environ.get('tooldir', tooldir_default))
 from gotmtool import *
 
@@ -18,9 +18,9 @@ from gotmtool import *
 # forcing scheme
 forc_scheme = 'COREII'
 # input directory
-dir_in = os.environ['HOME']+'/work/gotmfigures/'+forc_scheme
+dir_in = os.environ['GOTMFIG_ROOT']+'/'+forc_scheme
 # output directory
-dir_out = os.environ['HOME']+'/work/gotmfigures/'+forc_scheme
+dir_out = os.environ['GOTMFIG_ROOT']+'/'+forc_scheme
 
 #--------------------------------
 # plot the field in a map
@@ -91,20 +91,20 @@ def plot_map_diff(turb_scheme0, turb_scheme1, month, analysis, method, units=Non
 #--------------------------------
 def get_analy_dates(month):
     adate_start = {
-            "test":  "20090101",
-            "Dec":   "20081201",
+            "test":  "20080601",
             "Feb":   "20090201",
-            "Jun":   "20090601",
-            "Aug":   "20090801",
-            "DecY2": "20091201"
+            "Jun":   "20080601",
+            "Jul":   "20080701",
+            "Aug":   "20080801",
+            "Dec":   "20081201",
             }
     adate_end = {
-            "test":  "20090331",
-            "Dec":   "20081231",
+            "test":  "20080630",
             "Feb":   "20090228",
-            "Jun":   "20090630",
-            "Aug":   "20090831",
-            "DecY2": "20091231"
+            "Jun":   "20080630",
+            "Jul":   "20080731",
+            "Aug":   "20080831",
+            "Dec":   "20081231",
             }
     return [adate_start.get(month, None), adate_end.get(month, None)]
 

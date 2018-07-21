@@ -83,11 +83,11 @@ def main():
     if args.dir_in:
         dir_in = args.dir_in
     else:
-        dir_in = os.environ['HOME']+'/scratch'
+        dir_in = os.environ['GOTMRUN_ROOT']
     if args.dir_out:
         dir_out = args.dir_out
     else:
-        dir_out = os.environ['HOME']+'/work/gotmfigures/'+forc_scheme
+        dir_out = os.environ['GOTMFIG_ROOT']+'/'+forc_scheme
 
     # create out dir if not exist
     os.makedirs(dir_out, exist_ok=True)
