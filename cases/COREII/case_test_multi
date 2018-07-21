@@ -163,8 +163,8 @@ while [ ${lat} -le ${lat_end} ]; do
 
             # turn off bottom boundary layer
             ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
-            # calculate Langmuir enhancement factor from Stokes drift
-            ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
+            # calculate Langmuir number and enhancement factor from Stokes drift
+            ${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
 
             # run GOTM
             ${cmd_gotm} 2> log.${outname}

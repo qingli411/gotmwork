@@ -42,19 +42,20 @@ outname="gotm_out"
 # starting and ending date - in the format of YYYYMMDD
 # the starting date should match what are available in the
 # input data directory
-datestart="20080615"
-dateend="20090901"
+datestart="20080601"
+dateend="20080630"
 
 # name of the turbulence model
 # turbmethod="KPP-CVMix"
-# turbmethod="KPPLT-ENTR"
+turbmethod="KPPLT-ENTR"
 # turbmethod="OSMOSIS"
 # turbmethod="EPBL"
 # turbmethod="SMCLT"
-turbmethod="SMC"
+# turbmethod="SMC"
 
 # setup
-setup="VR1m_DT600s"
+dz=$((maxdepth/nlev))
+setup="${title}_VR${dz}m_DT${dt}s"
 
 #######################################################################
 #                         Loop over locations                         #
@@ -67,7 +68,7 @@ lat_end=70
 dlat=4
 
 # input data starting and ending date
-inputstart="20080115"
+inputstart="20080601"
 inputend="20091231"
 
 # start outer loop over lon
@@ -102,7 +103,7 @@ while [ ${lat} -le ${lat_end} ]; do
         # skip if initial temperature and salinity profiles are not available
         tprofdata=${dataroot}/${inputname}/tprof_file_${datestart}.dat
         sprofdata=${dataroot}/${inputname}/sprof_file_${datestart}.dat
-        if [ -f ${tprofdata} -a -f ${sprofdata} ]; then
+        if [ -s ${tprofdata} -a -s ${sprofdata} ]; then
             tprof_name="tprof_file.dat"
             sprof_name="sprof_file.dat"
             ln -s ${tprofdata} ./${tprof_name}
@@ -127,6 +128,7 @@ while [ ${lat} -le ${lat_end} ]; do
         ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
         ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
         ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+        ${cmd_nmlchange} -f gotmrun.nml -e eq_state_method -v 4
         ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
         ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
@@ -155,8 +157,8 @@ while [ ${lat} -le ${lat_end} ]; do
 
         # turn off bottom boundary layer
         ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
-        # calculate Langmuir enhancement factor from Stokes drift
-        ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
+        # calculate Langmuir number and enhancement factor from Stokes drift
+        ${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
 
         # run GOTM
         ${cmd_gotm} 2> log.${outname}

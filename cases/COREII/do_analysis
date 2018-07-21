@@ -1,29 +1,20 @@
 #!/bin/bash
 
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
-
-# scratch directory
-scratchdir="${HOME}/scratch"
+source "../../set_tools.sh"
 
 # archive directory
 archivedir="${HOME}/utleydata/qingli/gotmruns"
 
-# directory for output
-outputdatadir="${HOME}/work/gotmfigures"
-
 # forcing scheme
 forc_scheme="COREII"
 
-# resolution
-resolution="VR5m_DT60s"
+# setup
+setup="${forc_scheme}_VR1m_DT600s"
 
 # starting and ending date of simulation
-datestart="20080615"
-dateend="20091231"
+datestart="20080601"
+dateend="20080630"
 
 # analysis
 analysis="mldMean"
@@ -32,11 +23,11 @@ analysis="mldMean"
 method="deltaR"
 
 # loop over month
-for month in Dec Feb Jun Aug DecY2; do
-# for month in DecY2; do
+# for month in Dec Feb Jun Aug DecY2; do
+for month in Jun; do
 # turbulent method
-for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT SMC; do
-# for turbmethod in SMC; do
+# for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT SMC; do
+for turbmethod in KPPLT-ENTR; do
 
     # starting and ending date of analysis
     case ${month} in
@@ -49,8 +40,12 @@ for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT SMC; do
             analyend="20090228"
             ;;
         "Jun")
-            analystart="20090601"
-            analyend="20090630"
+            analystart="20080601"
+            analyend="20080630"
+            ;;
+        "Jul")
+            analystart="20080701"
+            analyend="20080731"
             ;;
         "Aug")
             analystart="20090801"
@@ -66,18 +61,18 @@ for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT SMC; do
     esac
 
     # do analysis
-    if [ -d ${scratchdir}/${resolution}/${turbmethod} ]; then
-        inputdatadir=${scratchdir}/${resolution}/${turbmethod}
-    elif [ -d ${archivedir}/${resolution}/${turbmethod} ]; then
-        inputdatadir=${archivedir}/${resolution}/${turbmethod}
+    if [ -d ${GOTMRUN_ROOT}/${setup}/${turbmethod} ]; then
+        inputdatadir=${GOTMRUN_ROOT}/${setup}/${turbmethod}
+    elif [ -d ${archivedir}/${setup}/${turbmethod} ]; then
+        inputdatadir=${archivedir}/${setup}/${turbmethod}
     else
-        echo "GOTM data for case ${resolution}/${turbmethod} not found. Skip."
+        echo "GOTM data for case ${setup}/${turbmethod} not found. Skip."
         continue
     fi
     ${cmd_gotm_analysis} -f ${forc_scheme} -t ${turbmethod} \
         -a ${analysis} -m ${method} \
         -ds ${datestart} -de ${dateend} -ds_a ${analystart} -de_a ${analyend} \
         -dir_in ${inputdatadir} \
-        -dir_out ${outputdatadir}/${forc_scheme}
+        -dir_out ${GOTMFIG_ROOT}/${forc_scheme}
 done
 done
