@@ -12,6 +12,7 @@ source "../../set_tools.sh"
 
 # input data - surface fluxes
 datadir="${GOTMDATA_ROOT}/COREII_IAF"
+swrdata="ncar_rad.nc"
 
 # input data - waves
 uspdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
@@ -89,6 +90,13 @@ ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
 ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
 ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
 ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
+
+# processing shortwave radiation
+${cmd_nc2dat_core2swr} -i ${datadir}/${swrdata} -o "swr_file.dat" \
+    -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
+${cmd_nmlchange} -f airsea.nml -e swr_method -v 2
+${cmd_nmlchange} -f airsea.nml -e swr_file -v 'swr_file.dat'
+${cmd_nmlchange} -f airsea.nml -e swr_factor -v 1
 
 # use meteo data instead of fluxes
 ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.

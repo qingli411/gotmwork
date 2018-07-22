@@ -12,6 +12,7 @@ source "../../set_tools.sh"
 
 # input data - surface fluxes
 datadir="${GOTMDATA_ROOT}/COREII_IAF"
+swrdata="ncar_rad.nc"
 
 # input data - waves
 uspdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
@@ -40,6 +41,9 @@ dateend="20091231"
 
 # flag for dry run
 l_dry_run="no"
+
+# get date
+yyyymmdd=$(date "+%Y%m%d")
 
 #######################################################################
 #                         Loop over locations                         #
@@ -86,7 +90,7 @@ while [ ${lat} -le ${lat_end} ]; do
             fi
 
             # create run directory
-            rundir="${GOTMRUN_ROOT}/${casename}"
+            rundir="${GOTMDATA_ROOT}/gotmdata_core2_${yyyymmdd}/${casename}"
             mkdir -p ${rundir}
             cd ${rundir}
 
@@ -102,6 +106,10 @@ while [ ${lat} -le ${lat_end} ]; do
             # set run parameters
             ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} -data ${datadir} \
                 -ds ${datestart} -de ${dateend} -method nc2dat_latlon
+
+            # processing shortwave radiation
+            ${cmd_nc2dat_core2swr} -i ${datadir}/${swrdata} -o "swr_file.dat" \
+                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
 
             # processing Stokes drift data
             ${cmd_nc2dat_core2ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \

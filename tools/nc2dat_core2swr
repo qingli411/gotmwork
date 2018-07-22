@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-#  Qing Li, 20180311
+# Qing Li, 20180722
 
 import argparse
 import sys
 import numpy as np
 from netCDF4 import Dataset
-from gotmtool import nctime_to_datetime, nctime_indices, write_spec, write_ts
+from gotmtool import nctime_to_datetime, nctime_indices, write_ts
 
 def main():
     # process the input arguments
     parser = argparse.ArgumentParser(description="""
-            Read the WW3 partitioned Stokes drift file in netCDF format and
-            output in a text file in the GOTM input file format.""")
+            Read the daily maximum shortwave radiation from COREII in netCDF
+            format, add an idealized diurnal cycle, and output the hourly
+            shortwave radiation in a text file in the GOTM input file format.""")
     parser.add_argument('-i', '--input', action='store', dest='fname_in',
             metavar='NCFILENAME', required=True, help='Input netCDF filename')
     parser.add_argument('-o', '--output', action='store', dest='fname_out',
@@ -30,21 +31,9 @@ def main():
     parser.add_argument('-de', '--date_end', action='store', dest='date_end',
             metavar='ENDDATE',
             help='Ending date of input data, in the format of YYYYMMDD')
-    parser.add_argument('-usp', '--usp', action='store_true', dest='lusp',
-            help='Read partitioned Stokes drift file instead of bulk wave parameters, override -v VARNAME')
-    parser.add_argument('-v', '--variable', action='store', dest='vname_in',
-            metavar='VARNAME', nargs='+',
-            help='Variable name in netCDF file, support multiple variables')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
     # parsing arguments and save to args
     args=parser.parse_args()
-
-    # check arguments
-    if not args.lusp:
-        if not args.vname_in:
-            print('-v VARNAME is required if -usp is not set.')
-            parser.print_help()
-            sys.exit(1)
 
     fname_in = args.fname_in
     fname_out = args.fname_out
@@ -64,13 +53,15 @@ def main():
 
     # read data
     infile = Dataset(fname_in, 'r')
-    # wave time
+    # time
     nctime = infile.variables['TIME']
     dttime = nctime_to_datetime(nctime) # time in datetime format
     # get starting and ending indices
     tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
-    tdat = [dttime[i].isoformat(' ', 'seconds')
-            for i in range(tidx_start, tidx_end+1)] # truncated to seconds
+
+    # number of days
+    ndays = tidx_end-tidx_start+1
+    dtday = dttime[tidx_start:tidx_end+1]
 
     # read latitude and longitude
     lat = infile.variables['LAT'][:]
@@ -79,13 +70,23 @@ def main():
     ind_lat = np.argmin(np.abs(lat-rlat))
     ind_lon = np.argmin(np.abs(lon-rlon))
 
+    # read daily maximum shortwave radiation
     swr = infile.variables['SWDN_MOD'][tidx_start:tidx_end+1,ind_lat,ind_lon]
 
-    # read variables
-    vdat = []    # a list of arrays, an array for each variable
-    for vname in args.vname_in:
-        vtmp = infile.variables[vname][tidx_start:tidx_end+1,ind_lat,ind_lon]
-        vdat.append(vtmp)
+    # add idealized diurnal cycle
+    tdat = []
+    swr_hourly = np.zeros(ndays*24)
+    for i in np.arange(ndays):
+        for j in np.arange(24):
+            k = i*24+j
+            dttemp = dtday[i].replace(hour=j)
+            tdat.append(dttemp.strftime('%Y-%m-%d %H:%M:%S'))
+            if (j>6 and j< 18):
+                swr_hourly[k] = swr[i]*np.sin(np.pi*(j-6.)/12.)**2
+
+    # variables
+    vdat = [swr_hourly]
+
     # write to output file
     write_ts(fname_out, tdat, vdat)
 
