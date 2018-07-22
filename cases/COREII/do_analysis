@@ -9,12 +9,12 @@ archivedir="${HOME}/utleydata/qingli/gotmruns"
 # forcing scheme
 forc_scheme="COREII"
 
-# setup
-setup="${forc_scheme}_VR1m_DT600s"
-
 # starting and ending date of simulation
-datestart="20080601"
-dateend="20080630"
+datestart="20080801"
+dateend="20080831"
+
+# setup
+setup="${forc_scheme}_Global/VR1m_DT600s_${datestart}-${dateend}"
 
 # analysis
 analysis="mldMean"
@@ -24,10 +24,10 @@ method="deltaR"
 
 # loop over month
 # for month in Dec Feb Jun Aug DecY2; do
-for month in Jun; do
+for month in Aug; do
 # turbulent method
 # for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT SMC; do
-for turbmethod in KPPLT-ENTR; do
+for turbmethod in OSMOSIS; do
 
     # starting and ending date of analysis
     case ${month} in
@@ -48,8 +48,8 @@ for turbmethod in KPPLT-ENTR; do
             analyend="20080731"
             ;;
         "Aug")
-            analystart="20090801"
-            analyend="20090831"
+            analystart="20080801"
+            analyend="20080831"
             ;;
         "DecY2")
             analystart="20091201"
@@ -71,7 +71,7 @@ for turbmethod in KPPLT-ENTR; do
     fi
     ${cmd_gotm_analysis} -f ${forc_scheme} -t ${turbmethod} \
         -a ${analysis} -m ${method} \
-        -ds ${datestart} -de ${dateend} -ds_a ${analystart} -de_a ${analyend} \
+        -ds_a ${analystart} -de_a ${analyend} \
         -dir_in ${inputdatadir} \
         -dir_out ${GOTMFIG_ROOT}/${forc_scheme}
 done

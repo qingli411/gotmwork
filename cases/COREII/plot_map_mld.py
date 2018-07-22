@@ -14,9 +14,9 @@ def main():
     # turb_scheme0 = 'KPP-CVMix'
     # turb_scheme1_list = ['KPPLT-ENTR', 'OSMOSIS', 'EPBL', 'SMC']
     turb_scheme0 = 'KPP-CVMix'
-    turb_scheme1_list = ['KPPLT-ENTR']
+    turb_scheme1_list = ['KPP-ROMS', 'KPPLT-ENTR']
     # month_list = ['Dec', 'Feb', 'Jun', 'Aug', 'DecY2']
-    month_list = ['Jun']
+    month_list = ['Aug']
     analysis = 'mldMean'
     method = 'deltaR'
     nturb = len(turb_scheme1_list)

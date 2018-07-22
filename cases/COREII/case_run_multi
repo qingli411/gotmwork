@@ -42,11 +42,12 @@ outname="gotm_out"
 # starting and ending date - in the format of YYYYMMDD
 # the starting date should match what are available in the
 # input data directory
-datestart="20080601"
-dateend="20080630"
+datestart="20080801"
+dateend="20080831"
 
 # name of the turbulence model
 # turbmethod="KPP-CVMix"
+# turbmethod="KPP-ROMS"
 turbmethod="KPPLT-ENTR"
 # turbmethod="OSMOSIS"
 # turbmethod="EPBL"
@@ -55,7 +56,7 @@ turbmethod="KPPLT-ENTR"
 
 # setup
 dz=$((maxdepth/nlev))
-setup="${title}_VR${dz}m_DT${dt}s"
+setup="${title}_Global/VR${dz}m_DT${dt}s_${datestart}-${dateend}"
 
 #######################################################################
 #                         Loop over locations                         #
@@ -85,25 +86,25 @@ while [ ${lat} -le ${lat_end} ]; do
     if [ -d ${dataroot}/${inputname} ]; then
 
         # case name
-        casename="${title}_LAT${lat}_LON${lon}_${datestart}-${dateend}"
+        casename="${title}_LAT${lat}_LON${lon}"
 
         # print case name
         echo ${casename}
 
-        # create run directory
-        rundir="${GOTMRUN_ROOT}/${setup}/${turbmethod}/${casename}"
-        mkdir -p ${rundir}
-        cd ${rundir}
-
-        # set up namelists
-        cp ${nmldir}/*.nml ./
-
-        # link input data
-        ln -s ${dataroot}/${inputname}/*_file.dat ./
         # skip if initial temperature and salinity profiles are not available
         tprofdata=${dataroot}/${inputname}/tprof_file_${datestart}.dat
         sprofdata=${dataroot}/${inputname}/sprof_file_${datestart}.dat
         if [ -s ${tprofdata} -a -s ${sprofdata} ]; then
+            # create run directory
+            rundir="${GOTMRUN_ROOT}/${setup}/${turbmethod}/${casename}"
+            mkdir -p ${rundir}
+            cd ${rundir}
+
+            # set up namelists
+            cp ${nmldir}/*.nml ./
+
+            # link input data
+            ln -s ${dataroot}/${inputname}/*_file.dat ./
             tprof_name="tprof_file.dat"
             sprof_name="sprof_file.dat"
             ln -s ${tprofdata} ./${tprof_name}

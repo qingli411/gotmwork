@@ -106,7 +106,7 @@ def main():
             print('The starting date and ending date should be in yyyymmdd format, got {} and {}. Stop.'.format(date_start, date_end))
             sys.exit(1)
     else:
-        casefmt = r'^'+forc_scheme+r'_LAT-{0,1}\d{1,2}_LON\d{1,3}_\d{8}-\d{8}$'
+        casefmt = r'^'+forc_scheme+r'_LAT-{0,1}\d{1,2}_LON\d{1,3}$'
 
     # print(casefmt)
 
@@ -131,7 +131,7 @@ def main():
     for i in np.arange(ncase):
         # print out the progress
         # print(caselist[i])
-        if np.mod(i,progress) == 0 or i == 0:
+        if np.mod(i,progress) == 0 or i == 0 or i == ncase-1:
             print('{:3d}%'.format(prct))
             prct += 10
         # check if file exists
