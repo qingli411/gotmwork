@@ -27,7 +27,7 @@ method="deltaR"
 for month in Aug; do
 # turbulent method
 # for turbmethod in KPP-CVMix KPPLT-ENTR EPBL OSMOSIS SMCLT SMC; do
-for turbmethod in OSMOSIS; do
+for turbmethod in KPP-ROMS; do
 
     # starting and ending date of analysis
     case ${month} in

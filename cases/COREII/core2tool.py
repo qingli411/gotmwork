@@ -37,6 +37,9 @@ def plot_map(turb_scheme0, month, analysis, method, units, vmax=None, vmin=None,
     d0 = np.load(dir_in+'/'+dat0name)
     dat0 = d0['dat']
     dat = dat0
+    # for i in np.arange(len(dat)):
+        # print(dat[i])
+    dat[dat==-499.5] = np.nan
     lon = d0['lon']
     lat = d0['lat']
 

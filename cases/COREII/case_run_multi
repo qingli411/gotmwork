@@ -42,8 +42,8 @@ outname="gotm_out"
 # starting and ending date - in the format of YYYYMMDD
 # the starting date should match what are available in the
 # input data directory
-datestart="20080801"
-dateend="20080831"
+datestart="20090201"
+dateend="20090228"
 
 # name of the turbulence model
 # turbmethod="KPP-CVMix"

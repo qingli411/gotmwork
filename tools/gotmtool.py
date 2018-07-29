@@ -328,12 +328,13 @@ def do_analysis(name):
 
     """
     switcher = {
-            'mldMean': do_analysis_mld_mean
+            'mldMean': do_analysis_mld_mean,
+            'variable': do_analysis_variable_mean
             }
     return switcher.get(name)
 
 def do_analysis_mld_mean(infile, method='maxNsqr', tidx_start=None, tidx_end=None):
-    """TODO: Docstring for do_analysis_mld_mean.
+    """Driver for diagnosing the mean mixed layer depth.
 
     :infile: (Dataset) netcdf file
     :method: (str) method to calculate the mixed layer depth
@@ -345,6 +346,20 @@ def do_analysis_mld_mean(infile, method='maxNsqr', tidx_start=None, tidx_end=Non
     mld = get_mld(method)(infile, tidx_start=tidx_start, tidx_end=tidx_end)
     mld_mean = np.mean(mld)
     return mld_mean
+
+def do_analysis_variable_mean(infile, method='LaTurb', tidx_start=None, tidx_end=None):
+    """Driver for diagnosing the mean value of the variable.
+
+    :infile: (Dataset) netcdf file
+    :method: (str) name of the variable
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (float) dimensionless parameter
+
+    """
+    var = get_variable(method)(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    var_mean = np.mean(var)
+    return var_mean
 
 #--------------------------------
 # mixed layer depth
@@ -472,7 +487,8 @@ def get_variable(method):
             'hoLmo': get_h_over_lmo,
             'buoyancy': get_buoyancy,
             'spice': get_spice,
-            'dPEdt': get_dpedt
+            'dPEdt': get_dpedt,
+            'mixEf1': get_dpedt_over_ustar3
             }
     return switcher.get(method)
 
@@ -631,6 +647,24 @@ def get_dpedt(infile, tidx_start=None, tidx_end=None):
     dpedt[0] = (epot[1]-epot[0])/(time[1]-time[0])
     dpedt[-1] = (epot[-1]-epot[-2])/(time[-1]-time[-2])
     return dpedt
+
+def get_dpedt_over_ustar3(infile, tidx_start=None, tidx_end=None):
+    """Calculate the bulk rate of change in the total potential
+       energy (PE), normalized by firction
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) rate of change in PE
+
+    """
+    # rate of potential energy
+    dpedt = get_dpedt(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    # friction velocity
+    ustar = infile.variables['u_taus'][tidx_start:tidx_end,0,0]
+    # normalize by rho_0*ustar**3
+    bulk_dpedt = dpedt/ustar**3/rho_0
+    return bulk_dpedt
 
 ###############################################################################
 #                                visualization                                #
