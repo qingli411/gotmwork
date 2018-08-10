@@ -23,7 +23,7 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f gotmturb.nml -e e6 -v 6.0
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_method  -v 4
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 3
-        ${cmd_nmlchange} -f gotmturb.nml -e length_lim -v .true.
+        ${cmd_nmlchange} -f gotmturb.nml -e length_lim -v .false.
         ${cmd_nmlchange} -f gotmturb.nml -e compute_c3 -v .false.
         ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .true.
         ;;
