@@ -1,0 +1,161 @@
+#!/usr/bin/env python3
+"""
+Qing Li, 20180411
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+import re
+import sys
+import argparse
+from netCDF4 import Dataset
+from gotmtool import *
+
+def main():
+    # process input arguments
+    parser = argparse.ArgumentParser(description="""
+        Do analysis on multiple GOTM simulations and save the results in .npz """)
+    parser.add_argument('-f', '--forcing', action='store', dest='forc_scheme',
+            metavar='FORCING', help='Forcing scheme')
+    parser.add_argument('-t', '--turb_scheme', action='store', dest='turb_scheme',
+            metavar='TURBSCHEME', help='Turbulence boundary layer scheme')
+    parser.add_argument('-a', '--analysis', action='store', dest='analysis',
+            metavar='ANALYSIS', help='Analysis to be conducted')
+    parser.add_argument('-m', '--method', action='store', dest='method',
+            metavar='METHOD', help='Analysis method')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE',
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE',
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-ds_a', '--date_start_analy', action='store', dest='date_start_analy',
+            metavar='STARTDATE',
+            help='Starting date of analysis, in the format of YYYYMMDD')
+    parser.add_argument('-de_a', '--date_end_analy', action='store', dest='date_end_analy',
+            metavar='ENDDATE',
+            help='Ending date of analysis, in the format of YYYYMMDD')
+    parser.add_argument('-o', '--output', action='store', dest='outname',
+            metavar='OUTNAME', help='Output data name')
+    parser.add_argument('-dir_in', '--dir_in', action='store', dest='dir_in',
+            metavar='DIRIN', help='Input data directory')
+    parser.add_argument('-dir_out', '--dir_out', action='store', dest='dir_out',
+            metavar='DIROUT', help='Output data directory')
+    parser.add_argument('-nc_file', '--nc_file', action='store', dest='nc_file',
+            metavar='NCFILE', help='GOTM output netCDF file to read (gotm_out.nc by default)')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args = parser.parse_args()
+
+    # check input
+    if not args.forc_scheme or not args.turb_scheme or not args.analysis:
+        print('Forcing scheme, turbulence boundary layer scheme and analysis are required. Stop.\n')
+        parser.print_help()
+        sys.exit(1)
+
+    # forcing method
+    forc_scheme = args.forc_scheme
+    # turbulent method
+    turb_scheme = args.turb_scheme
+    # analysis
+    analysis = args.analysis
+    # method
+    method = args.method
+
+    # starting and ending date (yyyymmdd), empty if find all
+    date_start = args.date_start
+    date_end = args.date_end
+
+    # starting and ending date (yyyymmdd) for analysis, cover the whole range if empty
+    date_start_analy = args.date_start_analy
+    date_end_analy = args.date_end_analy
+
+    # data directory
+    if args.dir_in:
+        dir_in = args.dir_in
+    else:
+        dir_in = os.environ['GOTMRUN_ROOT']
+    if args.dir_out:
+        dir_out = args.dir_out
+    else:
+        dir_out = os.environ['GOTMFIG']+'/'+forc_scheme
+
+    # create out dir if not exist
+    os.makedirs(dir_out, exist_ok=True)
+
+    # output figure name
+    if args.outname:
+        outname = args.outname
+    else:
+        outname = forc_scheme+'_'+turb_scheme+'_'+analysis+'_'+method+'_'+date_start_analy+'-'+date_end_analy+'.npz'
+
+    # netcdf file name
+    if args.nc_file:
+        ncfilename = args.nc_file
+    else:
+        ncfilename = 'gotm_out.nc'
+
+    # format of case name to match
+    # casefmt = r'^\w+_LAT-{0,1}\d{1,2}_LON\d{1,3}_\w+-{0,1}\w*_\d{8}-\d{8}$'
+    if date_start and date_end:
+        datefmt = r'^\d{8}$'
+        if re.search(datefmt, date_start) and re.search(datefmt, date_end):
+            casefmt = r'^'+forc_scheme+r'_LAT-{0,1}\d{1,2}_LON\d{1,3}_'+date_start+'-'+date_end+r'$'
+        else:
+            print('The starting date and ending date should be in yyyymmdd format, got {} and {}. Stop.'.format(date_start, date_end))
+            sys.exit(1)
+    else:
+        casefmt = r'^'+forc_scheme+r'_LAT-{0,1}\d{1,2}_LON\d{1,3}$'
+
+    # print(casefmt)
+
+    # search for directories that match the case name pattern
+    lslist = os.listdir(dir_in)
+
+    r = re.compile(casefmt)
+    caselist = sorted(list(filter(r.search, lslist)))
+    ncase = len(caselist)
+    print('Total number of cases: {}'.format(ncase))
+
+    # initialize array
+    lat = np.zeros(ncase)
+    lon = np.zeros(ncase)
+    dat = np.zeros(ncase)
+
+    # progress counter
+    progress = np.floor(ncase/10)
+    prct = 0
+
+    # loop over all cases
+    for i in np.arange(ncase):
+        # print out the progress
+        # print(caselist[i])
+        if np.mod(i,progress) == 0 or i == 0 or i == ncase-1:
+            print('{:3d}%'.format(prct))
+            prct += 10
+        # check if file exists
+        ncfile = dir_in+'/'+caselist[i]+'/'+ncfilename
+        if os.path.isfile(ncfile):
+            infile = Dataset(ncfile, 'r')
+            lat[i] = infile.variables['lat'][:]
+            lon[i] = infile.variables['lon'][:]
+            # find the time indices
+            dttime, tidx_start, tidx_end = ncread_dim_time(infile, date_start_analy, date_end_analy)
+            # do the analysis
+            dat[i] = do_analysis(analysis)(infile, method=method, tidx_start=tidx_start, tidx_end=tidx_end+1)
+        else:
+            lat[i] = np.nan
+            lon[i] = np.nan
+            dat[i] = np.nan
+
+    # update longitude in the range (0, 360)
+    lon[np.isnan(lon)] = 999.
+    lon[lon<0] = lon[lon<0]+360
+    lon[lon==999.] = np.nan
+
+    # save data
+    np.savez(dir_out+'/'+outname, dat=dat, lat=lat, lon=lon)
+
+if __name__ == "__main__":
+    main()

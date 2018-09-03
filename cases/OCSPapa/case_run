@@ -24,7 +24,7 @@ title="OCSPapa"
 
 # set levels, grid zooming at surface
 nlev=128
-ddu=2
+ddu=0
 ddl=0
 
 # run parameters
@@ -38,8 +38,8 @@ dateend="20131201"
 # name of the turbulence model
 # turbmethod="KPPLT-EFACTOR"
 # turbmethod="KPPLT-ENTR"
-turbmethod="KPPLT-RWHGK"
-# turbmethod="KPP-CVMix"
+# turbmethod="KPPLT-RWHGK"
+turbmethod="KPP-CVMix"
 # turbmethod="SMCLT"
 # turbmethod="SMC"
 

@@ -88,8 +88,8 @@ fi
 # set turbulence method
 source ${scpt_case_turbmethod}
 
-# calculate Langmuir enhancement factor from wave spectrum
-${cmd_nmlchange} -f kpp.nml -e efactor_method -v 3
+# calculate Langmuir number and enhancement factor from wave spectrum
+${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 3
 
 #######################################################################
 #                              Run GOTM                               #

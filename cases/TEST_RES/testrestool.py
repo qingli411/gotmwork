@@ -23,9 +23,9 @@ dir_out = os.environ['HOME']+'/work/gotmfigures/TEST_RES/'
 case_list = ['OSMOSIS_winter',
              'OSMOSIS_spring',
              'OCSPapa_20130621-20131201',
-             'COREII_LAT2_LON234_20080615-20081231',
-             'COREII_LAT10_LON86_20080615-20081231',
-             'COREII_LAT-54_LON254_20080915-20090915']
+             'COREII_LAT2_LON234_20080601-20081231',
+             'COREII_LAT10_LON86_20080601-20081231',
+             'COREII_LAT-54_LON254_20080901-20090831']
 # list of depths
 depth_list = np.array([-200, -240, -120, -150, -120, -400])
 # list of turbulent methods

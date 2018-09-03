@@ -12,6 +12,7 @@ source "../../set_tools.sh"
 
 # input data - surface fluxes
 datadir="${GOTMDATA_ROOT}/COREII_IAF"
+swrdata="ncar_rad.nc"
 
 # input data - waves
 uspdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
@@ -46,7 +47,7 @@ nsave=6
 outname="gotm_out"
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20080115"
+datestart="20080601"
 dateend="20091231"
 
 # name of the turbulence model
@@ -90,6 +91,13 @@ ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
 ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
 ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
+# processing shortwave radiation
+${cmd_nc2dat_core2swr} -i ${datadir}/${swrdata} -o "swr_file.dat" \
+    -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
+${cmd_nmlchange} -f airsea.nml -e swr_method -v 2
+${cmd_nmlchange} -f airsea.nml -e swr_file -v 'swr_file.dat'
+${cmd_nmlchange} -f airsea.nml -e swr_factor -v 1
+
 # use meteo data instead of fluxes
 ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
 ${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
@@ -125,8 +133,8 @@ source ${scpt_case_turbmethod}
 
 # turn off bottom boundary layer
 ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
-# calculate Langmuir enhancement factor from Stokes drift
-${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
+# calculate Langmuir number and enhancement factor from Stokes drift
+${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
 
 #######################################################################
 #                              Run GOTM                               #

@@ -9,6 +9,7 @@ import numpy as np
 from netCDF4 import num2date, date2index
 from scipy.interpolate import griddata
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from mpl_toolkits.basemap import Basemap
 
 ###############################################################################
@@ -69,12 +70,13 @@ def nctime_indices(nctime, date_start, date_end):
     # return the indices
     return [tidx_start, tidx_end]
 
-def nctime_to_datetime(nctime, tidx_start=None, tidx_end=None):
+def nctime_to_datetime(nctime, tidx_start=None, tidx_end=None, tidx_arr=None):
     """Convert from nctime object to datetime object.
 
     :nctime: (netCDF time object) nctime object
     :tidx_start: (int) starting index
     :tidx_end: (int) ending index
+    :tidx_arr: (1D numpy array of int) indices
     :returns: (datetime object) datetime object
 
     """
@@ -85,7 +87,10 @@ def nctime_to_datetime(nctime, tidx_start=None, tidx_end=None):
     except AttributeError :
         t_cal = 'standard'
     # return sliced datetime
-    return num2date(nctime[tidx_start:tidx_end], units=t_units, calendar=t_cal)
+    if tidx_arr is None:
+        return num2date(nctime[tidx_start:tidx_end], units=t_units, calendar=t_cal)
+    else:
+        return num2date(nctime[tidx_arr], units=t_units, calendar=t_cal)
 
 def print_dttime_range(dttime):
     """Print the range of dttime.
@@ -323,12 +328,13 @@ def do_analysis(name):
 
     """
     switcher = {
-            'mldMean': do_analysis_mld_mean
+            'mldMean': do_analysis_mld_mean,
+            'variable': do_analysis_variable_mean
             }
     return switcher.get(name)
 
 def do_analysis_mld_mean(infile, method='maxNsqr', tidx_start=None, tidx_end=None):
-    """TODO: Docstring for do_analysis_mld_mean.
+    """Driver for diagnosing the mean mixed layer depth.
 
     :infile: (Dataset) netcdf file
     :method: (str) method to calculate the mixed layer depth
@@ -340,6 +346,20 @@ def do_analysis_mld_mean(infile, method='maxNsqr', tidx_start=None, tidx_end=Non
     mld = get_mld(method)(infile, tidx_start=tidx_start, tidx_end=tidx_end)
     mld_mean = np.mean(mld)
     return mld_mean
+
+def do_analysis_variable_mean(infile, method='LaTurb', tidx_start=None, tidx_end=None):
+    """Driver for diagnosing the mean value of the variable.
+
+    :infile: (Dataset) netcdf file
+    :method: (str) name of the variable
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (float) dimensionless parameter
+
+    """
+    var = get_variable(method)(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    var_mean = np.mean(var)
+    return var_mean
 
 #--------------------------------
 # mixed layer depth
@@ -467,7 +487,8 @@ def get_variable(method):
             'hoLmo': get_h_over_lmo,
             'buoyancy': get_buoyancy,
             'spice': get_spice,
-            'dPEdt': get_dpedt
+            'dPEdt': get_dpedt,
+            'mixEf1': get_dpedt_over_ustar3
             }
     return switcher.get(method)
 
@@ -627,20 +648,43 @@ def get_dpedt(infile, tidx_start=None, tidx_end=None):
     dpedt[-1] = (epot[-1]-epot[-2])/(time[-1]-time[-2])
     return dpedt
 
+def get_dpedt_over_ustar3(infile, tidx_start=None, tidx_end=None):
+    """Calculate the bulk rate of change in the total potential
+       energy (PE), normalized by firction
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) rate of change in PE
+
+    """
+    # rate of potential energy
+    dpedt = get_dpedt(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    # friction velocity
+    ustar = infile.variables['u_taus'][tidx_start:tidx_end,0,0]
+    # normalize by rho_0*ustar**3
+    bulk_dpedt = dpedt/ustar**3/rho_0
+    return bulk_dpedt
+
 ###############################################################################
 #                                visualization                                #
 ###############################################################################
 
-def plot_map_scatter(rlon, rlat, dat, figname, vmax=None, vmin=None, cmap='rainbow'):
+def plot_map_scatter(rlon, rlat, dat, units=None, levels=None, vmax=None, vmin=None, cmap='rainbow'):
     """Plot scatters on a map
 
-    :rlon: (numpy array) 1D array of longitude
-    :rlat: (numpy array) 1D array of latitude
-    :dat: (numpy array) 1D array of data to plot
+    :rlon: (Numpy array) 1D array of longitude
+    :rlat: (Numpy array) 1D array of latitude
+    :dat: (Numpy array) 1D array of data to plot
+    :units: (str, optional) unit of dat
+    :leveles: (list, optional) list of levels
+    :vmax: (float, optional) max value
+    :vmin: (float, optional) min value
+    :cmap: (str, optional) colormap
     :return: none
     """
     # plot map
-    m = Basemap(projection='cyl', llcrnrlat=-72,urcrnrlat=72,llcrnrlon=0,urcrnrlon=360)
+    m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=0, urcrnrlon=360)
     # plot coastlines, draw label meridians and parallels.
     m.drawcoastlines()
     m.drawmapboundary(fill_color='lightgray')
@@ -648,13 +692,20 @@ def plot_map_scatter(rlon, rlat, dat, figname, vmax=None, vmin=None, cmap='rainb
     m.drawparallels(np.arange(-90.,91.,30.), labels=[1,0,1,1])
     m.drawmeridians(np.arange(-180.,181.,60.), labels=[1,0,1,1])
     x, y = m(rlon, rlat)
-    m.scatter(x, y, marker='.', s=32, c=dat, cmap=plt.cm.get_cmap(cmap), vmin=vmin, vmax=vmax)
-    m.colorbar()
+    # manually mapping levels to the colormap if levels is passed in,
+    # otherwise linear mapping
+    if levels:
+        bounds = np.array(levels)
+        norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
+        m.scatter(x, y, marker='.', s=32, c=dat, norm=norm, cmap=plt.cm.get_cmap(cmap), vmin=vmin, vmax=vmax)
+    else:
+        m.scatter(x, y, marker='.', s=32, c=dat, cmap=plt.cm.get_cmap(cmap), vmin=vmin, vmax=vmax)
+    # show colorbar
+    cb = m.colorbar()
+    cb.ax.set_title(units)
     # set figure size
     f = plt.gcf()
     f.set_size_inches(8, 4)
-    # save figure
-    plt.savefig(figname, dpi=300)
 
 ###############################################################################
 #                                miscellaneous                                #

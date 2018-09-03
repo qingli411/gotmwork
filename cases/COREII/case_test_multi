@@ -13,6 +13,7 @@ source "../../set_tools.sh"
 
 # input data - surface fluxes
 datadir="${GOTMDATA_ROOT}/COREII_IAF"
+swrdata="ncar_rad.nc"
 
 # input data - waves
 uspdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
@@ -89,7 +90,7 @@ while [ ${lat} -le ${lat_end} ]; do
 
         # dry run first and check the availability of argo profiles
         ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-            -r 2 -ds ${datestart} -dr 20 -dry
+            -r 2 -d ${datestart} -dr 20 -dry -iy
         nstate=$?
 
         if [ ${l_dry_run} == "no" ]; then
@@ -128,6 +129,13 @@ while [ ${lat} -le ${lat_end} ]; do
             ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
             ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
+            # processing shortwave radiation
+            ${cmd_nc2dat_core2swr} -i ${datadir}/${swrdata} -o "swr_file.dat" \
+                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
+            ${cmd_nmlchange} -f airsea.nml -e swr_method -v 2
+            ${cmd_nmlchange} -f airsea.nml -e swr_file -v 'swr_file.dat'
+            ${cmd_nmlchange} -f airsea.nml -e swr_factor -v 1
+
             # use meteo data instead of fluxes
             ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
             ${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
@@ -152,7 +160,7 @@ while [ ${lat} -le ${lat_end} ]; do
             sprof_name="sprof_file.dat"
             ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
                 -r 2 -ot ${tprof_name} -os ${sprof_name} \
-                -ds ${datestart} -dr 20
+                -d ${datestart} -dr 20 -iy
             ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
             ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
             ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
@@ -163,8 +171,8 @@ while [ ${lat} -le ${lat_end} ]; do
 
             # turn off bottom boundary layer
             ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
-            # calculate Langmuir enhancement factor from Stokes drift
-            ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
+            # calculate Langmuir number and enhancement factor from Stokes drift
+            ${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
 
             # run GOTM
             ${cmd_gotm} 2> log.${outname}

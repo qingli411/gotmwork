@@ -16,7 +16,7 @@
 source "../../set_tools.sh"
 
 # data directory for preprocessed input data
-dataroot="${GOTMRUN_ROOT}/gotmdata_core2"
+dataroot="${GOTMDATA_ROOT}/gotmdata_core2"
 
 #######################################################################
 #                           Set parameters                            #
@@ -27,13 +27,14 @@ title="COREII"
 
 # set max depth and levels, grid zooming at surface
 maxdepth=500
-nlev=128
-ddu=2
+nlev=500
+ddu=0
 ddl=0
 
 # run parameters
-dt=1800
-nsave=6
+dt=600
+# set output frequency (3-hourly output)
+let nsave=10800/dt
 
 # output file name
 outname="gotm_out"
@@ -41,13 +42,21 @@ outname="gotm_out"
 # starting and ending date - in the format of YYYYMMDD
 # the starting date should match what are available in the
 # input data directory
-datestart="20080615"
-dateend="20091231"
+datestart="20090201"
+dateend="20090228"
 
 # name of the turbulence model
 # turbmethod="KPP-CVMix"
-turbmethod="OSMOSIS"
-# turbmethod="KPP-Original"
+# turbmethod="KPP-ROMS"
+turbmethod="KPPLT-ENTR"
+# turbmethod="OSMOSIS"
+# turbmethod="EPBL"
+# turbmethod="SMCLT"
+# turbmethod="SMC"
+
+# setup
+dz=$((maxdepth/nlev))
+setup="${title}_Global/VR${dz}m_DT${dt}s_${datestart}-${dateend}"
 
 #######################################################################
 #                         Loop over locations                         #
@@ -60,7 +69,7 @@ lat_end=70
 dlat=4
 
 # input data starting and ending date
-inputstart="20080115"
+inputstart="20080601"
 inputend="20091231"
 
 # start outer loop over lon
@@ -77,25 +86,25 @@ while [ ${lat} -le ${lat_end} ]; do
     if [ -d ${dataroot}/${inputname} ]; then
 
         # case name
-        casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
+        casename="${title}_LAT${lat}_LON${lon}"
 
         # print case name
         echo ${casename}
 
-        # create run directory
-        rundir="${GOTMRUN_ROOT}/${casename}"
-        mkdir -p ${rundir}
-        cd ${rundir}
-
-        # set up namelists
-        cp ${nmldir}/*.nml ./
-
-        # link input data
-        ln -s ${dataroot}/${inputname}/*_file.dat ./
         # skip if initial temperature and salinity profiles are not available
         tprofdata=${dataroot}/${inputname}/tprof_file_${datestart}.dat
         sprofdata=${dataroot}/${inputname}/sprof_file_${datestart}.dat
-        if [ -f ${tprofdata} -a -f ${sprofdata} ]; then
+        if [ -s ${tprofdata} -a -s ${sprofdata} ]; then
+            # create run directory
+            rundir="${GOTMRUN_ROOT}/${setup}/${turbmethod}/${casename}"
+            mkdir -p ${rundir}
+            cd ${rundir}
+
+            # set up namelists
+            cp ${nmldir}/*.nml ./
+
+            # link input data
+            ln -s ${dataroot}/${inputname}/*_file.dat ./
             tprof_name="tprof_file.dat"
             sprof_name="sprof_file.dat"
             ln -s ${tprofdata} ./${tprof_name}
@@ -120,8 +129,13 @@ while [ ${lat} -le ${lat_end} ]; do
         ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
         ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
         ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+        ${cmd_nmlchange} -f gotmrun.nml -e eq_state_method -v 4
         ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
         ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
+
+        ${cmd_nmlchange} -f airsea.nml -e swr_method -v 2
+        ${cmd_nmlchange} -f airsea.nml -e swr_file -v 'swr_file.dat'
+        ${cmd_nmlchange} -f airsea.nml -e swr_factor -v 1
 
         # use meteo data instead of fluxes
         ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
@@ -148,8 +162,8 @@ while [ ${lat} -le ${lat_end} ]; do
 
         # turn off bottom boundary layer
         ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
-        # calculate Langmuir enhancement factor from Stokes drift
-        ${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
+        # calculate Langmuir number and enhancement factor from Stokes drift
+        ${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
 
         # run GOTM
         ${cmd_gotm} 2> log.${outname}

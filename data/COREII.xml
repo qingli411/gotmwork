@@ -13,13 +13,6 @@
         <hum_method>4</hum_method>
         <outname>meteo_file.dat</outname>
     </var>
-    <var name="swr">
-        <longname>Shortwave radiation (W/m2)</longname>
-        <filename>ncar_rad.nc</filename>
-        <vartype>scalar</vartype>
-        <varname>SWDN_MOD</varname>
-        <outname>swr_file.dat</outname>
-    </var>
     <var name="precip">
         <longname>Precipitation (mm/day)</longname>
         <filename>gpcp_precip.nc</filename>

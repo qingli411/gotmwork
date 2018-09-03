@@ -2,8 +2,12 @@
 #
 # Manually parallel run by submitting multiple jobs
 
-lon_slist=(  2  70 126 166 194 226 266 322)
-lon_elist=( 66 122 162 190 222 262 318 360)
+# lon_slist=(  2  70 126 166 194 226 266 322)
+# lon_elist=( 66 122 162 190 222 262 318 360)
+# lon_slist=(  2  78 138 178 210 234 266 322)
+# lon_elist=( 74 134 174 206 230 262 318 360)
+lon_slist=(  2  70 126 170 202 238 282 330)
+lon_elist=( 66 122 166 198 234 278 326 360)
 dlon=4
 
 for i in {0..7}; do
