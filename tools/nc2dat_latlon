@@ -62,12 +62,12 @@ def main():
     attlist = infile.ncattrs()
 
     # read latitude and longitude
-    for vlat in ['lat', 'LAT', 'TLAT']:
+    for vlat in ['lat', 'LAT', 'TLAT', 'latitude', 'LATITUDE']:
         if vlat in varlist:
             lat = infile.variables[vlat][:]
             break
 
-    for vlon in ['lon', 'LON', 'TLON', 'TLONG']:
+    for vlon in ['lon', 'LON', 'TLON', 'TLONG', 'longitude', 'LONGITUDE']:
         if vlon in varlist:
             lon = infile.variables[vlon][:]
             break
