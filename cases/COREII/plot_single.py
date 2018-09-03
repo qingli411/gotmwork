@@ -11,12 +11,10 @@ def main():
     # case name
     # casename = 'OSMOSIS_winter_OSMOSIS'
     casename = 'COREII_LAT-46_LON222_20080601-20080731'
-    # casename = 'COREII_LAT-46_LON226_20080615-20091231'
     forcmethod = 'COREII'
 
     # data directory
     datadir = os.environ['GOTMRUN_ROOT']+'/VR5m_DT600s/KPP-CVMix'
-    # datadir = '/Users/qingli/utleydata/qingli/gotmruns/VR5m_DT60s/KPP-CVMix'
     outdir = os.environ['GOTMFIG_ROOT']+'/'+forcmethod
     # netcdf file name
     filename = 'gotm_out.nc'

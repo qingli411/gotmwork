@@ -47,7 +47,7 @@ nsave=6
 outname="gotm_out"
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20080115"
+datestart="20080601"
 dateend="20091231"
 
 # name of the turbulence model
