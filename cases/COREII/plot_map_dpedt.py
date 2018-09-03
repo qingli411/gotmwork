@@ -14,20 +14,20 @@ def main():
     # turb_scheme0 = 'KPP-CVMix'
     # turb_scheme1_list = ['KPPLT-ENTR', 'OSMOSIS', 'EPBL', 'SMC']
     turb_scheme0 = 'KPP-CVMix'
-    turb_scheme1_list = ['KPP-ROMS', 'KPP-CVMix-nDC']
+    turb_scheme1_list = ['KPP-ROMS', 'KPPLT-ENTR']
     # month_list = ['Dec', 'Feb', 'Jun', 'Aug', 'DecY2']
     month_list = ['Aug']
-    analysis = 'mldMean'
-    method = 'deltaR'
+    analysis = 'variable'
+    method = 'mixEf1'
     nturb = len(turb_scheme1_list)
     nmon = len(month_list)
     # plot scheme0
-    levels = [-500, -450, -400, -350, -300, -250, -200, -180, -160, -140, -120, -100, -90, -80, -70, -60, -50, -40, -30, -20, -10, 0]
+    levels = None
     print(turb_scheme0)
     for j in np.arange(nmon):
         month = month_list[j]
         print('  {}'.format(month))
-        plot_map(turb_scheme0, month, analysis, method, units='m', levels=levels, vmax=0, vmin=-500)
+        plot_map(turb_scheme0, month, analysis, method, units='', levels=levels, vmax=100, vmin=-100)
 
     # plot differences between scheme1 and scheme0
     for i in np.arange(nturb):
