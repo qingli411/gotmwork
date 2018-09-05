@@ -20,8 +20,8 @@ begin
     diri = "/Users/qingli/work/gotmdata/JRA55-do/"
     filo = "meteo."+yyyy+"."+dlabel+".nc"
 ; TODO: add sea level pressure <31-08-18, Qing Li> ;
-    filelist = (/"u_10", "v_10", "t_10", "q_10"/)
-    varlist = (/"uas_10m", "vas_10m", "tas_10m", "huss_10m"/)
+    filelist = (/"u_10", "v_10", "t_10", "q_10", "slp"/)
+    varlist = (/"uas_10m", "vas_10m", "tas_10m", "huss_10m", "psl"/)
 
 ; missing value
     fmsg = default_fillvalue("float")
@@ -53,7 +53,7 @@ begin
         var = where(ismissing(var), fmsg, var)
         var@missing_value = fmsg
         var@_FillValue = fmsg
-        if (varlist(i) .eq. "SLP" )
+        if (varlist(i) .eq. "psl" )
             var = (/var/)*0.01
             var@units = "hPa"
         end if

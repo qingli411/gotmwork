@@ -142,14 +142,14 @@ while [ ${lat} -le ${lat_end} ]; do
             ${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
 
             # processing Stokes drift data
-            ${cmd_nc2dat_core2ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
+            ${cmd_nc2dat_ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
                 -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} -usp
             ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
             ${cmd_nmlchange} -f obs.nml -e nfreq -v 3
             ${cmd_nmlchange} -f obs.nml -e usp_file -v "usp_file.dat"
 
             # processing bulk wave parameter
-            ${cmd_nc2dat_core2ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
+            ${cmd_nc2dat_ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
                 -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} \
                 -v hs fp dir
             ${cmd_nmlchange} -f obs.nml -e wave_method -v 2

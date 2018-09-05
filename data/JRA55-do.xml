@@ -6,7 +6,7 @@
         <vartype>meteo</vartype>
         <varname_u10>uas_10m</varname_u10>
         <varname_v10>vas_10m</varname_v10>
-        <varname_slp>slp</varname_slp>
+        <varname_slp>psl</varname_slp>
         <varname_sat>tas_10m</varname_sat>
         <varname_hum>huss_10m</varname_hum>
         <varname_cld>cld</varname_cld>
