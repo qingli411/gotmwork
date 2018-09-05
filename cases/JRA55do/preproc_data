@@ -7,11 +7,8 @@
 #                              Set path                               #
 #######################################################################
 
-# directory to save the data
-scratchdir="${HOME}/scratch/gotmdata_core2"
-
 # setup paths and tools
-source ${GOTMWORK_ROOT}/set_tools.sh
+source "../../set_tools.sh"
 
 # input data - surface fluxes
 datadir="${GOTMDATA_ROOT}/JRA55-do"
@@ -39,10 +36,13 @@ maxdepth=2000
 
 # starting and ending date - in the format of YYYYMMDD
 datestart="20080601"
-dateend="20080630"
+dateend="20081231"
 
 # flag for dry run
 l_dry_run="no"
+
+# get date
+yyyymmdd=$(date "+%Y%m%d")
 
 #######################################################################
 #                         Loop over locations                         #
@@ -74,7 +74,7 @@ while [ ${lat} -le ${lat_end} ]; do
 
         # dry run first and check the availability of argo profiles
         ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-            -r 2 -ds ${datestart} -dr 20 -dry
+            -r 2 -ds ${datestart} -dr 20 -dry -iy
         nstate=$?
 
         if [ ${l_dry_run} == "no" ]; then
@@ -83,13 +83,13 @@ while [ ${lat} -le ${lat_end} ]; do
 
             # skip if no argo profile is available
             if [ $nstate == 1 ]; then
-                echo "[case_run_multi] No Argo profile available. Skip."
+                echo "[preproc_data] No Argo profile available. Skip."
                 lat=$((${lat}+${dlat}))
                 continue
             fi
 
             # create run directory
-            rundir="${scratchdir}/${casename}"
+            rundir="${GOTMDATA_ROOT}/gotmdata_jra55do_${yyyymmdd}/${casename}"
             mkdir -p ${rundir}
             cd ${rundir}
 
@@ -115,17 +115,21 @@ while [ ${lat} -le ${lat_end} ]; do
                 -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} \
                 -v hs fp dir
 
-            # # processing Argo data for initialization
-            # # save 12 initialization profiles
-            # for i in {1..12}; do
-            #     mm=$(printf '%02d' ${i})
-            #     argostart="${datestart:0:4}${mm}${datestart:6:2}"
-            #     tprof_name="tprof_file_${argostart}.dat"
-            #     sprof_name="sprof_file_${argostart}.dat"
-            #     ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-            #         -r 2 -ot ${tprof_name} -os ${sprof_name} \
-            #         -ds ${argostart} -dr 20 -maxd ${maxdepth}
-            # done
+            # processing Argo data for initialization
+            # save 12 initialization profiles
+            for i in {1..12}; do
+                mm=$(printf '%02d' ${i})
+                if [ ${i} -ge ${datestart:4:2} ]; then
+                    argostart="${datestart:0:4}${mm}${datestart:6:2}"
+                else
+                    argostart="$((${datestart:0:4}+1))${mm}${datestart:6:2}"
+                fi
+                tprof_name="tprof_file_${argostart}.dat"
+                sprof_name="sprof_file_${argostart}.dat"
+                ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+                    -r 2 -ot ${tprof_name} -os ${sprof_name} \
+                    -d ${argostart} -dr 20 -maxd ${maxdepth} -iy
+            done
             rm ./*.nml
             rm ./*.xml
             rm ./*.bk
