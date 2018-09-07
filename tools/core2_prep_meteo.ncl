@@ -17,7 +17,8 @@ begin
     dlabel = "23OCT2012"
 
 ; define file names
-    diri = "/Volumes/Qing_Work/data/COREII_IAF/"
+    gotmdata_root = getenv("GOTMDATA_ROOT")
+    diri = gotmdata_root+"/COREII_IAF/"
     filo = "meteo."+yyyy+"."+dlabel+".nc"
     filelist = (/"u_10", "v_10", "t_10", "q_10", "slp"/)
     varlist = (/"U_10_MOD", "V_10_MOD", "T_10_MOD", "Q_10_MOD", "SLP"/)
@@ -28,7 +29,7 @@ begin
 
 ; create output data file
     system("/bin/rm -f "+diri+filo)
-    setfileoption("nc","Format","LargeFile")
+    setfileoption("nc","Format","NetCDF4")
     out	= addfile(diri+filo,"c")
 
 ; input file

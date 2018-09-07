@@ -13,11 +13,12 @@
 begin
 
 ; define parameters
-    yyyy = "2008"
+    yyyy = "2008-2009"
     dlabel = "18Oct2017"
 
 ; define file names
-    diri = "/Users/qingli/work/gotmdata/JRA55-do/"
+    gotmdata_root = getenv("GOTMDATA_ROOT")
+    diri = gotmdata_root+"/JRA55-do/"
     filo = "meteo."+yyyy+"."+dlabel+".nc"
 ; TODO: add sea level pressure <31-08-18, Qing Li> ;
     filelist = (/"u_10", "v_10", "t_10", "q_10", "slp"/)
@@ -29,7 +30,7 @@ begin
 
 ; create output data file
     system("/bin/rm -f "+diri+filo)
-    setfileoption("nc","Format","LargeFile")
+    setfileoption("nc","Format","NetCDF4")
     out	= addfile(diri+filo,"c")
 
 ; input file
