@@ -10,7 +10,7 @@ import sys
 import os
 tooldir_default = os.environ['GOTMWORK_ROOT']+'/tools'
 sys.path.append(os.environ.get('tooldir', tooldir_default))
-from gotmtool import gotm_read_pfl, gotm_read_ts
+from gotmtool import gotm_read_pfl, gotm_read_ts, get_mld
 
 #--------------------------------
 # common variables
@@ -27,12 +27,12 @@ case_list = ['OSMOSIS_winter',
              'COREII_LAT10_LON86_20080601-20081231',
              'COREII_LAT-54_LON254_20090101-20090731']
 # list of depths
-depth_list = np.array([-200, -240, -120, -150, -120, -400])
+depth_list = np.array([-200, -240, -80, -150, -120, -400])
 # list of turbulent methods
 turbmethod_list = ['KPP-CVMix',
-                   # 'KPPLT-EFACTOR',
-                   'KPPLT-ENTR',
                    'KPP-ROMS',
+                   'KPPLT-EFACTOR',
+                   'KPPLT-ENTR',
                    'KPPLT-RWHGK',
                    'EPBL',
                    'EPBL-LT',
@@ -42,9 +42,9 @@ turbmethod_list = ['KPP-CVMix',
                    'OSMOSIS']
 # list of legend for turbulent methods
 legend_list = ['KPP-CVMix',
-               # 'KPPLT-VR12',
-               'KPPLT-LF17',
                'KPP-ROMS',
+               'KPPLT-VR12',
+               'KPPLT-LF17',
                'KPPLT-RWHGK16',
                'ePBL',
                'ePBL-LT',
@@ -52,6 +52,10 @@ legend_list = ['KPP-CVMix',
                'SMCLT-H15',
                'k-epsilon',
                'OSMOSIS']
+# list of location
+irow_2col = [1, 2, 0, 1, 2, 3, 3, 4, 4, 5, 5]
+icol_2col = [0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1]
+labels_2col = ['(b)', '(c)', '(g)', '(h)', '(i)', '(d)', '(j)', '(e)', '(k)','(f)','(l)']
 # list of profiles
 pfl_list = ['temp', 'salt', 'rho', 'buoy', 'spice']
 # max and min values for colorbar ([ncase, nprofile])
@@ -63,7 +67,7 @@ pfl_cmax_list = np.array([[16, 20, 18, 27, 29, 7],
 pfl_cmin_list = np.array([[12, 12, 4, 12, 20, 4],
                       [35.7, 35.6, 32.2, 34.7, 33.0, 33.9],
                       [1026.0, 1025.3, 1023.2, 1022.7, 1021.5, 1026.7],
-                      [-4.e-3, -4.e-3, 0, 4.e-3, 1.5e-2, -3.2e-3],
+                      [-3.5e-3, -2.5e-3, 8e-3, 4.e-3, 1.5e-2, -3.2e-3],
                       [0.9e-2, 0.6e-2, -2.7e-2, 0, 1.2e-2, -1.8e-2]])
 pfl_dmax_list = np.array([[1, 1, 1, 1, 1, 1],
                       [0.05, 0.05, 0.05, 0.05, 0.5, 0.05],

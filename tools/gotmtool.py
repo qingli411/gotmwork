@@ -528,6 +528,7 @@ def get_variable(method):
             'hoLmo': get_h_over_lmo,
             'buoyancy': get_buoyancy,
             'spice': get_spice,
+            'bflux': get_bflux,
             'dPEdt': get_dpedt,
             'mixEf1': get_dpedt_over_ustar3
             }
@@ -592,6 +593,38 @@ def get_la_sl(infile, tidx_start=None, tidx_end=None):
     la = np.sqrt(ustar/np.sqrt(ussl**2.+vssl**2.))
     return la
 
+def get_bflux(infile, tidx_start=None, tidx_end=None):
+    """Find the surface buoyancy flux
+
+    :infile: (Dataset) netcdf file
+    :tidx_start: (int, optional) starting index
+    :tidx_end: (int, optional) ending index
+    :returns: (numpy array) surface buoyancy flux
+
+    """
+    # get boundary layer depth
+    hbl   = get_mld('deltaR')(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    # surface temperature and salinity
+    temp0 = infile.variables['temp'][tidx_start:tidx_end,-1,0,0]
+    salt0 = infile.variables['salt'][tidx_start:tidx_end,-1,0,0]
+    # surface temperature flux
+    tflux = infile.variables['heat'][tidx_start:tidx_end,0,0]/cp/rho_0
+    # correction for solar radiation
+    rad   = infile.variables['rad'][tidx_start:tidx_end,:,0,0]
+    z     = infile.variables['z'][tidx_start:tidx_end,:,0,0]
+    nt    = temp0.shape[0]
+    rflux = np.zeros(nt)
+    for i in np.arange(nt):
+        ihbl = np.argmin(np.abs(z[i,:]-hbl[i]))
+        rflux[i] = rad[i,-1]-rad[i,ihbl]
+    tflux = tflux+rflux/cp/rho_0
+    # surface salinity flux
+    sflux = -(infile.variables['precip'][tidx_start:tidx_end,0,0]
+          + infile.variables['evap'][tidx_start:tidx_end,0,0])*salt0
+    # surface buoyancy flux (positive for stable condition)
+    bflux = g*alpha_0*tflux-g*beta_0*sflux
+    return bflux
+
 def get_h_over_lmo(infile, tidx_start=None, tidx_end=None):
     """Find the stability parameter defined as h/L
        where h is the boundary layer depth
@@ -605,27 +638,10 @@ def get_h_over_lmo(infile, tidx_start=None, tidx_end=None):
     """
     # get boundary layer depth
     hbl   = get_mld('deltaR')(infile, tidx_start=tidx_start, tidx_end=tidx_end)
+    # get surface buoyancy flux
+    bflux = get_bflux(infile, tidx_start=tidx_start, tidx_end=tidx_end)
     # friction velocity
     ustar = infile.variables['u_taus'][tidx_start:tidx_end,0,0]
-    # surface temperature and salinity
-    temp0 = infile.variables['temp'][tidx_start:tidx_end,-1,0,0]
-    salt0 = infile.variables['salt'][tidx_start:tidx_end,-1,0,0]
-    # surface temperature flux
-    tflux = infile.variables['heat'][tidx_start:tidx_end,0,0]/cp/rho_0
-    # correction for solar radiation
-    rad   = infile.variables['rad'][tidx_start:tidx_end,:,0,0]
-    z     = infile.variables['z'][tidx_start:tidx_end,:,0,0]
-    nt    = ustar.shape[0]
-    rflux = np.zeros(nt)
-    for i in np.arange(nt):
-        ihbl = np.argmin(np.abs(z[i,:]-hbl[i]))
-        rflux[i] = rad[i,-1]-rad[i,ihbl]
-    tflux = tflux+rflux/cp/rho_0
-    # surface salinity flux
-    sflux = -(infile.variables['precip'][tidx_start:tidx_end,0,0]
-          + infile.variables['evap'][tidx_start:tidx_end,0,0])*salt0
-    # surface buoyancy flux (positive for stable condition)
-    bflux = g*alpha_0*tflux-g*beta_0*sflux
     # Monin-Obukhov length
     Lmo = ustar**3.0/kappa/bflux
     # filter out zeros
