@@ -8,7 +8,7 @@
 #                           Loop over cases                           #
 #######################################################################
 
-l_test="no"
+l_test="yes"
 
 if [ ${l_test} == "yes" ]; then
     # name of the turbulence model
