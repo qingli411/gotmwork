@@ -38,8 +38,7 @@ startlist=(20080601 20090101 20080601)
 endlist=(20081231 20090731 20081231)
 
 # season (winter or spring)
-# for idx in ${!latlist[@]}; do
-for idx in 1; do
+for idx in ${!latlist[@]}; do
     # location
     lat=${latlist[idx]}
     lon=${lonlist[idx]}
