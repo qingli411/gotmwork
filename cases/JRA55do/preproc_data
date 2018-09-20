@@ -15,9 +15,9 @@ datadir="${GOTMDATA_ROOT}/JRA55-do"
 
 # input data - waves
 uspdir="${GOTMDATA_ROOT}/WAVEWATCH_JRA55-do"
-uspdata="ww3.2008_usp.nc"
+uspdata="ww3.2008-2009_usp.nc"
 wavdir="${GOTMDATA_ROOT}/WAVEWATCH_JRA55-do"
-wavdata="ww3.2008.nc"
+wavdata="ww3.2008-2009.nc"
 
 # input data - Argo profiles for initialization
 argodir="${GOTMDATA_ROOT}/Argo"
@@ -36,7 +36,7 @@ maxdepth=2000
 
 # starting and ending date - in the format of YYYYMMDD
 datestart="20080601"
-dateend="20081231"
+dateend="20091231"
 
 # flag for dry run
 l_dry_run="no"
@@ -74,7 +74,7 @@ while [ ${lat} -le ${lat_end} ]; do
 
         # dry run first and check the availability of argo profiles
         ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-            -r 2 -ds ${datestart} -dr 20 -dry -iy
+            -r 2 -d ${datestart} -dr 20 -dry -iy
         nstate=$?
 
         if [ ${l_dry_run} == "no" ]; then
