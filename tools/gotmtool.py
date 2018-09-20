@@ -349,11 +349,11 @@ def get_value_lat_lon(indata, lat2d, lon2d, rlat, rlon, imethod='nearest'):
     """Return the value of a variable at a given location (latitude and
     longitude).
 
-    :lat2d: (2d numpy array) latitude in 2d array
-    :lon2d: (2d numpy array) longitude in 2d array
     :indata: (2d/3d/4d numpy array) the value of variables in 2d/3d/4d array
                                     last two dimensions should be consistent
                                     with lat2d and lon2d
+    :lat2d: (2d numpy array) latitude in 2d array
+    :lon2d: (2d numpy array) longitude in 2d array
     :rlat: (float or 1d numpy array) output latitude
     :rlon: (float or 1d numpy array) output longitude
     :imethod: (str) interpolation method
@@ -363,34 +363,69 @@ def get_value_lat_lon(indata, lat2d, lon2d, rlat, rlon, imethod='nearest'):
     """
     #  TODO: no wrapping of longitude at lon=360, can be done by expanding
     #        lat2d and lon2d <07-03-18, Qing Li> #
-    grid = (lat2d.flatten(),lon2d.flatten())
     nsize = indata.ndim
-    rlat = np.asarray(rlat)
-    rlon = np.asarray(rlon)
-    if nsize == 2:
-        outdata = griddata(grid, indata.flatten(), (rlat, rlon), method=imethod)
-    elif nsize == 3:
-        nt = indata.shape[0]
-        nout = rlat.size
-        outdata = np.zeros((nt, nout))
-        for i in np.arange(nt):
-            outdata[i,:] = griddata(grid, indata[i,:,:].flatten(), (rlat, rlon), method=imethod)
-    elif nsize == 4:
-        nt = indata.shape[0]
-        nd = indata.shape[1]
-        nout = rlat.size
-        outdata = np.zeros((nt, nd, nout))
-        for i in np.arange(nt):
-            for j in np.arange(nd):
-                outdata[i,j,:] = griddata(grid, indata[i,j,:,:].flatten(),
-                        (rlat, rlon), method=imethod)
+    if imethod == 'nearest':
+        ilat, ilon = get_index_lat_lon_nearest(lat2d, lon2d, rlat, rlon)
+        if nsize == 2:
+            outdata = indata[ilat,ilon]
+        elif nsize == 3:
+            outdata = indata[:,ilat,ilon]
+        elif nsize == 4:
+            outdata = indata[:,:,ilat,ilon]
+        else:
+            print('The variable {} has {} dimensions, not supported'
+                    .format(vname, nsize))
+            sys.exit(1)
     else:
-        print('The variable {} has {} dimensions, not supported'
-                .format(vname, nsize))
-        sys.exit(1)
+        grid = (lat2d.flatten(),lon2d.flatten())
+        rlat = np.asarray(rlat)
+        rlon = np.asarray(rlon)
+        if nsize == 2:
+            outdata = griddata(grid, indata.flatten(), (rlat, rlon), method=imethod)
+        elif nsize == 3:
+            nt = indata.shape[0]
+            nout = rlat.size
+            outdata = np.zeros((nt, nout))
+            for i in np.arange(nt):
+                outdata[i,:] = griddata(grid, indata[i,:,:].flatten(), (rlat, rlon), method=imethod)
+        elif nsize == 4:
+            nt = indata.shape[0]
+            nd = indata.shape[1]
+            nout = rlat.size
+            outdata = np.zeros((nt, nd, nout))
+            for i in np.arange(nt):
+                for j in np.arange(nd):
+                    outdata[i,j,:] = griddata(grid, indata[i,j,:,:].flatten(),
+                            (rlat, rlon), method=imethod)
+        else:
+            print('The variable {} has {} dimensions, not supported'
+                    .format(vname, nsize))
+            sys.exit(1)
 
     # return the interpolated data
     return outdata
+
+def get_index_lat_lon_nearest(lat2d, lon2d, rlat, rlon):
+    """Return the indices of the point (rlon, rlat) in the array lon2d and lat2d
+
+    :lat2d: (2d numpy array) latitude in 2d array
+    :lon2d: (2d numpy array) longitude in 2d array
+    :rlat: (float or 1d numpy array) output latitude
+    :rlon: (float or 1d numpy array) output longitude
+    :returns: indices
+
+    """
+    grid = (lat2d.flatten(),lon2d.flatten())
+    rlon = np.asarray(rlon)
+    rlat = np.asarray(rlat)
+    vlon = griddata(grid, lon2d.flatten(), (rlat, rlon), method='nearest')
+    vlat = griddata(grid, lat2d.flatten(), (rlat, rlon), method='nearest')
+    ilat0, ilon0 = np.where(lat2d == vlat)
+    ilat1, ilon1 = np.where(lon2d == vlon)
+    ilat = np.intersect1d(ilat0, ilat1)
+    ilon = np.intersect1d(ilon0, ilon1)
+
+    return ilat, ilon
 
 #--------------------------------
 # UNESCO equation of state for sea water
