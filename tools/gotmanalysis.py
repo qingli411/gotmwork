@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from netCDF4 import Dataset, num2date
+from mpl_toolkits.basemap import Basemap
 
 #--------------------------------
 # Constants
@@ -31,7 +32,7 @@ class GOTMOutputData(object):
 
     """GOTM Output data object"""
 
-    def __init__(self, path):
+    def __init__(self, path, init_time_location=True):
         """Initialize the data
 
         :path: (str) Path to the GOTM output netCDF file
@@ -39,16 +40,21 @@ class GOTMOutputData(object):
         """
         # path of data
         self._path = path
-        # netCDF4 Dataset
-        self.dataset = Dataset(self._path, 'r')
-        # latitude
-        self.lat = self.dataset.variables['lat'][:]
-        # Coriolis parameter
-        self.f = 4.*np.pi/86400*np.sin(self.lat*np.pi/180.)
-        # longitude
-        self.lon = self.dataset.variables['lon'][:]
-        # time
-        self.time = self.dataset.variables['time']
+        # open the dataset
+        self.open()
+        # time and location if requested
+        if init_time_location:
+            # latitude
+            self.lat = self.dataset.variables['lat'][:]
+            # Coriolis parameter
+            self.f = 4.*np.pi/86400*np.sin(self.lat*np.pi/180.)
+            # longitude
+            self.lon = self.dataset.variables['lon'][:]
+            # time
+            time = self.dataset.variables['time']
+            self.time = time[:]
+            self.time_units = time.units
+            self.time_calendar = time.calendar
         # list of dimensions
         self.list_dimensions = list(self.dataset.dimensions.keys())
         # list of variables
@@ -68,6 +74,21 @@ class GOTMOutputData(object):
         # update list of variables to include the derived ones
         self.list_profile = self.list_profile + self._get_derived_profile(list_keys=True)
         self.list_timeseries = self.list_timeseries + self._get_derived_timeseries(list_keys=True)
+        # close dataset
+        self.close()
+
+    def open(self):
+        """Open the dataset
+
+        """
+        # netCDF4 Dataset
+        self.dataset = Dataset(self._path, 'r')
+
+    def close(self):
+        """Close the datset
+
+        """
+        self.dataset.close()
 
     def read_profile(self, var, tidx_start=None, tidx_end=None):
         """Return profile variable and z (fixed in time)
@@ -78,6 +99,9 @@ class GOTMOutputData(object):
         :returns: (numpy array) profile, z
 
         """
+        # open dataset
+        self.open()
+        # read variable
         if var in self.list_variables:
             dat = self.dataset.variables[var][tidx_start:tidx_end,:,0,0]
             coord = self.dataset.variables[var].coordinates
@@ -89,6 +113,8 @@ class GOTMOutputData(object):
                 raise AttributeError('z coordinate not fould.')
         else:
             dat, z = self._get_derived_profile(var)(tidx_start=tidx_start, tidx_end=tidx_end)
+        # close data
+        self.close()
         return dat, z
 
     def read_timeseries(self, var, tidx_start=None, tidx_end=None):
@@ -100,10 +126,15 @@ class GOTMOutputData(object):
         :returns: (numpy array) time series
 
         """
+        # open dataset
+        self.open()
+        # read variable
         if var in self.list_variables:
             dat = self.dataset.variables[var][tidx_start:tidx_end,0,0]
         else:
             dat = self._get_derived_timeseries(var)(tidx_start=tidx_start, tidx_end=tidx_end)
+        # close data
+        self.close()
         return dat
 
     def mean_profile(self, var, tidx_start=None, tidx_end=None):
@@ -153,7 +184,7 @@ class GOTMOutputData(object):
 
         """
         # read data
-        xx = num2date(self.time[tidx_start:tidx_end], units=self.time.units, calendar=self.time.calendar)
+        xx = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
         dat, yy = self.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
         # use curret axis if not specified
         if not axis:
@@ -203,7 +234,7 @@ class GOTMOutputData(object):
 
         """
         # read data
-        xx = num2date(self.time[tidx_start:tidx_end], units=self.time.units, calendar=self.time.calendar)
+        xx = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
         yy = self.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end)
         # use curret axis if not specified
         if not axis:
@@ -395,7 +426,7 @@ class GOTMOutputData(object):
         # loop over time to calculate the surface layer averaged Stokes drift
         # note that zi has indices 0:nlev whereas z has indices 0:nlev-1, this is
         # different from the indices in GOTM
-        nt = self.time.shape[0]
+        nt = ustar.shape[0]
         ussl = np.zeros(nt)
         vssl = np.zeros(nt)
         for i in np.arange(nt):
@@ -427,7 +458,7 @@ class GOTMOutputData(object):
         # correction for solar radiation
         rad   = self.dataset.variables['rad'][tidx_start:tidx_end,:,0,0]
         z     = self.dataset.variables['z'][tidx_start:tidx_end,:,0,0]
-        nt    = self.time.shape[0]
+        nt    = temp0.shape[0]
         rflux = np.zeros(nt)
         for i in np.arange(nt):
             ihbl = np.argmin(np.abs(z[i,:]-hbl[i]))
@@ -475,7 +506,7 @@ class GOTMOutputData(object):
         # time series of potential energy
         epot = self.dataset.variables['Epot'][tidx_start:tidx_end,0,0]
         # time (sec)
-        time = self.time[tidx_start:tidx_end]
+        time = self.dataset.variables['time'][tidx_start:tidx_end]
         # get the time derivative
         nt = time.shape[0]
         dpedt = np.zeros(nt)
@@ -512,8 +543,7 @@ class GOTMOutputData(object):
         """
         Nsqr = self.dataset.variables['NN'][tidx_start:tidx_end,:,0,0]
         z = self.dataset.variables['z'][tidx_start:tidx_end,:,0,0]
-        time = self.time[tidx_start:tidx_end]
-        nt = time.shape[0]
+        nt = Nsqr.shape[0]
         mld = np.zeros(nt)
         # find the indices where N^2 reaches its maximum
         idx_max = np.argmax(Nsqr, 1)
@@ -535,8 +565,7 @@ class GOTMOutputData(object):
         """
         Temp = self.dataset.variables['temp'][tidx_start:tidx_end,:,0,0]
         z = self.dataset.variables['z'][tidx_start:tidx_end,:,0,0]
-        time = self.time[tidx_start:tidx_end]
-        nt = time.shape[0]
+        nt = Temp.shape[0]
         mld = np.zeros(nt)
         for i in np.arange(nt):
             idx_zref = np.argmin(np.abs(z[i,:]-zRef))
@@ -569,8 +598,7 @@ class GOTMOutputData(object):
         """
         Rho = self.dataset.variables['rho'][tidx_start:tidx_end,:,0,0]
         z = self.dataset.variables['z'][tidx_start:tidx_end,:,0,0]
-        time = self.time[tidx_start:tidx_end]
-        nt = time.shape[0]
+        nt = Rho.shape[0]
         mld = np.zeros(nt)
         for i in np.arange(nt):
             idx_zref = np.argmin(np.abs(z[i,:]-zRef))
@@ -648,11 +676,11 @@ class GOTMOutputDataSet(object):
             ref_cname = self.ref_casename
         # read data
         xx0 = num2date(self.cases[ref_cname].time[tidx_start:tidx_end],
-                       units=self.cases[ref_cname].time.units,
-                       calendar=self.cases[ref_cname].time.calendar)
+                       units=self.cases[ref_cname].time_units,
+                       calendar=self.cases[ref_cname].time_calendar)
         xx1 = num2date(self.cases[cname].time[tidx_start:tidx_end],
-                       units=self.cases[cname].time.units,
-                       calendar=self.cases[cname].time.calendar)
+                       units=self.cases[cname].time_units,
+                       calendar=self.cases[cname].time_calendar)
         if any(xx1[i] != xx0[i] for i in range(len(xx0))):
             raise ValueError('Length of time not consistent between two cases.')
         dat0, yy0 = self.cases[ref_cname].read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
@@ -689,3 +717,128 @@ class GOTMOutputDataSet(object):
             axis.set_ylim(ylim)
         # return figure
         return fig
+
+#--------------------------------
+# GOTMOutputDataMap
+#--------------------------------
+
+class GOTMOutputDataMap(object):
+
+    """A large set of GOTMOutputData that has the same time- and z-dimensions
+       but at different locations. """
+
+    def __init__(self, paths):
+        """Initialize the dataset.
+
+        :paths: (list of str) Paths to the GOTM output netCDF file
+
+        """
+        # paths of dataset
+        self._paths = paths
+        # number of cases
+        self.ncase = len(self._paths)
+        # loading meta data from the first data file, assuming the same meta
+        # data across all data files in the dataset
+        firstdata = GOTMOutputData(self._paths[0])
+        # time
+        self.time = firstdata.time
+        self.ntime = self.time.size
+        self.time_units = firstdata.time_units
+        self.time_calendar = firstdata.time_calendar
+        # list of dimensions
+        self.list_dimensions = firstdata.list_dimensions
+        # list of variables
+        self.list_variables = firstdata.list_variables
+        # list of time series and profiles
+        self.list_timeseries = firstdata.list_timeseries
+        self.list_profile = firstdata.list_profile
+        # latitude and longitude
+        self.lat, self.lon = self._init_latlon()
+
+    def _init_latlon(self):
+        """Initialize arrays for lat and lon.
+        :returns: numpy arrays of lat and lon
+
+        """
+        lat = np.zeros(self.ncase)
+        lon = np.zeros(self.ncase)
+        for i in range(self.ncase):
+            dataset = Dataset(self._paths[i], 'r')
+            lat[i] = dataset.variables['lat'][:]
+            lon[i] = dataset.variables['lon'][:]
+        return lat, lon
+
+    def mean_state_profile(self, var, tidx_start=None, tidx_end=None, zidx_start=None, zidx_end=None):
+        """Return the mean state of a profile variable
+
+        :var: (str) variable name
+        :tidx_start: (int, optional) starting index for time
+        :tidx_end: (int, optional) ending index for time
+        :zidx_start: (int, optional) starting index for z
+        :zidx_end: (int, optional) ending index z
+        :returns: (numpy array) mean state
+
+        """
+        mdat = np.zeros(self.ncase)
+        for i in range(self.ncase):
+            tmp = GOTMOutputData(self._paths[i], init_time_location=False)
+            dat, z = tmp.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
+            mdat[i] = np.mean(np.mean(dat, axis=0)[zidx_start:zidx_end], 0)
+        return mdat
+
+    def mean_state_timeseries(self, var, tidx_start=None, tidx_end=None):
+        """Return the mean state of a timeseries variable
+
+        :var: (str) variable name
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (numpy array) mean state
+
+        """
+        mdat = np.zeros(self.ncase)
+        for i in range(self.ncase):
+            tmp = GOTMOutputData(self._paths[i], init_time_location=False)
+            dat = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end)
+            mdat[i] = np.mean(dat, axis=0)
+        return mdat
+
+
+    def plot_map_scatter(self, var, units=None, levels=None, cmap='rainbow', **kwargs):
+        """Plot scatters on a map
+
+        :rlon: (Numpy array) 1D array of longitude
+        :rlat: (Numpy array) 1D array of latitude
+        :dat: (Numpy array) 1D array of data to plot
+        :units: (str, optional) unit of dat
+        :leveles: (list, optional) list of levels
+        :vmax: (float, optional) max value
+        :vmin: (float, optional) min value
+        :cmap: (str, optional) colormap
+        :return: none
+        """
+        # read data
+        dat = var
+        # plot map
+        m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=0, urcrnrlon=360)
+        # plot coastlines, draw label meridians and parallels.
+        m.drawcoastlines()
+        m.drawmapboundary(fill_color='lightgray')
+        m.fillcontinents(color='gray',lake_color='lightgray')
+        m.drawparallels(np.arange(-90.,91.,30.), labels=[1,0,1,1])
+        m.drawmeridians(np.arange(-180.,181.,60.), labels=[1,0,1,1])
+        x, y = m(self.lon, self.lat)
+        # manually mapping levels to the colormap if levels is passed in,
+        # otherwise linear mapping
+        if levels:
+            bounds = np.array(levels)
+            norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
+            m.scatter(x, y, marker='.', s=32, c=dat, norm=norm, cmap=plt.cm.get_cmap(cmap), **kwargs)
+        else:
+            m.scatter(x, y, marker='.', s=32, c=dat, cmap=plt.cm.get_cmap(cmap), **kwargs)
+        # show colorbar
+        cb = m.colorbar()
+        if units:
+            cb.ax.set_title(units)
+        # set figure size
+        f = plt.gcf()
+        f.set_size_inches(8, 4)
