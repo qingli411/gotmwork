@@ -685,7 +685,7 @@ class GOTMOutputDataSet(object):
             raise ValueError('Length of time not consistent between two cases.')
         dat0, yy0 = self.cases[ref_cname].read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
         dat1, yy1 = self.cases[cname].read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
-        if len(yy1) != len(yy0) or any(xx1[i] != xx0[i] for i in range(len(xx0))):
+        if len(yy1) != len(yy0) or any(yy1[i] != yy0[i] for i in range(len(yy0))):
             print('z-coordinates not consistent between two cases, interpolating to that of the reference case.')
             dat1 = np.array([np.interp(yy0, yy1, dat1[i,:]) for i in range(len(xx0))])
             yy1 = yy0
