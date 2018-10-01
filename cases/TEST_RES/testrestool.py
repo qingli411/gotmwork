@@ -10,7 +10,7 @@ import sys
 import os
 tooldir_default = os.environ['GOTMWORK_ROOT']+'/tools'
 sys.path.append(os.environ.get('tooldir', tooldir_default))
-from gotmtool import gotm_read_pfl, gotm_read_ts, get_mld
+from gotmanalysis import *
 
 #--------------------------------
 # common variables
@@ -75,3 +75,6 @@ pfl_dmax_list = np.array([[1, 1, 1, 1, 1, 1],
                       [2.e-3, 2.e-3, 1.e-2, 2.e-3, 1.e-2, 1.e-3],
                       [2.e-3, 2.e-3, 1.e-2, 2.e-3, 1.e-2, 1.e-3]])
 
+nc = len(case_list)
+nv = len(pfl_list)
+nm = len(turbmethod_list)
