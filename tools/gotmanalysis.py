@@ -240,7 +240,7 @@ class GOTMOutputData(object):
         if not axis:
             axis = plt.gca()
         # plot figure
-        fig = plt.plot(xx, yy, **kwargs)
+        fig = axis.plot(xx, yy, **kwargs)
         # x- and y-label, turn off by passing in 'off'
         if not xlabel:
             axis.set_xlabel('Time')
