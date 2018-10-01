@@ -34,3 +34,4 @@ cmd_gotm_analysis="${tooldir}/gotm_analysis"
 # bash script
 scpt_case_postproc="${tooldir}/case_postproc.sh"
 scpt_case_turbmethod="${tooldir}/case_turbmethod.sh"
+scpt_gotm_extract_variables="${tooldir}/gotm_extract_variables.sh"
