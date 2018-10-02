@@ -59,7 +59,8 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     c_int = (c_max-c_min)/20
     levels0 = np.arange(c_min, c_max+c_int, c_int)
     d_int = d_max/10
-    levels1 = np.arange(-d_max, d_max+d_int, d_int)
+    levels1 = np.arange(-d_max-0.5*d_int, d_max+d_int, d_int)
+    cb_ticks = np.arange(-d_max, d_max+d_int*2, d_int*2)
 
     # panel a
     gotmdata0 = data.cases['KPP-CVMix']
@@ -96,7 +97,7 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     axarr[m, n].set_ylim([depth, 0])
     title0 = case+' '+var+' '+turbmethod_list[0]
     axarr[m, n].set_title(title0, fontsize=12)
-    axarr[m, n].plot(dttime0, mld0, color='gray', linewidth=1.5)
+    axarr[m, n].plot(dttime0, mld0, color='silver', linewidth=1.5)
     axarr[m, n].text(0.04, 0.2, labels_2col[0], transform=axarr[m, n].transAxes, color='white', fontsize=16, fontweight='bold', va='top')
 
     # panel c-l
@@ -117,7 +118,7 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
         axarr[m, n].set_ylim([depth, 0])
         title1 = legend_list[j]+' $-$ '+legend_list[0]
         axarr[m, n].set_title(title1, fontsize=12)
-        axarr[m, n].plot(dttime0, mld0, color='gray', linewidth=1.5)
+        axarr[m, n].plot(dttime0, mld0, color='silver', linewidth=1.5)
         axarr[m, n].plot(dttime0, mld1, color='black', linewidth=1.5)
         axarr[m, n].text(0.04, 0.2, labels_2col[j], transform=axarr[m, n].transAxes, fontsize=16, fontweight='bold', va='top')
 
@@ -135,7 +136,7 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     cb0.update_ticks()
     cax1 = plt.axes([0.85, 0.08, 0.1, 0.4])
     cax1.set_visible(False)
-    cb1 = plt.colorbar(im1, ax=cax1)
+    cb1 = plt.colorbar(im1, ax=cax1, ticks=cb_ticks)
     cb1.formatter.set_powerlimits((-2, 2))
     cb1.update_ticks()
 

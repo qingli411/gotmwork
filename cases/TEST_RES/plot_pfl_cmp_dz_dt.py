@@ -29,8 +29,7 @@ def main():
             d_max = pfl_dmax_list[j,i]
             for k in np.arange(nm):
                 turbmethod = turbmethod_list[k]
-                # plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth)
-                plot_pfl_cmp_dz_dt_scatter(dzdt_list, l_interp, case, turbmethod, var)
+                plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth)
 
 def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min, d_max, depth):
 
@@ -105,70 +104,6 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
 
     # auto adjust the x-axis label
     plt.gcf().autofmt_xdate()
-
-    # reduce margin
-    plt.tight_layout()
-
-    # save figure
-    plt.savefig(figname, dpi = 300)
-
-    # close figure
-    plt.close()
-
-def plot_pfl_cmp_dz_dt_scatter(dzdt_list, l_interp, case, turbmethod, var):
-
-    # number of dz dt cases
-    nzt = len(dzdt_list)
-    rmse_dzdt = np.zeros(nzt)
-    dz = np.zeros(nzt)
-    dt = np.zeros(nzt)
-    dz_str, dt_str = dzdt_list[0].split('_')
-    dz[0] = float(dz_str.replace('VR','').replace('m',''))
-    dt[0] = float(dt_str.replace('DT','').replace('s',''))
-
-    # input data
-    dataroot = dir_in+'/'+case
-    # paths of files
-    paths = [dataroot+'/'+turbmethod+'_'+dzdt_list[i]+'/gotm_out.nc' for i in range(nzt)]
-    # initialize dataset
-    data = GOTMOutputDataSet(paths=paths, keys=dzdt_list)
-
-    # output figure name
-    figdir = dir_out+'/'+case
-    os.makedirs(figdir, exist_ok=True)
-    figname = figdir+'/Pfl_dzdt_'+turbmethod+'_'+var+'.png'
-
-    # base case
-    gotmdata0 = data.cases['VR1m_DT60s']
-    fld0, z0 = gotmdata0.read_profile(var)
-
-    # loop over other cases
-    for i in np.arange(nzt-1):
-        j = i+1
-        gotmdata1 = data.cases[dzdt_list[j]]
-        fld1_tmp, z1_tmp = gotmdata1.read_profile(var)
-
-        # interpolate to z0
-        if l_interp[j]:
-            nt = fld0.shape[0]
-            fld1 = np.zeros(fld0.shape)
-            for k in np.arange(nt):
-                fld1[k,:] = np.interp(z0, z1_tmp, fld1_tmp[k,:])
-            z1 = z0
-        else:
-            fld1 = fld1_tmp
-            z1 = z1_tmp
-
-        # compute root mean squre difference
-        rmse_dzdt[j] = np.sqrt(((fld1-fld0)**2).mean())
-
-        # get coordinate
-        dz_str, dt_str = dzdt_list[j].split('_')
-        dz[j] = float(dz_str.replace('VR','').replace('m',''))
-        dt[j] = float(dt_str.replace('DT','').replace('s',''))
-
-    plt.plot(dz[0:3], rmse_dzdt[0:3], 'r*')
-    plt.plot(dz[3:6], rmse_dzdt[3:6], 'b*')
 
     # reduce margin
     plt.tight_layout()
