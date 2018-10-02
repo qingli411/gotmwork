@@ -33,7 +33,7 @@ ddl=0
 
 # run parameters
 dt=600
-# set output frequency (3-hourly output)
+# set output frequency (6-hourly output)
 let nsave=21600/dt
 
 # output file name
@@ -42,11 +42,12 @@ outname="gotm_out"
 # starting and ending date - in the format of YYYYMMDD
 # the starting date should match what are available in the
 # input data directory
-datestart="20090201"
-dateend="20090228"
+datestart="20090101"
+dateend="20090131"
 
 # name of the turbulence model
-turbmethod="KPP-CVMix"
+turbmethod=$3
+# turbmethod="KPP-CVMix"
 # turbmethod="KPP-ROMS"
 # turbmethod="KPPLT-ENTR"
 # turbmethod="OSMOSIS"
@@ -104,11 +105,11 @@ while [ ${lat} -le ${lat_end} ]; do
             cp ${nmldir}/*.nml ./
 
             # link input data
-            ln -s ${dataroot}/${inputname}/*_file.dat ./
+            ln -sf ${dataroot}/${inputname}/*_file.dat ./
             tprof_name="tprof_file.dat"
             sprof_name="sprof_file.dat"
-            ln -s ${tprofdata} ./${tprof_name}
-            ln -s ${sprofdata} ./${sprof_name}
+            ln -sf ${tprofdata} ./${tprof_name}
+            ln -sf ${sprofdata} ./${sprof_name}
         else
             echo "Temperature or salinity profile not found. Skip."
             lat=$((${lat}+${dlat}))
