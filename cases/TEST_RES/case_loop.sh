@@ -25,12 +25,12 @@ else
     #  5 m
     #  typical regional models (e.g., ROMS)
     #  typical GCMs (e.g., CESM)
-    vrlist=(1m 5m)
+    vrlist=(1m 5m 10m)
     # time step
     #  1 min
     #  10 min
     #  30 min
-    dtlist=(60 600 1800)
+    dtlist=(60 600 1800 3600)
 fi
 
 # output file name
@@ -53,6 +53,12 @@ for vr in ${vrlist[@]}; do
             ddu=0
             ddl=0
             let nlev=depth/5
+            ;;
+        "10m")
+            grid_method=0
+            ddu=0
+            ddl=0
+            let nlev=depth/10
             ;;
         *)
             echo "Vertical resolution ${vr} not supported. Stop."
