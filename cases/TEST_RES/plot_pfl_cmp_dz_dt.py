@@ -3,16 +3,10 @@
 Qing Li, 20180508
 """
 
-import matplotlib.pyplot as plt
-import numpy as np
-import os
 from netCDF4 import Dataset, num2date
 from testrestool import *
 
 def main():
-
-    dzdt_list = ['VR1m_DT60s', 'VR1m_DT600s', 'VR1m_DT1800s', 'VR5m_DT60s', 'VR5m_DT600s', 'VR5m_DT1800s']
-    l_interp = [False, False, False, True, True, True]
 
     # loop over all cases
     nc = len(case_list)

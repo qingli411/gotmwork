@@ -4,10 +4,7 @@ Qing Li, 20180508
          2018-09-30, use GOTMOutputData
 """
 
-import matplotlib.pyplot as plt
 from matplotlib import ticker
-import numpy as np
-import os
 from netCDF4 import Dataset, num2date
 from testrestool import *
 

@@ -52,6 +52,32 @@ legend_list = ['KPP-CVMix',
                'SMCLT-H15',
                'k-epsilon',
                'OSMOSIS']
+tm_color = ['black',
+            'blue',
+            'red',
+            'orange',
+            'purple',
+            'skyblue',
+            'steelblue',
+            'limegreen',
+            'green',
+            'mediumvioletred',
+            'darkgoldenrod']
+dzdt_list = ['VR1m_DT60s',
+             'VR1m_DT600s',
+             'VR1m_DT1800s',
+             'VR1m_DT3600s',
+             'VR5m_DT60s',
+             'VR5m_DT600s',
+             'VR5m_DT1800s',
+             'VR5m_DT3600s',
+             'VR10m_DT60s',
+             'VR10m_DT600s',
+             'VR10m_DT1800s',
+             'VR10m_DT3600s']
+l_interp = [False, False, False, False,
+            True, True, True, True,
+            True, True, True, True]
 # list of location
 irow_2col = [1, 2, 0, 1, 2, 3, 3, 4, 4, 5, 5]
 icol_2col = [0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1]
@@ -78,3 +104,4 @@ pfl_dmax_list = np.array([[1, 1, 1, 1, 1, 1],
 nc = len(case_list)
 nv = len(pfl_list)
 nm = len(turbmethod_list)
+nzt = len(dzdt_list)
