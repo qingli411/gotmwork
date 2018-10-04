@@ -53,7 +53,7 @@ def plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel, color, legend_li
 
     # read data
     infile0 = Dataset(data0, 'r')
-    fld0 = read_ts(infile0, var)
+    fld0 = gotm_read_ts(infile0, var)
     nctime0 = infile0.variables['time']
     t_cal = 'standard'
     dttime0 = num2date(nctime0[:], units=nctime0.units, calendar=t_cal)
@@ -74,7 +74,7 @@ def plot_ts_cmp_turbmethods(turbmethod_list, case, var, ylabel, color, legend_li
         j = i+1
         data1 = dataroot+'/'+turbmethod_list[j]+'_VR1m_DT60s/gotm_out.nc'
         infile1 = Dataset(data1, 'r')
-        fld1 = read_ts(infile1, var)
+        fld1 = gotm_read_ts(infile1, var)
         nctime1 = infile1.variables['time']
         dttime1 = num2date(nctime1[:], units=nctime1.units, calendar=t_cal)
         axarr[1].plot(dttime1, fld1-fld0, '-', color=color[j], linewidth=1.5, label=legend_list[j])

@@ -1,8 +1,8 @@
-# This is the main loop over turbulent methods, vertical resolution
-# and time step.
+# This is the main loop over turbulent methods, relaxation time for
+# velocity damping to suppress inertial oscillation.
 # Used by: OCSPapa, OSMOSIS, COREII
 #
-# Qing Li, 20180507
+# Qing Li, 20180718
 
 #######################################################################
 #                           Loop over cases                           #
@@ -13,63 +13,48 @@ l_test="no"
 if [ ${l_test} == "yes" ]; then
     # name of the turbulence model
     turblist=(SMCLT)
-    # vertical resolution
-    vrlist=(1m)
-    # time step
-    dtlist=(60)
+    # relaxation time
+    vrelaxlist=(none)
 else
     # name of the turbulence model
-    turblist=(KPP-CVMix KPP-ROMS KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG)
-    # vertical resolution
-    #  1 m
-    #  5 m
-    #  typical regional models (e.g., ROMS)
-    #  typical GCMs (e.g., CESM)
-    vrlist=(1m 5m 10m)
-    # time step
-    #  1 min
-    #  10 min
-    #  30 min
-    dtlist=(60 600 1800 3600)
+    turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG)
+    # relaxation time
+    vrelaxlist=(1d 10d none)
 fi
 
 # output file name
 outname="gotm_out"
 
+# 1 m vertical resolution
+grid_method=0
+ddu=0
+ddl=0
+let nlev=depth
+dt=600
+
 # loop over turbulent methods
 for turbmethod in ${turblist[@]}; do
 
-# loop over vertical resolution
-for vr in ${vrlist[@]}; do
-    case ${vr} in
-        "1m")
-            grid_method=0
-            ddu=0
-            ddl=0
-            let nlev=depth
+# loop over time step
+for vrelax in ${vrelaxlist[@]}; do
+
+    case ${vrelax} in
+        "1d")
+            trelax=86400
             ;;
-        "5m")
-            grid_method=0
-            ddu=0
-            ddl=0
-            let nlev=depth/5
+        "10d")
+            trelax=864000
             ;;
-        "10m")
-            grid_method=0
-            ddu=0
-            ddl=0
-            let nlev=depth/10
+        "none")
+            trelax=1e+15
             ;;
         *)
-            echo "Vertical resolution ${vr} not supported. Stop."
+            echo "Relaxation time ${vrelax} not supported. Stop."
             exit 1
     esac
 
-# loop over time step
-for dt in ${dtlist[@]}; do
-
     # case name
-    casename="TEST_RES/${title}/${turbmethod}_VR${vr}_DT${dt}s"
+    casename="TEST_IO/${title}/${turbmethod}_dampV_${vrelax}"
     echo ${casename}
 
     # set output frequency (3-hourly output)
@@ -115,6 +100,8 @@ for dt in ${dtlist[@]}; do
     ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
     ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
+    ${cmd_nmlchange} -f obs.nml -e vel_relax_tau -v ${trelax}
+
     # set turbulence method
     source ${scpt_case_turbmethod}
 
@@ -131,6 +118,5 @@ for dt in ${dtlist[@]}; do
         rm -f *.dat
     fi
 
-done
 done
 done

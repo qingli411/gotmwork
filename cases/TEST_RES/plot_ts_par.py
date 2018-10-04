@@ -51,7 +51,7 @@ def plot_ts_var(case, var, ylabel):
     tidx_start = 1
     tidx_end = None
     infile0 = Dataset(data0, 'r')
-    fld0 = read_ts(infile0, var, tidx_start=tidx_start, tidx_end=tidx_end)
+    fld0 = gotm_read_ts(infile0, var, tidx_start=tidx_start, tidx_end=tidx_end)
     # remove negative values
     fld0 = np.ma.array(fld0, mask=(fld0<=0))
 
