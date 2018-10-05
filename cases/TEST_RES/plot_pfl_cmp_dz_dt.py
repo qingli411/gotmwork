@@ -59,7 +59,9 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
     # contourf plot
     gotmdata0 = data.cases['VR1m_DT60s']
     dttime0 = num2date(gotmdata0.time, units=gotmdata0.time_units, calendar=gotmdata0.time_calendar)
-    fld0, z0 = gotmdata0.read_profile(var)
+    prfl = gotmdata0.read_profile(var)
+    fld0 = prfl.data
+    z0 = prfl.z
     im0 = axarr[0].contourf(dttime0, z0, np.transpose(fld0), levels0, extend='both', cmap='rainbow')
     axarr[0].set_ylabel('Depth (m)')
     axarr[0].set_ylim([depth, 0])
@@ -73,7 +75,9 @@ def plot_pfl_cmp_dz_dt(dzdt_list, l_interp, case, turbmethod, var, c_max, c_min,
     for i in np.arange(nzt-1):
         j = i+1
         gotmdata1 = data.cases[dzdt_list[j]]
-        fld1_tmp, z1_tmp = gotmdata1.read_profile(var)
+        prfl = gotmdata1.read_profile(var)
+        fld1_tmp = prfl.data
+        z1_tmp = prfl.z
         dttime1 = num2date(gotmdata1.time, units=gotmdata1.time_units, calendar=gotmdata1.time_calendar)
 
         # interpolate to z0

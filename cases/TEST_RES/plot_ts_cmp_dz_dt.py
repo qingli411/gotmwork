@@ -10,7 +10,7 @@ from testrestool import *
 def main():
 
     # variable
-    var = 'Epot'
+    var = 'PE'
     # loop over all cases
     nc = len(case_list)
     nm = len(turbmethod_list)
@@ -18,9 +18,9 @@ def main():
         case = case_list[i]
         depth = depth_list[i]
         print(case)
-        plot_ts_cmp_dz_dt(case, var)
+        plot_ts_cmp_dz_dt(case, var, depth)
 
-def plot_ts_cmp_dz_dt(case, var):
+def plot_ts_cmp_dz_dt(case, var, depth):
 
     dz = np.zeros(nzt)
     dt = np.zeros(nzt)
@@ -54,16 +54,18 @@ def plot_ts_cmp_dz_dt(case, var):
 
     # panel a
     gotmdata0 = data.cases['KPP-CVMix']
-    dttime0 = num2date(gotmdata0.time, units=gotmdata0.time_units, calendar=gotmdata0.time_calendar)
-    ts0  = gotmdata0.read_timeseries(var)
+    ts  = gotmdata0.read_timeseries(var, depth=depth)
+    ts0 = ts.data
+    dttime0 = ts.time
     par1 = axarr[0, 0].twinx()
     par1.plot(dttime0, ts0, color='lightgray', linewidth=2.5)
     par1.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
     par1.set_ylabel('$\Delta PE$ (J)', fontsize=12)
     for i in np.arange(nm):
         gotmdata1 = data.cases[turbmethod_list[i]]
-        dttime1 = num2date(gotmdata1.time, units=gotmdata1.time_units, calendar=gotmdata1.time_calendar)
-        ts1  = gotmdata1.read_timeseries(var)
+        ts  = gotmdata1.read_timeseries(var, depth=depth)
+        ts1 = ts.data
+        dttime1 = ts.time
         axarr[0, 0].plot(dttime1, ts1-ts0, color=tm_color[i], linewidth=1)
     axarr[0, 0].set_ylabel('$\Delta PE -\Delta PE_r$ (J)', fontsize=12)
     axarr[0, 0].ticklabel_format(style='sci', axis='y', scilimits=(0,0))
@@ -87,16 +89,14 @@ def plot_ts_cmp_dz_dt(case, var):
 
         # base case
         gotmdata0 = tm_data.cases['VR1m_DT60s']
-        fld0 = gotmdata0.read_timeseries(var)
+        fld0 = gotmdata0.read_timeseries(var, depth=depth).data
         dfld0 = fld0[-1] - fld0[0]
         error_dzdt = np.zeros(nzt)
         # loop over other cases
         for ii in np.arange(nzt-1):
             j = ii+1
             gotmdata1 = tm_data.cases[dzdt_list[j]]
-            fld1 = gotmdata1.read_timeseries(var)
-            dttime1 = num2date(gotmdata1.time, units=gotmdata1.time_units,
-                               calendar=gotmdata1.time_calendar)
+            fld1 = gotmdata1.read_timeseries(var, depth=depth).data
             # compute percentage error
             error_dzdt[j] = np.sqrt(((fld1-fld0)**2).mean())/abs(dfld0)*100
             # get coordinate

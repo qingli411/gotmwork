@@ -88,9 +88,10 @@ class GOTMOutputData(object):
         """Close the datset
 
         """
-        self.dataset.close()
+        if self.dataset.isopen():
+            self.dataset.close()
 
-    def read_profile(self, var, tidx_start=None, tidx_end=None):
+    def read_profile(self, var, tidx_start=None, tidx_end=None, **kwargs):
         """Return profile variable and z (fixed in time)
 
         :var: (str) variable name
@@ -112,12 +113,15 @@ class GOTMOutputData(object):
             else:
                 raise AttributeError('z coordinate not fould.')
         else:
-            dat, z = self._get_derived_profile(var)(tidx_start=tidx_start, tidx_end=tidx_end)
+            dat, z = self._get_derived_profile(var)(tidx_start=tidx_start, tidx_end=tidx_end, **kwargs)
+        # create GOTMProfile object
+        time = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
+        out = GOTMProfile(time, z, dat, var)
         # close data
         self.close()
-        return dat, z
+        return out
 
-    def read_timeseries(self, var, tidx_start=None, tidx_end=None):
+    def read_timeseries(self, var, tidx_start=None, tidx_end=None, **kwargs):
         """Return timeseries of variable [var]
 
         :var: (str) variable name
@@ -132,177 +136,13 @@ class GOTMOutputData(object):
         if var in self.list_variables:
             dat = self.dataset.variables[var][tidx_start:tidx_end,0,0]
         else:
-            dat = self._get_derived_timeseries(var)(tidx_start=tidx_start, tidx_end=tidx_end)
+            dat = self._get_derived_timeseries(var)(tidx_start=tidx_start, tidx_end=tidx_end, **kwargs)
+        # create GOTMTimeseries object
+        time = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
+        out = GOTMTimeseries(time, dat, var)
         # close data
         self.close()
-        return dat
-
-    def mean_profile(self, var, tidx_start=None, tidx_end=None):
-        """Return the mean profile of variable [var]
-
-        :var: (str) variable name
-        :tidx_start: (int, optional) starting index
-        :tidx_end: (int, optional) ending index
-        :returns: (numpy array) profile, z
-
-        """
-        dat, z = self.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
-        mdat = np.mean(dat, axis=0)
-        return mdat, z
-
-    def mean_timeseries(self, var, tidx_start=None, tidx_end=None):
-        """Return the mean value of timeseries of variable [var]
-
-        :var: (str) variable name
-        :tidx_start: (int, optional) starting index
-        :tidx_end: (int, optional) ending index
-        :returns: (numpy array) profile, z
-
-        """
-        dat = self.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end)
-        mdat = np.mean(dat, axis=0)
-        return mdat
-
-    def plot_profile(self, var, tidx_start=None, tidx_end=None,
-                     axis=None, xlim=None, ylim=None,
-                     xlabel=None, ylabel=None, title=None,
-                     ptype='contourf', **kwargs):
-        """Plot the Hovmoller diagram (time - depht) for variable [var]
-
-        :var: (str) variable name
-        :tidx_start: (int, optional) starting index
-        :tidx_end: (int, optional) ending index
-        :axis: (matplotlib.axes, optional) axis to plot figure on
-        :xlim: ([float, float], optional) upper and lower limits of the x-axis
-        :ylim: ([float, float], optional) upper and lower limits of the y-axis
-        :xlabel: (str, optional) x-label, 'Time' by default, 'off' to turn it off
-        :ylabel: (str, optional) y-label, 'Depth (m)' by default, 'off' to turn it off
-        :title: (str, optional) title
-        :ptype: (str, optional) plot type, valid values: contourf (default), pcolor
-        :**kwargs: (keyword arguments) keyword arguments to be passed to the plot function
-        :returns: (matplotlib figure object) figure
-
-        """
-        # read data
-        xx = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
-        dat, yy = self.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
-        # use curret axis if not specified
-        if not axis:
-            axis = plt.gca()
-        # plot type
-        if ptype == 'contourf':
-            fig = axis.contourf(xx, yy, np.transpose(dat), **kwargs)
-        elif ptype == 'pcolor':
-            fig = axis.pcolor(xx, yy, np.transpose(dat), **kwargs)
-        else:
-            raise ValueError('Plot type (ptype) should be \'contourf\' or \'pcolor\', got {}.'.format(ptype))
-        # x- and y-label, turn off by passing in 'off'
-        if not xlabel:
-            axis.set_xlabel('Time')
-        else:
-            if xlabel != 'off':
-                axis.set_xlabel(xlabel)
-        if not ylabel:
-            axis.set_ylabel('Depth (m)')
-        else:
-            if ylabel != 'off':
-                axis.set_ylabel(ylabel)
-        # x- and y-limits
-        if xlim:
-            axis.set_xlim(xlim)
-        if ylim:
-            axis.set_ylim(ylim)
-        # return figure
-        return fig
-
-    def plot_timeseries(self, var, tidx_start=None, tidx_end=None,
-                        axis=None, xlim=None, ylim=None,
-                        xlabel=None, ylabel=None, title=None, **kwargs):
-        """Plot timeseries of variable [var]
-
-        :var: (str) variable name
-        :tidx_start: (int, optional) starting index
-        :tidx_end: (int, optional) ending index
-        :axis: (matplotlib.axes, optional) axis to plot figure on
-        :xlim: ([float, float], optional) upper and lower limits of the x-axis
-        :ylim: ([float, float], optional) upper and lower limits of the y-axis
-        :xlabel: (str, optional) x-label, 'Time' by default, 'off' to turn it off
-        :ylabel: (str, optional) y-label, '[var]' by default, 'off' to turn it off
-        :title: (str, optional) title
-        :**kwargs: (keyword arguments) keyword arguments to be passed to the plot function
-        :returns: (matplotlib figure object) figure
-
-        """
-        # read data
-        xx = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
-        yy = self.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end)
-        # use curret axis if not specified
-        if not axis:
-            axis = plt.gca()
-        # plot figure
-        fig = axis.plot(xx, yy, **kwargs)
-        # x- and y-label, turn off by passing in 'off'
-        if not xlabel:
-            axis.set_xlabel('Time')
-        else:
-            if xlabel != 'off':
-                axis.set_xlabel(xlabel)
-        if not ylabel:
-            axis.set_ylabel(var)
-        else:
-            if ylabel != 'off':
-                axis.set_ylabel(ylabel)
-        # x- and y-limits
-        if xlim:
-            axis.set_xlim(xlim)
-        if ylim:
-            axis.set_ylim(ylim)
-        # return figure
-        return fig
-
-    def plot_mean_profile(self, var, tidx_start=None, tidx_end=None,
-                          axis=None, xlim=None, ylim=None,
-                          xlabel=None, ylabel=None, title=None, **kwargs):
-        """Plot the mean profile of variable [var]
-
-        :var: (str) variable name
-        :tidx_start: (int, optional) starting index
-        :tidx_end: (int, optional) ending index
-        :axis: (matplotlib.axes, optional) axis to plot figure on
-        :xlim: ([float, float], optional) upper and lower limits of the x-axis
-        :ylim: ([float, float], optional) upper and lower limits of the y-axis
-        :xlabel: (str, optional) x-label, '[var]' by default, 'off' to turn it off
-        :ylabel: (str, optional) y-label, 'Depth (m)' by default, 'off' to turn it off
-        :title: (str, optional) title
-        :**kwargs: (keyword arguments) keyword arguments to be passed to the plot function
-        :returns: (matplotlib figure object) figure
-
-        """
-        # read data
-        xx, yy = self.mean_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
-        # use curret axis if not specified
-        if not axis:
-            axis = plt.gca()
-        # plot figure
-        fig = plt.plot(xx, yy, **kwargs)
-        # x- and y-label, turn off by passing in 'off'
-        if not xlabel:
-            axis.set_xlabel(var)
-        else:
-            if xlabel != 'off':
-                axis.set_xlabel(xlabel)
-        if not ylabel:
-            axis.set_ylabel('Depth (m)')
-        else:
-            if ylabel != 'off':
-                axis.set_ylabel(ylabel)
-        # x- and y-limits
-        if xlim:
-            axis.set_xlim(xlim)
-        if ylim:
-            axis.set_ylim(ylim)
-        # return figure
-        return fig
+        return out
 
     def _get_derived_profile(self, name=None, list_keys=False):
         """Find the derived profile variable
@@ -312,6 +152,7 @@ class GOTMOutputData(object):
 
         """
         switcher = {
+                'buoy': self._get_buoyancy,
                 'buoyancy': self._get_buoyancy,
                 'spice': self._get_spice
                 }
@@ -374,7 +215,8 @@ class GOTMOutputData(object):
                 'mixEf1': self._get_dpedt_over_ustar3,
                 'mld_maxNsqr': self._get_mld_maxNsqr,
                 'mld_deltaT': self._get_mld_deltaT,
-                'mld_deltaR': self._get_mld_deltaR
+                'mld_deltaR': self._get_mld_deltaR,
+                'PE': self._get_pez
                 }
         if list_keys:
             return list(switcher.keys())
@@ -617,6 +459,37 @@ class GOTMOutputData(object):
                 mld[i] = np.min(z[i,:])
         return mld
 
+    def _get_pez(self, depth=None, tidx_start=None, tidx_end=None):
+        """Calculate the total potential energy (PE) integrated from
+           surface to a certain depth
+
+        :depth: (float, optional) index of depth
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (numpy array) rate of change in PE
+
+        """
+
+        # find layer thickness
+        if 'h' in self.list_variables:
+            h = self.dataset.variables['h'][tidx_start:tidx_end,:,0,0]
+        else:
+            zi = self.dataset.variables['zi'][tidx_start:tidx_end,:,0,0]
+            h = zi[:,1:] - zi[:,0:-1]
+        # time series of buoyancy
+        prfl = self.read_profile('buoy', tidx_start=tidx_start, tidx_end=tidx_end)
+        # find zidx
+        if depth:
+            zidx = np.argmin(np.abs(prfl.z-depth))
+        else:
+            zidx = 0
+        # compute potential energy
+        tmp = prfl.data[:,zidx:]*h[:,zidx:]*(prfl.z[zidx]-prfl.z[zidx:])*rho_0
+        pe = np.sum(tmp, axis=1)
+        pe = pe-pe[0]
+        # get the time derivative
+        return pe
+
 #--------------------------------
 # GOTMOutputDataSet
 #--------------------------------
@@ -683,8 +556,12 @@ class GOTMOutputDataSet(object):
                        calendar=self.cases[cname].time_calendar)
         if any(xx1[i] != xx0[i] for i in range(len(xx0))):
             raise ValueError('Length of time not consistent between two cases.')
-        dat0, yy0 = self.cases[ref_cname].read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
-        dat1, yy1 = self.cases[cname].read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
+        prfl = self.cases[ref_cname].read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
+        dat0 = prfl.data
+        yy0 = prfl.z
+        prfl = self.cases[cname].read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
+        dat1 = prfl.data
+        yy1 = prfl.z
         if len(yy1) != len(yy0) or any(yy1[i] != yy0[i] for i in range(len(yy0))):
             print('z-coordinates not consistent between two cases, interpolating to that of the reference case.')
             dat1 = np.array([np.interp(yy0, yy1, dat1[i,:]) for i in range(len(xx0))])
@@ -782,8 +659,8 @@ class GOTMOutputDataMap(object):
         mdat = np.zeros(self.ncase)
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
-            dat, z = tmp.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
-            mdat[i] = np.mean(np.mean(dat, axis=0)[zidx_start:zidx_end], 0)
+            prfl = tmp.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
+            mdat[i] = np.mean(np.mean(prfl.data, axis=0)[zidx_start:zidx_end], 0)
         return mdat
 
     def mean_state_timeseries(self, var, tidx_start=None, tidx_end=None):
@@ -798,10 +675,8 @@ class GOTMOutputDataMap(object):
         mdat = np.zeros(self.ncase)
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
-            dat = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end)
-            mdat[i] = np.mean(dat, axis=0)
-        return mdat
-
+            ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end)
+        return ts.mean_data
 
     def plot_map_scatter(self, var, units=None, levels=None, cmap='rainbow', **kwargs):
         """Plot scatters on a map
@@ -842,3 +717,156 @@ class GOTMOutputDataMap(object):
         # set figure size
         f = plt.gcf()
         f.set_size_inches(8, 4)
+
+
+#--------------------------------
+# GOTMProfile
+#--------------------------------
+class GOTMProfile(object):
+
+    """GOTMProfile object """
+
+    def __init__(self, time, z, data, name):
+        """Initialization """
+        self.time = time
+        self.z = z
+        self.data = data
+        self.name = name
+        self.data_mean = np.mean(self.data, axis=0)
+
+    def plot(self, axis=None, xlim=None, ylim=None,
+                   xlabel=None, ylabel=None, title=None,
+                   ptype='contourf', **kwargs):
+        """Plot the Hovmoller diagram (time - depht) for variable [var]
+
+        :axis: (matplotlib.axes, optional) axis to plot figure on
+        :xlim: ([float, float], optional) upper and lower limits of the x-axis
+        :ylim: ([float, float], optional) upper and lower limits of the y-axis
+        :xlabel: (str, optional) x-label, 'Time' by default, 'off' to turn it off
+        :ylabel: (str, optional) y-label, 'Depth (m)' by default, 'off' to turn it off
+        :title: (str, optional) title
+        :ptype: (str, optional) plot type, valid values: contourf (default), pcolor
+        :**kwargs: (keyword arguments) keyword arguments to be passed to the plot function
+        :returns: (matplotlib figure object) figure
+
+        """
+        # use curret axis if not specified
+        if not axis:
+            axis = plt.gca()
+        # plot type
+        if ptype == 'contourf':
+            fig = axis.contourf(self.time, self.z, np.transpose(self.data), **kwargs)
+        elif ptype == 'pcolor':
+            fig = axis.pcolor(self.time, self.z, np.transpose(self.data), **kwargs)
+        else:
+            raise ValueError('Plot type (ptype) should be \'contourf\' or \'pcolor\', got {}.'.format(ptype))
+        # x- and y-label, turn off by passing in 'off'
+        if not xlabel:
+            axis.set_xlabel('Time')
+        else:
+            if xlabel != 'off':
+                axis.set_xlabel(xlabel)
+        if not ylabel:
+            axis.set_ylabel('Depth (m)')
+        else:
+            if ylabel != 'off':
+                axis.set_ylabel(ylabel)
+        # x- and y-limits
+        if xlim:
+            axis.set_xlim(xlim)
+        if ylim:
+            axis.set_ylim(ylim)
+        # return figure
+        return fig
+
+    def plot_mean(self, axis=None, xlim=None, ylim=None,
+                        xlabel=None, ylabel=None, title=None, **kwargs):
+        """Plot the mean profile of variable [var]
+
+        :axis: (matplotlib.axes, optional) axis to plot figure on
+        :xlim: ([float, float], optional) upper and lower limits of the x-axis
+        :ylim: ([float, float], optional) upper and lower limits of the y-axis
+        :xlabel: (str, optional) x-label, '[var]' by default, 'off' to turn it off
+        :ylabel: (str, optional) y-label, 'Depth (m)' by default, 'off' to turn it off
+        :title: (str, optional) title
+        :**kwargs: (keyword arguments) keyword arguments to be passed to the plot function
+        :returns: (matplotlib figure object) figure
+
+        """
+        # use curret axis if not specified
+        if not axis:
+            axis = plt.gca()
+        # plot figure
+        fig = plt.plot(self.mean_data, self.z, **kwargs)
+        # x- and y-label, turn off by passing in 'off'
+        if not xlabel:
+            axis.set_xlabel(var)
+        else:
+            if xlabel != 'off':
+                axis.set_xlabel(xlabel)
+        if not ylabel:
+            axis.set_ylabel('Depth (m)')
+        else:
+            if ylabel != 'off':
+                axis.set_ylabel(ylabel)
+        # x- and y-limits
+        if xlim:
+            axis.set_xlim(xlim)
+        if ylim:
+            axis.set_ylim(ylim)
+        # return figure
+        return fig
+
+
+#--------------------------------
+# GOTMTimeseries
+#--------------------------------
+class GOTMTimeseries(object):
+
+    """GOTMTimeseries object """
+
+    def __init__(self, time, data, name):
+        """Initialization """
+        self.time = time
+        self.data = data
+        self.name = name
+        self.mean_data = np.mean(self.data, axis=0)
+
+    def plot(self, axis=None, xlim=None, ylim=None,
+                   xlabel=None, ylabel=None, title=None, **kwargs):
+        """Plot timeseries of variable [var]
+
+        :axis: (matplotlib.axes, optional) axis to plot figure on
+        :xlim: ([float, float], optional) upper and lower limits of the x-axis
+        :ylim: ([float, float], optional) upper and lower limits of the y-axis
+        :xlabel: (str, optional) x-label, 'Time' by default, 'off' to turn it off
+        :ylabel: (str, optional) y-label, '[var]' by default, 'off' to turn it off
+        :title: (str, optional) title
+        :**kwargs: (keyword arguments) keyword arguments to be passed to the plot function
+        :returns: (matplotlib figure object) figure
+
+        """
+        # use curret axis if not specified
+        if not axis:
+            axis = plt.gca()
+        # plot figure
+        fig = axis.plot(self.time, self.data, **kwargs)
+        # x- and y-label, turn off by passing in 'off'
+        if not xlabel:
+            axis.set_xlabel('Time')
+        else:
+            if xlabel != 'off':
+                axis.set_xlabel(xlabel)
+        if not ylabel:
+            axis.set_ylabel(self.name)
+        else:
+            if ylabel != 'off':
+                axis.set_ylabel(ylabel)
+        # x- and y-limits
+        if xlim:
+            axis.set_xlim(xlim)
+        if ylim:
+            axis.set_ylim(ylim)
+        # return figure
+        return fig
+

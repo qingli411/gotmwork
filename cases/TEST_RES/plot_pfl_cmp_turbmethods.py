@@ -62,10 +62,10 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     # panel a
     gotmdata0 = data.cases['KPP-CVMix']
     dttime0 = num2date(gotmdata0.time, units=gotmdata0.time_units, calendar=gotmdata0.time_calendar)
-    ustar0  = gotmdata0.read_timeseries('u_taus')
-    laturb0 = gotmdata0.read_timeseries('La_Turb')
-    hoLmo0  = gotmdata0.read_timeseries('hoLmo')
-    bflux0  = gotmdata0.read_timeseries('bflux')
+    ustar0  = gotmdata0.read_timeseries('u_taus').data
+    laturb0 = gotmdata0.read_timeseries('La_Turb').data
+    hoLmo0  = gotmdata0.read_timeseries('hoLmo').data
+    bflux0  = gotmdata0.read_timeseries('bflux').data
     par1 = axarr[0, 0].twinx()
     axarr[0, 0].plot(dttime0, ustar0*20, color='black', linewidth=1.5)
     axarr[0, 0].set_ylabel('$20 \\times u^*$ (m s$^{-1}$); $\mathrm{La}_t$', fontsize=12)
@@ -86,9 +86,11 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     n = icol_2col[0]
     m = irow_2col[0]
     # get var
-    fld0, z0 = gotmdata0.read_profile(var)
+    prfl = gotmdata0.read_profile(var)
+    fld0 = prfl.data
+    z0 = prfl.z
     # get mld
-    mld0 = gotmdata0.read_timeseries('mld_deltaR')
+    mld0 = gotmdata0.read_timeseries('mld_deltaR').data
     im0 = axarr[m, n].contourf(dttime0, z0, np.transpose(fld0), levels0, extend='both', cmap='rainbow')
     axarr[m, n].set_ylabel('Depth (m)', fontsize=12)
     axarr[m, n].set_ylim([depth, 0])
@@ -106,9 +108,11 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
         gotmdata1 = data.cases[turbmethod_list[j]]
         dttime1 = num2date(gotmdata1.time, units=gotmdata1.time_units, calendar=gotmdata1.time_calendar)
         # get var
-        fld1, z1 = gotmdata1.read_profile(var)
+        prfl = gotmdata1.read_profile(var)
+        fld1 = prfl.data
+        z1 = prfl.z
         # get mld
-        mld1 = gotmdata1.read_timeseries('mld_deltaR')
+        mld1 = gotmdata1.read_timeseries('mld_deltaR').data
         im1 = axarr[m, n].contourf(dttime1, z1, np.transpose(fld1-fld0), levels1, extend='both', cmap='RdBu_r')
         if n == 0:
             axarr[m, n].set_ylabel('Depth (m)', fontsize=12)
