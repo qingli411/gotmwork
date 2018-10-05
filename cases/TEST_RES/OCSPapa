@@ -6,7 +6,7 @@
 # OCS Papa
 # latitude:  50.1
 # longitude: 215.1
-# depth (m): 300.0
+# depth (m): 150.0
 #
 # Qing Li, 20180507
 
@@ -25,7 +25,7 @@ dateend="20131201"
 title="OCSPapa_${datestart}-${dateend}"
 
 # depth
-depth=300
+depth=150
 
 # loop over cases
 source ./case_loop.sh

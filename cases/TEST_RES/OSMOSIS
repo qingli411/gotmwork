@@ -7,7 +7,7 @@
 # latitude:  49.0
 # longitude: 0.0
 # depth (m): 200.0 (winter)
-#            240.0 (spring)
+#            480.0 (spring)
 #
 # Qing Li, 20180507
 
@@ -21,7 +21,7 @@ curdir=$(pwd)
 seasonlist=(winter spring)
 
 # depth
-depthlist=(200 240)
+depthlist=(200 480)
 
 # season (winter or spring)
 for idx in ${!seasonlist[@]}; do
