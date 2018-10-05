@@ -26,8 +26,15 @@ case_list = ['OSMOSIS_winter',
              'COREII_LAT2_LON234_20080601-20081231',
              'COREII_LAT10_LON86_20080601-20081231',
              'COREII_LAT-54_LON254_20090101-20090731']
+# list of titles
+title_list = ['OSMOSIS Winter',
+              'OSMOSIS Spring',
+              'OCSPapa',
+              'COREII LAT2 LON234',
+              'COREII LAT10 LON86',
+              'COREII LAT-54 LON254']
 # list of depths
-depth_list = np.array([-200, -240, -80, -150, -120, -400])
+depth_list = np.array([-200, -480, -100, -150, -120, -400])
 # list of turbulent methods
 turbmethod_list = ['KPP-CVMix',
                    'KPP-ROMS',
@@ -95,9 +102,9 @@ pfl_cmin_list = np.array([[12, 12, 4, 12, 20, 4],
                       [1026.0, 1025.3, 1023.2, 1022.7, 1021.5, 1026.7],
                       [-3.5e-3, -2.5e-3, 8e-3, 4.e-3, 1.5e-2, -3.2e-3],
                       [0.9e-2, 0.6e-2, -2.7e-2, 0, 1.2e-2, -1.8e-2]])
-pfl_dmax_list = np.array([[1, 1, 1, 1, 1, 1],
-                      [0.05, 0.05, 0.05, 0.05, 0.5, 0.05],
-                      [0.1, 0.1, 0.1, 0.1, 0.5, 0.1],
+pfl_dmax_list = np.array([[1, 1, 5, 2, 1, 1],
+                      [0.05, 0.05, 0.3, 0.05, 0.5, 0.05],
+                      [0.1, 0.1, 1.0, 0.1, 0.5, 0.1],
                       [2.e-3, 2.e-3, 1.e-2, 2.e-3, 1.e-2, 1.e-3],
                       [2.e-3, 2.e-3, 1.e-2, 2.e-3, 1.e-2, 1.e-3]])
 

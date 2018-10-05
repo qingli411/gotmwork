@@ -14,7 +14,13 @@ def main():
     # nc = len(case_list)
     # nv = len(pfl_list)
     # nm = len(turbmethod_list)
-    for i in np.arange(nc):
+    if len(sys.argv) == 1:
+        args_list = np.arange(nc)
+    else:
+        args_list = sys.argv[1:]
+
+    for i in args_list:
+        i = int(i)
         case = case_list[i]
         depth = depth_list[i]
         print(case)

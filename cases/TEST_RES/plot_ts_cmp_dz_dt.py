@@ -12,9 +12,15 @@ def main():
     # variable
     var = 'Epot'
     # loop over all cases
-    nc = len(case_list)
-    nm = len(turbmethod_list)
-    for i in np.arange(nc):
+    # nc = len(case_list)
+    # nm = len(turbmethod_list)
+    if len(sys.argv) == 1:
+        args_list = np.arange(nc)
+    else:
+        args_list = sys.argv[1:]
+
+    for i in args_list:
+        i = int(i)
         case = case_list[i]
         depth = depth_list[i]
         print(case)
