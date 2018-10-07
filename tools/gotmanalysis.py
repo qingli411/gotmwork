@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 from netCDF4 import Dataset, num2date
 from mpl_toolkits.basemap import Basemap
 
@@ -29,10 +30,17 @@ beta_0 = 7.59494e-4
 #--------------------------------
 class GOTMProfile(object):
 
-    """GOTMProfile object """
+    """GOTMProfile object"""
 
     def __init__(self, time, z, data, name):
-        """Initialization """
+        """Initialize GOTMProfile
+
+        :time: (1D numpy array/datetime object) time
+        :z: (1D numpy array) vertical coordinate
+        :data: (2D numpy array) data at each time and z
+        :name: (str) name of variable
+
+        """
         self.time = time
         self.z = z
         self.data = data
@@ -42,7 +50,7 @@ class GOTMProfile(object):
     def plot(self, axis=None, xlim=None, ylim=None,
                    xlabel=None, ylabel=None, title=None,
                    ptype='contourf', **kwargs):
-        """Plot the Hovmoller diagram (time - depht) for variable [var]
+        """Plot the Hovmoller diagram (time - z)
 
         :axis: (matplotlib.axes, optional) axis to plot figure on
         :xlim: ([float, float], optional) upper and lower limits of the x-axis
@@ -51,7 +59,8 @@ class GOTMProfile(object):
         :ylabel: (str, optional) y-label, 'Depth (m)' by default, 'off' to turn it off
         :title: (str, optional) title
         :ptype: (str, optional) plot type, valid values: contourf (default), pcolor
-        :**kwargs: (keyword arguments) keyword arguments to be passed to the plot function
+        :**kwargs: (keyword arguments) to be passed to matplotlib.pyplot.contourf() or
+                                       matplotlib.pyplot.pcolor() depending on ptype
         :returns: (matplotlib figure object) figure
 
         """
@@ -86,15 +95,15 @@ class GOTMProfile(object):
 
     def plot_mean(self, axis=None, xlim=None, ylim=None,
                         xlabel=None, ylabel=None, title=None, **kwargs):
-        """Plot the mean profile of variable [var]
+        """Plot the mean profile
 
         :axis: (matplotlib.axes, optional) axis to plot figure on
         :xlim: ([float, float], optional) upper and lower limits of the x-axis
         :ylim: ([float, float], optional) upper and lower limits of the y-axis
-        :xlabel: (str, optional) x-label, '[var]' by default, 'off' to turn it off
+        :xlabel: (str, optional) x-label, 'self.name' by default, 'off' to turn it off
         :ylabel: (str, optional) y-label, 'Depth (m)' by default, 'off' to turn it off
         :title: (str, optional) title
-        :**kwargs: (keyword arguments) keyword arguments to be passed to the plot function
+        :**kwargs: (keyword arguments) to be passed to matplotlib.pyplot.plot()
         :returns: (matplotlib figure object) figure
 
         """
@@ -102,10 +111,10 @@ class GOTMProfile(object):
         if not axis:
             axis = plt.gca()
         # plot figure
-        fig = plt.plot(self.mean_data, self.z, **kwargs)
+        fig = plt.plot(self.data_mean, self.z, **kwargs)
         # x- and y-label, turn off by passing in 'off'
         if not xlabel:
-            axis.set_xlabel(var)
+            axis.set_xlabel(self.name)
         else:
             if xlabel != 'off':
                 axis.set_xlabel(xlabel)
@@ -128,10 +137,17 @@ class GOTMProfile(object):
 #--------------------------------
 class GOTMTimeseries(object):
 
-    """GOTMTimeseries object """
+    """GOTMTimeseries object"""
 
     def __init__(self, time, data, name):
-        """Initialization """
+        """Initialize GOTMTimeseries
+
+        :time: (1D numpy array/datetime object) time
+        :data: (1D numpy array) data at each location
+        :name: (str) name of variable
+
+        """
+
         self.time = time
         self.data = data
         self.name = name
@@ -139,15 +155,15 @@ class GOTMTimeseries(object):
 
     def plot(self, axis=None, xlim=None, ylim=None,
                    xlabel=None, ylabel=None, title=None, **kwargs):
-        """Plot timeseries of variable [var]
+        """Plot timeseries
 
         :axis: (matplotlib.axes, optional) axis to plot figure on
         :xlim: ([float, float], optional) upper and lower limits of the x-axis
         :ylim: ([float, float], optional) upper and lower limits of the y-axis
         :xlabel: (str, optional) x-label, 'Time' by default, 'off' to turn it off
-        :ylabel: (str, optional) y-label, '[var]' by default, 'off' to turn it off
+        :ylabel: (str, optional) y-label, 'self.name' by default, 'off' to turn it off
         :title: (str, optional) title
-        :**kwargs: (keyword arguments) keyword arguments to be passed to the plot function
+        :**kwargs: (keyword arguments) to be passed to matplotlib.pyplot.plot()
         :returns: (matplotlib figure object) figure
 
         """
@@ -182,25 +198,41 @@ class GOTMTimeseries(object):
 
 class GOTMMap(object):
 
-    """GOTMMap object """
+    """GOTMMap object"""
 
     def __init__(self, data, lon, lat, name, units=None):
-        """Initialization """
+        """Initialize GOTMMap
+
+        :data: (1D numpy array) data at each location
+        :lon: (1D numpy array) longitude
+        :lat: (1D numpy array) latitude
+        :name: (str) name of variable
+        :units: (str) units of variable
+
+        """
         self.data = data
         self.lon = lon
         self.lat = lat
         self.name = name
         self.units = units
 
-    def plot(self, levels=None, cmap='rainbow', **kwargs):
+    def plot(self, axis=None, levels=None, add_colorbar=True, cmap='rainbow', **kwargs):
         """Plot scatters on a map
 
+        :axis: (matplotlib.axes, optional) axis to plot figure on
         :leveles: (list, optional) list of levels
+        :add_colorbar: (bool) do not add colorbar if False
         :cmap: (str, optional) colormap
-        :return: none
+        :**kwargs: (keyword arguments) to be passed to mpl_toolkits.basemap.scatter()
+        :return: (matplotlib figure object) figure
+
         """
+        # use curret axis if not specified
+        if not axis:
+            axis = plt.gca()
         # plot map
-        m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=0, urcrnrlon=360)
+        m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=0, urcrnrlon=360, ax=axis)
+        # m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=0, urcrnrlon=360)
         # plot coastlines, draw label meridians and parallels.
         m.drawcoastlines()
         m.drawmapboundary(fill_color='lightgray')
@@ -213,16 +245,17 @@ class GOTMMap(object):
         if levels:
             bounds = np.array(levels)
             norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
-            m.scatter(x, y, marker='.', s=32, c=self.data, norm=norm, cmap=plt.cm.get_cmap(cmap), **kwargs)
+            fig = m.scatter(x, y, marker='.', s=32, c=self.data, norm=norm, cmap=plt.cm.get_cmap(cmap), **kwargs)
         else:
-            m.scatter(x, y, marker='.', s=32, c=self.data, cmap=plt.cm.get_cmap(cmap), **kwargs)
-        # show colorbar
-        cb = m.colorbar()
-        if self.units:
-            cb.ax.set_title(self.units)
-        # set figure size
-        f = plt.gcf()
-        f.set_size_inches(8, 4)
+            fig = m.scatter(x, y, marker='.', s=32, c=self.data, cmap=plt.cm.get_cmap(cmap), **kwargs)
+        # add colorbar
+        if add_colorbar:
+            cb = m.colorbar(fig, ax=axis)
+            cb.formatter.set_powerlimits((-2, 2))
+            cb.update_ticks()
+            if self.units:
+                cb.ax.set_title(self.units)
+        return fig
 
 
 #--------------------------------
@@ -236,7 +269,10 @@ class GOTMOutputData(object):
     def __init__(self, path, init_time_location=True):
         """Initialize the data
 
-        :path: (str) Path to the GOTM output netCDF file
+        :path: (str) path to the GOTM output netCDF file
+        :init_time_location: (bool) do not initialize time and lon etc. if
+                                    False, which is used when constructing large
+                                    dataset to reduce initialization time.
 
         """
         # path of data
@@ -279,26 +315,28 @@ class GOTMOutputData(object):
         self.close()
 
     def open(self):
-        """Open the dataset
+        """Open netCDF dataset
 
         """
         # netCDF4 Dataset
         self.dataset = Dataset(self._path, 'r')
 
     def close(self):
-        """Close the datset
+        """Close netCDF datset
 
         """
         if self.dataset.isopen():
             self.dataset.close()
 
-    def read_profile(self, var, tidx_start=None, tidx_end=None, **kwargs):
+    def read_profile(self, var, tidx_start=None, tidx_end=None, ignore_time=False, **kwargs):
         """Return profile variable and z (fixed in time)
 
         :var: (str) variable name
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
-        :returns: (GOTMProfile) profile
+        :ignore_time: (bool) ignore time dimension if True
+        :**kwargs: (keyword arguments) to be passed to _get_derived_profile()
+        :returns: (GOTMProfile object) profile
 
         """
         # open dataset
@@ -316,19 +354,24 @@ class GOTMOutputData(object):
         else:
             dat, z = self._get_derived_profile(var)(tidx_start=tidx_start, tidx_end=tidx_end, **kwargs)
         # create GOTMProfile object
-        time = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
-        out = GOTMProfile(time, z, dat, var)
+        if not ignore_time:
+            time = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
+        else:
+            time = None
+        out = GOTMProfile(time=time, z=z, data=dat, name=var)
         # close data
         self.close()
         return out
 
-    def read_timeseries(self, var, tidx_start=None, tidx_end=None, **kwargs):
+    def read_timeseries(self, var, tidx_start=None, tidx_end=None, ignore_time=False, **kwargs):
         """Return timeseries of variable [var]
 
         :var: (str) variable name
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
-        :returns: (GOTMTimeseries) time series
+        :ignore_time: (bool) ignore time dimension if True
+        :**kwargs: (keyword arguments) to be passed to _get_derived_timeseries()
+        :returns: (GOTMTimeseries object) time series
 
         """
         # open dataset
@@ -339,8 +382,11 @@ class GOTMOutputData(object):
         else:
             dat = self._get_derived_timeseries(var)(tidx_start=tidx_start, tidx_end=tidx_end, **kwargs)
         # create GOTMTimeseries object
-        time = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
-        out = GOTMTimeseries(time, dat, var)
+        if not ignore_time:
+            time = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
+        else:
+            time = None
+        out = GOTMTimeseries(time=time, data=dat, name=var)
         # close data
         self.close()
         return out
@@ -349,7 +395,8 @@ class GOTMOutputData(object):
         """Find the derived profile variable
 
         :name: (str) variable name
-        :returns: (function) corresponding function
+        :list_keys: (bool) simply return the list of keys if True
+        :returns: (function/str) corresponding function or list of keys
 
         """
         switcher = {
@@ -404,7 +451,8 @@ class GOTMOutputData(object):
         """Find the derived variable
 
         :name: (str) variable name
-        :returns: (function) corresponding function
+        :list_keys: (bool) simply return the list of keys if True
+        :returns: (function/str) corresponding function or list of keys
 
         """
         switcher = {
@@ -599,10 +647,10 @@ class GOTMOutputData(object):
            the temperature difference from the reference level first exceed
            a threshold value
 
-        :deltaT: (float, optional) temperature threshold in degree C
-        :zRef: (float, optional) depth of the reference level
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
+        :deltaT: (float, optional) temperature threshold in degree C
+        :zRef: (float, optional) depth of the reference level
         :returns: (numpy array) mixed layer depth
 
         """
@@ -632,10 +680,10 @@ class GOTMOutputData(object):
            the potential density difference from the reference level first exceed
            a threshold value
 
-        :deltaR: (float, optional) potential density threshold in kg/m^3
-        :zRef: (float, optional) depth of the reference level
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
+        :deltaR: (float, optional) potential density threshold in kg/m^3
+        :zRef: (float, optional) depth of the reference level
         :returns: (numpy array) mixed layer depth
 
         """
@@ -660,13 +708,13 @@ class GOTMOutputData(object):
                 mld[i] = np.min(z[i,:])
         return mld
 
-    def _get_pez(self, depth=None, tidx_start=None, tidx_end=None):
+    def _get_pez(self, tidx_start=None, tidx_end=None, depth=None):
         """Calculate the total potential energy (PE) integrated from
            surface to a certain depth
 
-        :depth: (float, optional) index of depth
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
+        :depth: (float, optional) index of depth
         :returns: (numpy array) rate of change in PE
 
         """
@@ -678,7 +726,7 @@ class GOTMOutputData(object):
             zi = self.dataset.variables['zi'][tidx_start:tidx_end,:,0,0]
             h = zi[:,1:] - zi[:,0:-1]
         # time series of buoyancy
-        prfl = self.read_profile('buoy', tidx_start=tidx_start, tidx_end=tidx_end)
+        prfl = self.read_profile('buoy', tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
         # find zidx
         if depth:
             zidx = np.argmin(np.abs(prfl.z-depth))
@@ -698,13 +746,13 @@ class GOTMOutputData(object):
 
 class GOTMOutputDataSet(object):
 
-    """A set of GOTMOutputData. """
+    """GOTMOutputDataSet object, a set of GOTMOutputData object"""
 
     def __init__(self, paths, keys=None):
-        """Initialize the dataset.
+        """Initialize GOTMOutputDataSet
 
-        :paths: (list of str) Paths to the GOTM output netCDF file
-        :keys: (list of str, optional) Keys to refer to each of the cases in the dataset
+        :paths: (list of str) paths to the GOTM output netCDF file
+        :keys: (list of str, optional) keys to refer to each of the cases in the dataset
 
         """
         # paths of dataset
@@ -732,7 +780,7 @@ class GOTMOutputDataSet(object):
         :ref_cname: (str) reference case name
         :tidx_start: (int, optional) starting index for time
         :tidx_end: (int, optional) ending index for time
-        :returns: (GOTMProfile) difference
+        :returns: (GOTMProfile object) difference in [var]
 
         """
         # reference case
@@ -754,7 +802,7 @@ class GOTMOutputDataSet(object):
             print('z-coordinates not consistent between two cases, interpolating to that of the reference case.')
             data1 = np.array([np.interp(z0, z1, data1[i,:]) for i in range(len(time0))])
         # create GOTMProfile object
-        out = GOTMProfile(time0, z0, data1-data0, var)
+        out = GOTMProfile(time=time0, z=z0, data=data1-data0, name=var)
         return out
 
 
@@ -764,13 +812,13 @@ class GOTMOutputDataSet(object):
 
 class GOTMOutputDataMap(object):
 
-    """A large set of GOTMOutputData that has the same time- and z-dimensions
-       but at different locations. """
+    """GOTMOutputDataMap object, a large set of GOTMOutputData object that share
+       the same time- and z-dimensions but at different locations"""
 
     def __init__(self, paths):
-        """Initialize the dataset.
+        """Initialize the GOTMOutputDataMap
 
-        :paths: (list of str) Paths to the GOTM output netCDF file
+        :paths: (list of str) paths to the GOTM output netCDF file
 
         """
         # paths of dataset
@@ -797,7 +845,8 @@ class GOTMOutputDataMap(object):
 
     def _init_latlon(self):
         """Initialize arrays for lat and lon.
-        :returns: numpy arrays of lat and lon
+
+        :returns: (numpy array, numpy array) latitude and longitude
 
         """
         lat = np.zeros(self.ncase)
@@ -816,15 +865,17 @@ class GOTMOutputDataMap(object):
         :tidx_end: (int, optional) ending index for time
         :zidx_start: (int, optional) starting index for z
         :zidx_end: (int, optional) ending index z
-        :returns: (numpy array) mean state
+        :returns: (GOTMMap object) mean state
 
         """
         mdat = np.zeros(self.ncase)
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
-            prfl = tmp.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
+            prfl = tmp.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
             mdat[i] = np.mean(np.mean(prfl.data, axis=0)[zidx_start:zidx_end], 0)
-        return mdat
+        # create GOTMMap object
+        out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
+        return out
 
     def mean_state_timeseries(self, var, tidx_start=None, tidx_end=None):
         """Return the mean state of a timeseries variable
@@ -832,14 +883,15 @@ class GOTMOutputDataMap(object):
         :var: (str) variable name
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
-        :returns: (numpy array) mean state
+        :returns: (GOTMMap object) mean state
 
         """
         mdat = np.zeros(self.ncase)
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
-            ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end)
-        return ts.mean_data
-
-
+            ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
+            mdat[i] = ts.mean_data
+        # create GOTMMap object
+        out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
+        return out
 

@@ -8,9 +8,6 @@ import datetime
 import numpy as np
 from netCDF4 import num2date, date2index
 from scipy.interpolate import griddata
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
-from mpl_toolkits.basemap import Basemap
 
 ###############################################################################
 #                                  constants                                  #
@@ -299,47 +296,6 @@ def ncread_ts(ncvar, tidx_start=None, tidx_end=None):
     else:
         dat = None
     return dat
-
-###############################################################################
-#                                visualization                                #
-###############################################################################
-
-def plot_map_scatter(rlon, rlat, dat, units=None, levels=None, vmax=None, vmin=None, cmap='rainbow'):
-    """Plot scatters on a map
-
-    :rlon: (Numpy array) 1D array of longitude
-    :rlat: (Numpy array) 1D array of latitude
-    :dat: (Numpy array) 1D array of data to plot
-    :units: (str, optional) unit of dat
-    :leveles: (list, optional) list of levels
-    :vmax: (float, optional) max value
-    :vmin: (float, optional) min value
-    :cmap: (str, optional) colormap
-    :return: none
-    """
-    # plot map
-    m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=0, urcrnrlon=360)
-    # plot coastlines, draw label meridians and parallels.
-    m.drawcoastlines()
-    m.drawmapboundary(fill_color='lightgray')
-    m.fillcontinents(color='gray',lake_color='lightgray')
-    m.drawparallels(np.arange(-90.,91.,30.), labels=[1,0,1,1])
-    m.drawmeridians(np.arange(-180.,181.,60.), labels=[1,0,1,1])
-    x, y = m(rlon, rlat)
-    # manually mapping levels to the colormap if levels is passed in,
-    # otherwise linear mapping
-    if levels:
-        bounds = np.array(levels)
-        norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
-        m.scatter(x, y, marker='.', s=32, c=dat, norm=norm, cmap=plt.cm.get_cmap(cmap), vmin=vmin, vmax=vmax)
-    else:
-        m.scatter(x, y, marker='.', s=32, c=dat, cmap=plt.cm.get_cmap(cmap), vmin=vmin, vmax=vmax)
-    # show colorbar
-    cb = m.colorbar()
-    cb.ax.set_title(units)
-    # set figure size
-    f = plt.gcf()
-    f.set_size_inches(8, 4)
 
 ###############################################################################
 #                                miscellaneous                                #
