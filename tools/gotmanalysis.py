@@ -32,7 +32,7 @@ class GOTMProfile(object):
 
     """GOTMProfile object"""
 
-    def __init__(self, time, z, data, name):
+    def __init__(self, time=None, z=None, data=None, name=None):
         """Initialize GOTMProfile
 
         :time: (1D numpy array/datetime object) time
@@ -45,7 +45,10 @@ class GOTMProfile(object):
         self.z = z
         self.data = data
         self.name = name
-        self.data_mean = np.mean(self.data, axis=0)
+        if data:
+            self.data_mean = np.mean(data, axis=0)
+        else:
+            self.data_mean = None
 
     def plot(self, axis=None, xlim=None, ylim=None,
                    xlabel=None, ylabel=None, title=None,
@@ -139,7 +142,7 @@ class GOTMTimeseries(object):
 
     """GOTMTimeseries object"""
 
-    def __init__(self, time, data, name):
+    def __init__(self, time=None, data=None, name=None):
         """Initialize GOTMTimeseries
 
         :time: (1D numpy array/datetime object) time
@@ -200,7 +203,7 @@ class GOTMMap(object):
 
     """GOTMMap object"""
 
-    def __init__(self, data, lon, lat, name, units=None):
+    def __init__(self, data=None, lon=None, lat=None, name=None, units=None):
         """Initialize GOTMMap
 
         :data: (1D numpy array) data at each location
@@ -215,6 +218,27 @@ class GOTMMap(object):
         self.lat = lat
         self.name = name
         self.units = units
+
+    def save(self, path):
+        """Save GOTMMap object
+
+        :path: (str) path of file to save
+        :returns: none
+
+        """
+        np.savez(path, data=self.data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+
+    def load(self, path):
+        """Load data to GOTMMap object
+
+        :path: (str) path of file to load
+        :returns: (GOTMMap object)
+
+        """
+        dat = np.load(path)
+        self.__init__(data=dat['data'], lon=dat['lon'], lat=dat['lat'],
+                name=str(dat['name']), units=str(dat['units']))
+        return self
 
     def plot(self, axis=None, levels=None, add_colorbar=True, cmap='rainbow', **kwargs):
         """Plot scatters on a map
@@ -891,6 +915,24 @@ class GOTMOutputDataMap(object):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
             ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
             mdat[i] = ts.mean_data
+        # create GOTMMap object
+        out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
+        return out
+
+    def delta_timeseries(self, var, tidx_start=None, tidx_end=None):
+        """Return the net change of a timeseries variable
+
+        :var: (str) variable name
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (GOTMMap object) mean state
+
+        """
+        mdat = np.zeros(self.ncase)
+        for i in range(self.ncase):
+            tmp = GOTMOutputData(self._paths[i], init_time_location=False)
+            ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
+            mdat[i] = ts.data[-1] - ts.data[0]
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
         return out
