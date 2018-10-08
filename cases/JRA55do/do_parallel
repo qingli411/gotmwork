@@ -8,15 +8,15 @@
 # lon_elist=( 74 134 174 206 230 262 318 360)
 # lon_slist=(  2  70 126 170 202 238 282 330)
 # lon_elist=( 66 122 166 198 234 278 326 360)
-lon_slist=(  2  126 202 282 )
-lon_elist=( 122 198 278 360 )
+lon_slist=(  2  126 202 278 )
+lon_elist=( 122 198 274 360 )
 
 tmethod_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK" "SMC" "SMCLT" "EPBL" "EPBL-LT" "OSMOSIS" "K-EPSILON-SG" )
 
 # tmethod=${tmethod_list[0]}
 # echo ${tmethod}
 
-for i in {8..10}; do
+for i in {0..3}; do
     # lon_start=${lon_slist[i]}
     # lon_end=${lon_elist[i]}
     tmethod=${tmethod_list[i]}

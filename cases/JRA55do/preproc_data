@@ -1,8 +1,7 @@
 #!/bin/bash
-# Setup and run GOTM for CORE-II
-# Loop over latitude and longitude
+# This script preprocess JRA55-do data for GOTM input
 #
-# Qing Li, 20180328
+# Qing Li, 20180904
 
 #######################################################################
 #                              Set path                               #
@@ -12,13 +11,12 @@
 source "../../set_tools.sh"
 
 # input data - surface fluxes
-datadir="${GOTMDATA_ROOT}/COREII_IAF"
-swrdata="ncar_rad.nc"
+datadir="${GOTMDATA_ROOT}/JRA55-do"
 
 # input data - waves
-uspdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
+uspdir="${GOTMDATA_ROOT}/WAVEWATCH_JRA55-do"
 uspdata="ww3.2008-2009_usp.nc"
-wavdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
+wavdir="${GOTMDATA_ROOT}/WAVEWATCH_JRA55-do"
 wavdata="ww3.2008-2009.nc"
 
 # input data - Argo profiles for initialization
@@ -33,32 +31,18 @@ maskfile="${GOTMDATA_ROOT}/mask/ww3_mask_1dx1d.nc"
 #######################################################################
 
 # name of the dataset
-title="COREII"
-
-# set max depth and levels, grid zooming at surface
-maxdepth=500
-nlev=128
-ddu=2
-ddl=0
-
-# run parameters
-dt=1800
-nsave=6
-
-# output file name
-outname="gotm_out"
+title="JRA55-do"
+maxdepth=2000
 
 # starting and ending date - in the format of YYYYMMDD
 datestart="20080601"
 dateend="20091231"
 
-# name of the turbulence model
-# turbmethod="KPP-CVMix"
-turbmethod="OSMOSIS"
-# turbmethod="KPP-Original"
-
 # flag for dry run
 l_dry_run="no"
+
+# get date
+yyyymmdd=$(date "+%Y%m%d")
 
 #######################################################################
 #                         Loop over locations                         #
@@ -86,7 +70,7 @@ while [ ${lat} -le ${lat_end} ]; do
     if [ ${l_sea} == "yes" ]; then
 
         # case name
-        casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
+        casename="${title}_LAT${lat}_LON${lon}_${datestart}-${dateend}"
 
         # dry run first and check the availability of argo profiles
         ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
@@ -99,13 +83,13 @@ while [ ${lat} -le ${lat_end} ]; do
 
             # skip if no argo profile is available
             if [ $nstate == 1 ]; then
-                echo "[case_run_multi] No Argo profile available. Skip."
+                echo "[preproc_data] No Argo profile available. Skip."
                 lat=$((${lat}+${dlat}))
                 continue
             fi
 
             # create run directory
-            rundir="${GOTMRUN_ROOT}/${casename}"
+            rundir="${GOTMDATA_ROOT}/gotmdata_jra55do_${yyyymmdd}/${casename}"
             mkdir -p ${rundir}
             cd ${rundir}
 
@@ -121,64 +105,35 @@ while [ ${lat} -le ${lat_end} ]; do
             # set run parameters
             ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} -data ${datadir} \
                 -ds ${datestart} -de ${dateend} -method nc2dat_latlon
-            ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
-            ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
-            ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
-            ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
-            ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
-            ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
-            ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
-
-            # processing shortwave radiation
-            ${cmd_nc2dat_core2swr} -i ${datadir}/${swrdata} -o "swr_file.dat" \
-                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
-            ${cmd_nmlchange} -f airsea.nml -e swr_method -v 2
-            ${cmd_nmlchange} -f airsea.nml -e swr_file -v 'swr_file.dat'
-            ${cmd_nmlchange} -f airsea.nml -e swr_factor -v 1
-
-            # use meteo data instead of fluxes
-            ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
-            ${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
-            ${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
 
             # processing Stokes drift data
             ${cmd_nc2dat_ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
                 -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} -usp
-            ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
-            ${cmd_nmlchange} -f obs.nml -e nfreq -v 3
-            ${cmd_nmlchange} -f obs.nml -e usp_file -v "usp_file.dat"
 
             # processing bulk wave parameter
             ${cmd_nc2dat_ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
                 -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} \
                 -v hs fp dir
-            ${cmd_nmlchange} -f obs.nml -e wave_method -v 2
-            ${cmd_nmlchange} -f obs.nml -e wave_file -v "wave_file.dat"
 
             # processing Argo data for initialization
-            tprof_name="tprof_file.dat"
-            sprof_name="sprof_file.dat"
-            ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-                -r 2 -ot ${tprof_name} -os ${sprof_name} \
-                -d ${datestart} -dr 20 -iy
-            ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
-            ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
-            ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
-            ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_name}
+            # save 12 initialization profiles
+            for i in {1..12}; do
+                mm=$(printf '%02d' ${i})
+                if [ ${i} -ge ${datestart:4:2} ]; then
+                    argostart="${datestart:0:4}${mm}${datestart:6:2}"
+                else
+                    argostart="$((${datestart:0:4}+1))${mm}${datestart:6:2}"
+                fi
+                tprof_name="tprof_file_${argostart}.dat"
+                sprof_name="sprof_file_${argostart}.dat"
+                ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+                    -r 2 -ot ${tprof_name} -os ${sprof_name} \
+                    -d ${argostart} -dr 20 -maxd ${maxdepth} -iy
+            done
+            rm ./*.nml
+            rm ./*.xml
+            rm ./*.bk
 
-            # set turbulence method
-            source ${scpt_case_turbmethod}
-
-            # turn off bottom boundary layer
-            ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
-            # calculate Langmuir number and enhancement factor from Stokes drift
-            ${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
-
-            # run GOTM
-            ${cmd_gotm} 2> log.${outname}
-
-            # plot surface forcing and profiles
-            # source ${scpt_case_postproc}
         fi # l_dry_run
     fi # l_sea
 

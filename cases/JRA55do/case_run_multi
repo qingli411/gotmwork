@@ -16,14 +16,14 @@
 source "../../set_tools.sh"
 
 # data directory for preprocessed input data
-dataroot="${GOTMDATA_ROOT}/gotmdata_core2"
+dataroot="${GOTMDATA_ROOT}/gotmdata_jra55do"
 
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
 
 # name of the dataset
-title="COREII"
+title="JRA55-do"
 
 # set max depth and levels, grid zooming at surface
 maxdepth=500

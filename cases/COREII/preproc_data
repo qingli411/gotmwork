@@ -112,11 +112,11 @@ while [ ${lat} -le ${lat_end} ]; do
                 -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
 
             # processing Stokes drift data
-            ${cmd_nc2dat_core2ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
+            ${cmd_nc2dat_ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
                 -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} -usp
 
             # processing bulk wave parameter
-            ${cmd_nc2dat_core2ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
+            ${cmd_nc2dat_ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
                 -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} \
                 -v hs fp dir
 
