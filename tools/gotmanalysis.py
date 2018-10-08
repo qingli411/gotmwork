@@ -46,9 +46,9 @@ class GOTMProfile(object):
         self.z = z
         self.data = data
         self.name = name
-        if data:
+        try:
             self.data_mean = np.mean(data, axis=0)
-        else:
+        except TypeError:
             self.data_mean = None
 
     def plot(self, axis=None, xlim=None, ylim=None,
@@ -155,7 +155,10 @@ class GOTMTimeseries(object):
         self.time = time
         self.data = data
         self.name = name
-        self.mean_data = np.mean(self.data, axis=0)
+        try:
+            self.data_mean = np.mean(data, axis=0)
+        except TypeError:
+            self.data_mean = None
 
     def plot(self, axis=None, xlim=None, ylim=None,
                    xlabel=None, ylabel=None, title=None, **kwargs):
@@ -261,8 +264,8 @@ class GOTMMap(object):
         m.drawcoastlines()
         m.drawmapboundary(fill_color='lightgray')
         m.fillcontinents(color='gray',lake_color='lightgray')
-        m.drawparallels(np.arange(-90.,91.,30.), labels=[1,0,1,1])
-        m.drawmeridians(np.arange(-180.,181.,60.), labels=[1,0,1,1])
+        m.drawparallels(np.arange(-90.,91.,30.), labels=[1,0,0,1])
+        m.drawmeridians(np.arange(-180.,181.,60.), labels=[1,0,0,1])
         data = self.data
         lat = self.lat
         lon = self.lon
@@ -882,6 +885,7 @@ class GOTMOutputDataMap(object):
             dataset = Dataset(self._paths[i], 'r')
             lat[i] = dataset.variables['lat'][:]
             lon[i] = dataset.variables['lon'][:]
+            dataset.close()
         return lat, lon
 
     def mean_state_profile(self, var, tidx_start=None, tidx_end=None, zidx_start=None, zidx_end=None):
@@ -917,7 +921,7 @@ class GOTMOutputDataMap(object):
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
             ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
-            mdat[i] = ts.mean_data
+            mdat[i] = ts.data_mean
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
         return out
