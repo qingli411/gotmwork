@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 from netCDF4 import Dataset, num2date
 from mpl_toolkits.basemap import Basemap
+from mpl_toolkits.basemap import shiftgrid
 
 #--------------------------------
 # Constants
@@ -255,30 +256,32 @@ class GOTMMap(object):
         if not axis:
             axis = plt.gca()
         # plot map
-        m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=0, urcrnrlon=360, ax=axis)
-        # m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=0, urcrnrlon=360)
+        m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=20, urcrnrlon=380, ax=axis)
         # plot coastlines, draw label meridians and parallels.
         m.drawcoastlines()
         m.drawmapboundary(fill_color='lightgray')
         m.fillcontinents(color='gray',lake_color='lightgray')
         m.drawparallels(np.arange(-90.,91.,30.), labels=[1,0,1,1])
         m.drawmeridians(np.arange(-180.,181.,60.), labels=[1,0,1,1])
-        x, y = m(self.lon, self.lat)
+        data = self.data
+        lat = self.lat
+        lon = self.lon
+        # shift longitude
+        lon = np.where(lon < 20., lon+360., lon)
+        x, y = m(lon, lat)
         # manually mapping levels to the colormap if levels is passed in,
         # otherwise linear mapping
         if levels:
             bounds = np.array(levels)
             norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
-            fig = m.scatter(x, y, marker='.', s=32, c=self.data, norm=norm, cmap=plt.cm.get_cmap(cmap), **kwargs)
+            fig = m.scatter(x, y, marker='.', s=32, c=data, norm=norm, cmap=plt.cm.get_cmap(cmap), **kwargs)
         else:
-            fig = m.scatter(x, y, marker='.', s=32, c=self.data, cmap=plt.cm.get_cmap(cmap), **kwargs)
+            fig = m.scatter(x, y, marker='.', s=32, c=data, cmap=plt.cm.get_cmap(cmap), **kwargs)
         # add colorbar
         if add_colorbar:
             cb = m.colorbar(fig, ax=axis)
             cb.formatter.set_powerlimits((-2, 2))
             cb.update_ticks()
-            if self.units:
-                cb.ax.set_title(self.units)
         return fig
 
 
