@@ -72,9 +72,6 @@ def plot_pfl_cmp_dz_dt(case, title, turbmethod, var, c_max, c_min, d_max, depth)
     axarr[0, 0].set_ylim([depth, 0])
     title0 = title+' '+var+' '+dzdt_list[0]
     axarr[0, 0].set_title(title0, fontsize=10)
-    # cb0 = plt.colorbar(im0, ax=axarr[0, 0])
-    # cb0.formatter.set_powerlimits((-2, 2))
-    # cb0.update_ticks()
 
     # loop over other turbmethods
     for i in np.arange(nzt-1):
@@ -103,9 +100,6 @@ def plot_pfl_cmp_dz_dt(case, title, turbmethod, var, c_max, c_min, d_max, depth)
         axarr[m, n].set_ylim([depth, 0])
         title1 = 'Diff. '+dzdt_list[j]+' $-$ '+dzdt_list[0]
         axarr[m, n].set_title(title1, fontsize=10)
-        # cb1 = plt.colorbar(im1, ax=axarr[m, n])
-        # cb1.formatter.set_powerlimits((-2, 2))
-        # cb1.update_ticks()
 
     # auto adjust the x-axis label
     plt.gcf().autofmt_xdate()
