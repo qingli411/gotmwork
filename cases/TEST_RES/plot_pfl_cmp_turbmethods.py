@@ -102,7 +102,7 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     axarr[m, n].set_ylim([depth, 0])
     title0 = case+' '+var+' '+turbmethod_list[0]
     axarr[m, n].set_title(title0, fontsize=12)
-    axarr[m, n].plot(dttime0, mld0, color='silver', linewidth=1.5)
+    axarr[m, n].plot(dttime0, -mld0, color='silver', linewidth=1.5)
     axarr[m, n].text(0.04, 0.2, labels_2col[0], transform=axarr[m, n].transAxes, color='white', fontsize=16, fontweight='bold', va='top')
 
     # panel c-l
@@ -125,8 +125,8 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
         axarr[m, n].set_ylim([depth, 0])
         title1 = legend_list[j]+' $-$ '+legend_list[0]
         axarr[m, n].set_title(title1, fontsize=12)
-        axarr[m, n].plot(dttime0, mld0, color='silver', linewidth=1.5)
-        axarr[m, n].plot(dttime0, mld1, color='black', linewidth=1.5)
+        axarr[m, n].plot(dttime0, -mld0, color='silver', linewidth=1.5)
+        axarr[m, n].plot(dttime0, -mld1, color='black', linewidth=1.5)
         axarr[m, n].text(0.04, 0.2, labels_2col[j], transform=axarr[m, n].transAxes, fontsize=16, fontweight='bold', va='top')
 
      # reduce margin

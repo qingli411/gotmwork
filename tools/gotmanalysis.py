@@ -543,7 +543,7 @@ class GOTMOutputData(object):
         # boundary layer depth
         hbl = self._get_derived_timeseries('mld_deltaR')(tidx_start=tidx_start, tidx_end=tidx_end)
         # surface layer: upper 20% of the boundary layer
-        hsl = 0.2*hbl
+        hsl = -0.2*hbl
         # loop over time to calculate the surface layer averaged Stokes drift
         # note that zi has indices 0:nlev whereas z has indices 0:nlev-1, this is
         # different from the indices in GOTM
@@ -582,7 +582,7 @@ class GOTMOutputData(object):
         nt    = temp0.shape[0]
         rflux = np.zeros(nt)
         for i in np.arange(nt):
-            ihbl = np.argmin(np.abs(z[i,:]-hbl[i]))
+            ihbl = np.argmin(np.abs(z[i,:]+hbl[i]))
             rflux[i] = rad[i,-1]-rad[i,ihbl]
         tflux = tflux+rflux/cp/rho_0
         # surface salinity flux
@@ -613,7 +613,7 @@ class GOTMOutputData(object):
         # filter out zeros
         Lmo = np.ma.array(Lmo, mask=(Lmo==0))
         # h over L
-        hoL = -abs(hbl)/Lmo
+        hoL = -hbl/Lmo
         return hoL
 
     def _get_dpedt(self, tidx_start=None, tidx_end=None):
@@ -670,7 +670,7 @@ class GOTMOutputData(object):
         idx_max = np.argmax(Nsqr, 1)
         for i in np.arange(nt):
             mld[i] = z[i,idx_max[i]]
-        return mld
+        return np.abs(mld)
 
     def _get_mld_deltaT(self, tidx_start=None, tidx_end=None, deltaT=0.2, zRef=-10):
         """Find the mixed layer depth defined as the depth where
@@ -703,7 +703,7 @@ class GOTMOutputData(object):
                 mld[i] = z[i,idx_min]
             else:
                 mld[i] = np.min(z[i,:])
-        return mld
+        return np.abs(mld)
 
     def _get_mld_deltaR(self, tidx_start=None, tidx_end=None, deltaR=0.03, zRef=-10):
         """Find the mixed layer depth defined as the depth where
@@ -736,7 +736,7 @@ class GOTMOutputData(object):
                 mld[i] = z[i,idx_min]
             else:
                 mld[i] = np.min(z[i,:])
-        return mld
+        return np.abs(mld)
 
     def _get_pez(self, tidx_start=None, tidx_end=None, depth=None):
         """Calculate the total potential energy (PE) integrated from
