@@ -15,17 +15,20 @@ tmethod_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK"
 
 # tmethod=${tmethod_list[0]}
 # echo ${tmethod}
+# for i in {0..3}; do
+#     lon_start=${lon_slist[i]}
+#     lon_end=${lon_elist[i]}
 
-for i in {0..3}; do
-    # lon_start=${lon_slist[i]}
-    # lon_end=${lon_elist[i]}
-    tmethod=${tmethod_list[i]}
+#     # Preprocess input data
+#     # ./preproc_data ${lon_start} ${lon_end} > log.${i} &
+
+#     # Run GOTM
+#     ./case_run_multi ${lon_start} ${lon_end} ${tmethod} > log.${i} &
+# done
+
+for j in {1..4}; do
+    tmethod=${tmethod_list[j]}
     echo ${tmethod}
-
-    # Preprocess input data
-    # ./preproc_data ${lon_start} ${lon_end} > log.${i} &
-
     # Run GOTM
-    # ./case_run_multi ${lon_start} ${lon_end} ${tmethod} > log.${i} &
-    ./case_run_multi 2 360 ${tmethod} > log.${i} &
+    ./case_run_multi 2 360 ${tmethod} > log.${j} &
 done
