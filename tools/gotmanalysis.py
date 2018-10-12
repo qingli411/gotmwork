@@ -421,6 +421,140 @@ class GOTMOutputData(object):
         self.close()
         return out
 
+    def diag_forcing_regime_BG12(self, tidx_start=None, tidx_end=None):
+        """Diagnose the forcing regime according to the dissipation based
+           definition in Belcher et al., 2012
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (int) forcing regime flag
+
+        """
+        # read data
+        ts_laturb = self.read_timeseries('La_Turb', tidx_start=tidx_start, tidx_end=tidx_end,
+                ignore_time=True).data[1:]
+        ts_ustar = self.read_timeseries('u_taus', tidx_start=tidx_start, tidx_end=tidx_end,
+                ignore_time=True).data[1:]
+        ts_hbl = self.read_timeseries('mld_deltaR', tidx_start=tidx_start, tidx_end=tidx_end,
+                ignore_time=True).data[1:]
+        ts_obj = self.read_timeseries('bflux', tidx_start=tidx_start, tidx_end=tidx_end,
+                ignore_time=True)
+        ts_bflux = ts_obj.data[1:]
+        m_bflux = ts_obj.data_mean
+        # stable or unstable on average
+        if m_bflux > 0:
+            unstable = -1
+        else:
+            unstable = 1
+        # forcing regime in unstable condition
+        mask1 = ts_bflux < 0
+        mask2 = ts_ustar > 1e-10
+        mask3 = ts_laturb > 1e-10
+        bmask = [all(imask) for imask in zip(mask1, mask2, mask3)]
+        if sum(bmask) < ts_bflux.size/3:
+            # not enough data
+            forcing_regime = 8
+        else:
+            comp_ST = 2.0*(1.0-np.exp(-0.5*ts_laturb[bmask]))
+            comp_LT = 0.22/ts_laturb[bmask]**2
+            comp_CT = -0.3*ts_bflux[bmask]*ts_hbl[bmask]/ts_ustar[bmask]**3
+            comp_total = comp_ST + comp_LT + comp_CT
+            frac_ST = comp_ST/comp_total
+            frac_LT = comp_LT/comp_total
+            frac_CT = comp_CT/comp_total
+            mfrac_ST = np.mean(frac_ST)
+            mfrac_LT = np.mean(frac_LT)
+            mfrac_CT = np.mean(frac_CT)
+            if mfrac_LT < 0.25 and mfrac_CT < 0.25:
+                # ST dominant
+                forcing_regime = 1
+            elif mfrac_ST < 0.25 and mfrac_CT < 0.25:
+                # LT dominant
+                forcing_regime = 2
+            elif mfrac_ST < 0.25 and mfrac_LT < 0.25:
+                # CT dominant
+                forcing_regime = 3
+            elif mfrac_ST >= 0.25 and mfrac_LT >= 0.25 and mfrac_CT < 0.25:
+                # combined ST and LT
+                forcing_regime = 4
+            elif mfrac_ST >= 0.25 and mfrac_CT >= 0.25 and mfrac_LT < 0.25:
+                # combined ST and CT
+                forcing_regime = 5
+            elif mfrac_LT >= 0.25 and mfrac_CT >= 0.25 and mfrac_ST < 0.25:
+                # combined LT and CT
+                forcing_regime = 6
+            else:
+                # combined ST, LT and CT
+                forcing_regime = 7
+        return forcing_regime*unstable
+
+    def diag_forcing_regime_LF17(self, tidx_start=None, tidx_end=None):
+        """Diagnose the forcing regime according to the entrainment buoyancy
+           flux based definition in Li and Fox-Kemper, 2017
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (int) forcing regime flag
+
+        """
+        # read data
+        ts_sl = self.read_timeseries('La_SL', tidx_start=tidx_start, tidx_end=tidx_end,
+                ignore_time=True).data[1:]
+        ts_ustar = self.read_timeseries('u_taus', tidx_start=tidx_start, tidx_end=tidx_end,
+                ignore_time=True).data[1:]
+        ts_hbl = self.read_timeseries('mld_deltaR', tidx_start=tidx_start, tidx_end=tidx_end,
+                ignore_time=True).data[1:]
+        ts_obj = self.read_timeseries('bflux', tidx_start=tidx_start, tidx_end=tidx_end,
+                ignore_time=True)
+        ts_bflux = ts_obj.data[1:]
+        m_bflux = ts_obj.data_mean
+        # stable or unstable on average
+        if m_bflux > 0:
+            unstable = -1
+        else:
+            unstable = 1
+        # forcing regime in unstable condition
+        mask1 = ts_bflux < 0
+        mask2 = ts_ustar > 1e-10
+        mask3 = ts_sl > 1e-10
+        bmask = [all(imask) for imask in zip(mask1, mask2, mask3)]
+        if sum(bmask) < ts_bflux.size/3:
+            # not enough data
+            forcing_regime = 8
+        else:
+            comp_ST = 0.17
+            comp_LT = 0.083/ts_sl[bmask]**2
+            comp_CT = -0.15*ts_bflux[bmask]*ts_hbl[bmask]/ts_ustar[bmask]**3
+            comp_total = comp_ST + comp_LT + comp_CT
+            frac_ST = comp_ST/comp_total
+            frac_LT = comp_LT/comp_total
+            frac_CT = comp_CT/comp_total
+            mfrac_ST = np.mean(frac_ST)
+            mfrac_LT = np.mean(frac_LT)
+            mfrac_CT = np.mean(frac_CT)
+            if mfrac_LT < 0.25 and mfrac_CT < 0.25:
+                # ST dominant
+                forcing_regime = 1
+            elif mfrac_ST < 0.25 and mfrac_CT < 0.25:
+                # LT dominant
+                forcing_regime = 2
+            elif mfrac_ST < 0.25 and mfrac_LT < 0.25:
+                # CT dominant
+                forcing_regime = 3
+            elif mfrac_ST >= 0.25 and mfrac_LT >= 0.25 and mfrac_CT < 0.25:
+                # combined ST and LT
+                forcing_regime = 4
+            elif mfrac_ST >= 0.25 and mfrac_CT >= 0.25 and mfrac_LT < 0.25:
+                # combined ST and CT
+                forcing_regime = 5
+            elif mfrac_LT >= 0.25 and mfrac_CT >= 0.25 and mfrac_ST < 0.25:
+                # combined LT and CT
+                forcing_regime = 6
+            else:
+                # combined ST, LT and CT
+                forcing_regime = 7
+        return forcing_regime*unstable
+
     def _get_derived_profile(self, name=None, list_keys=False):
         """Find the derived profile variable
 
@@ -944,3 +1078,57 @@ class GOTMOutputDataMap(object):
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
         return out
 
+#--------------------------------
+# Functions
+#--------------------------------
+
+def plot_forcing_regime(f_regime, axis=None, add_colorbar=True, **kwargs):
+    """Plot forcing regime in scatters on a map
+
+    :f_regime: (GOTMMap object) forcing regime
+    :axis: (matplotlib.axes, optional) axis to plot figure on
+    :add_colorbar: (bool) do not add colorbar if False
+    :**kwargs: (keyword arguments) to be passed to mpl_toolkits.basemap.scatter()
+    :return: (matplotlib figure object) figure
+
+    """
+    # use curret axis if not specified
+    if not axis:
+        axis = plt.gca()
+    # plot map
+    m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=20, urcrnrlon=380, ax=axis)
+    # plot coastlines, draw label meridians and parallels.
+    m.drawcoastlines()
+    m.drawmapboundary(fill_color='lightgray')
+    m.fillcontinents(color='gray',lake_color='lightgray')
+    m.drawparallels(np.arange(-90.,91.,30.), labels=[1,0,0,1])
+    m.drawmeridians(np.arange(-180.,181.,60.), labels=[1,0,0,1])
+    # plot forcing regime
+    data = np.abs(f_regime.data)
+    lat = f_regime.lat
+    lon = f_regime.lon
+    # shift longitude
+    lon = np.where(lon < 20., lon+360., lon)
+    x, y = m(lon, lat)
+    # levels
+    levels = [0.5, 1.5, 2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5]
+    cb_ticks = [1, 2, 3, 4, 5, 6, 7, 8]
+    cb_ticks_labels = ['S', 'L', 'C', 'SL', 'SC', 'LC', 'SLC', 'NA']
+    color_list = ['firebrick','forestgreen','royalblue','gold','orchid','turquoise','w','gray']
+    cmap = colors.LinearSegmentedColormap.from_list('rgb', color_list, len(color_list))
+    bounds = np.array(levels)
+    norm = colors.BoundaryNorm(boundaries=bounds, ncolors=len(color_list))
+    fig = m.scatter(x, y, marker='.', s=32, c=data, norm=norm, cmap=cmap, **kwargs)
+    # mark stable regions
+    smask = f_regime.data<0
+    lat_s = lat[smask]
+    lon_s = lon[smask]
+    # shift longitude
+    lon_s = np.where(lon_s < 20., lon_s+360., lon_s)
+    x_s, y_s = m(lon_s, lat_s)
+    fig_s = m.scatter(x_s, y_s, marker='*', s=6, c='black', linewidth=0.1, **kwargs)
+    # add colorbar
+    if add_colorbar:
+        cb = m.colorbar(fig, ax=axis, ticks=cb_ticks)
+        cb.ax.set_yticklabels(cb_ticks_labels)
+    return fig
