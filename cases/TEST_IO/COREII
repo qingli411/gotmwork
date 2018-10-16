@@ -34,8 +34,8 @@ lonlist=(234 254 86)
 depthlist=(200 500 200)
 
 # starting and ending date - in the format of YYYYMMDD
-startlist=(20080615 20080915 20080615)
-endlist=(20081231 20090915 20081231)
+startlist=(20080601 20090101 20080601)
+endlist=(20081231 20090731 20081231)
 
 # season (winter or spring)
 for idx in ${!latlist[@]}; do
@@ -52,7 +52,7 @@ for idx in ${!latlist[@]}; do
     title="${case}_${datestart}-${dateend}"
 
     # directory of base case
-    basecase="${GOTMWORK_ROOT}/data/${case}_20080115-20091231"
+    basecase="${GOTMWORK_ROOT}/data/${case}_20080601-20091231"
 
     # depth
     depth=${depthlist[idx]}

@@ -17,9 +17,9 @@ if [ ${l_test} == "yes" ]; then
     vrelaxlist=(none)
 else
     # name of the turbulence model
-    turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG)
+    turblist=(KPP-CVMix KPP-ROMS KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG)
     # relaxation time
-    vrelaxlist=(1d 10d none)
+    vrelaxlist=(1d 10d)
 fi
 
 # output file name
@@ -44,9 +44,6 @@ for vrelax in ${vrelaxlist[@]}; do
             ;;
         "10d")
             trelax=864000
-            ;;
-        "none")
-            trelax=1e+15
             ;;
         *)
             echo "Relaxation time ${vrelax} not supported. Stop."
