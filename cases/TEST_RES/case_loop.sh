@@ -115,6 +115,8 @@ for dt in ${dtlist[@]}; do
     ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
     ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
+    # ${cmd_nmlchange} -f obs.nml -e vel_relax_tau -v 86400
+
     # set turbulence method
     source ${scpt_case_turbmethod}
 

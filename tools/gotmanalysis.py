@@ -1022,6 +1022,27 @@ class GOTMOutputDataMap(object):
             dataset.close()
         return lat, lon
 
+    def diagnostics(self, name=None, list_keys=False, **kwargs):
+        """Find the diagnostics
+
+        :name: (str) name of diagnostics
+        :list_keys: (bool) simply return the list of keys if True
+        :returns: (GOTMMap object / list) requested diagnostics in GOTMMap object
+                                          format or a list of names of the supported
+                                          diagnostics
+
+        """
+        switcher = {
+                'mld_deltaR_mean': self.mean_state_timeseries(var='mld_deltaR', **kwargs),
+                'PE_delta': self.delta_timeseries(var='PE', **kwargs)
+                }
+        if list_keys:
+            return list(switcher.keys())
+        elif name in switcher.keys():
+            return switcher.get(name)
+        else:
+            raise ValueError('Variable \'{}\' not found.'.format(name))
+
     def mean_state_profile(self, var, tidx_start=None, tidx_end=None, zidx_start=None, zidx_end=None):
         """Return the mean state of a profile variable
 
