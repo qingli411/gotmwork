@@ -371,6 +371,12 @@ class GOTMOutputData(object):
         """
         # open dataset
         self.open()
+        # preprocess variable name, change sign if variable name start with '-'
+        if var[0] == '-':
+            var = var[1:]
+            change_sign = True
+        else:
+            change_sign = False
         # read variable
         if var in self.list_variables:
             dat = self.dataset.variables[var][tidx_start:tidx_end,:,0,0]
@@ -388,6 +394,9 @@ class GOTMOutputData(object):
             time = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
         else:
             time = None
+        # change sign if variable name start with '-'
+        if change_sign:
+            dat = -dat
         out = GOTMProfile(time=time, z=z, data=dat, name=var)
         # close data
         self.close()
@@ -406,6 +415,12 @@ class GOTMOutputData(object):
         """
         # open dataset
         self.open()
+        # preprocess variable name, change sign if variable name start with '-'
+        if var[0] == '-':
+            var = var[1:]
+            change_sign = True
+        else:
+            change_sign = False
         # read variable
         if var in self.list_variables:
             dat = self.dataset.variables[var][tidx_start:tidx_end,0,0]
@@ -416,6 +431,9 @@ class GOTMOutputData(object):
             time = num2date(self.time[tidx_start:tidx_end], units=self.time_units, calendar=self.time_calendar)
         else:
             time = None
+        # change sign if variable name start with '-'
+        if change_sign:
+            dat = -dat
         out = GOTMTimeseries(time=time, data=dat, name=var)
         # close data
         self.close()
