@@ -4,7 +4,7 @@
 #
 # Qing Li, 20180410
 
-for kproc in case_run_multi preproc_data python3; do
+for kproc in gotm case_run_multi preproc_data python3; do
 
     klist=$(ps aux | grep ${kproc} | awk '{if($11!="grep") print $2}')
 

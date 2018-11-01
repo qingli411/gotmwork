@@ -1,14 +1,52 @@
 #!/bin/bash
-# Setup and run GOTM for CORE-II
-# Loop over latitude and longitude
-#
-# This script essentially does the same thing as case_run_multi, but
-# skips the step to preprocess the input data, which is now taken care
-# of my preproc_data
+# Setup and run GOTM for JRA55-do
 #
 # Qing Li, 20180503
+#          20181101, named options
 
 #######################################################################
+#                           parse arguments                           #
+#######################################################################
+lon_start=2
+lon_end=360
+turbmethod="none"
+date_start="none"
+date_end="none"
+
+while getopts l:L:m:d:D: options
+do
+    case $options in
+        # starting longitude
+        l) lon_start=$OPTARG ;;
+        # ending longitude
+        L) lon_end=$OPTARG ;;
+        # turbulence model
+        m) turbmethod=$OPTARG ;;
+        # starting date
+        d) date_start=$OPTARG ;;
+        # ending date
+        D) date_end=$OPTARG ;;
+        \?) echo "Unknown option -$OPTARG"
+            exit 1 ;;
+    esac
+done
+
+if [[ ${turbmethod} == "none" ]]; then
+    echo "Missing option -m [turbulence model]"
+    exit 1
+fi
+
+if [[ ${date_start} == "none" ]]; then
+    echo "Missing option -d [starting date in YYYYMMDD]"
+    exit 1
+fi
+
+if [[ ${date_end} == "none" ]]; then
+    echo "Missing option -D [ending date in YYYYMMDD]"
+    exit 1
+fi
+
+######################################################################
 #                              Set path                               #
 #######################################################################
 
@@ -39,31 +77,13 @@ let nsave=21600/dt
 # output file name
 outname="gotm_out"
 
-# starting and ending date - in the format of YYYYMMDD
-# the starting date should match what are available in the
-# input data directory
-datestart="20080701"
-dateend="20080731"
-
-# name of the turbulence model
-turbmethod=$3
-# turbmethod="KPP-CVMix"
-# turbmethod="KPP-ROMS"
-# turbmethod="KPPLT-ENTR"
-# turbmethod="OSMOSIS"
-# turbmethod="EPBL"
-# turbmethod="SMCLT"
-# turbmethod="SMC"
-
 # setup
 dz=$((maxdepth/nlev))
-setup="${title}_Global/VR${dz}m_DT${dt}s_${datestart}-${dateend}"
+setup="${title}_Global/VR${dz}m_DT${dt}s_${date_start}-${date_end}"
 
 #######################################################################
 #                         Loop over locations                         #
 #######################################################################
-lon_start=$1
-lon_end=$2
 dlon=4
 lat_start=-70
 lat_end=70
@@ -75,16 +95,16 @@ inputend="20091231"
 
 # start outer loop over lon
 lon=${lon_start}
-while [ ${lon} -le ${lon_end} ]; do
+while [[ ${lon} -le ${lon_end} ]]; do
 # start inner loop over lat
 lat=${lat_start}
-while [ ${lat} -le ${lat_end} ]; do
+while [[ ${lat} -le ${lat_end} ]]; do
 
     # input data folder name
     inputname="${title}_LAT${lat}_LON${lon}_${inputstart}-${inputend}"
 
     # check if data exists
-    if [ -d ${dataroot}/${inputname} ]; then
+    if [[ -d ${dataroot}/${inputname} ]]; then
 
         # case name
         casename="${title}_LAT${lat}_LON${lon}"
@@ -93,8 +113,8 @@ while [ ${lat} -le ${lat_end} ]; do
         echo ${casename}
 
         # skip if initial temperature and salinity profiles are not available
-        tprofdata=${dataroot}/${inputname}/tprof_file_${datestart}.dat
-        sprofdata=${dataroot}/${inputname}/sprof_file_${datestart}.dat
+        tprofdata=${dataroot}/${inputname}/tprof_file_${date_start}.dat
+        sprofdata=${dataroot}/${inputname}/sprof_file_${date_start}.dat
         if [ -s ${tprofdata} -a -s ${sprofdata} ]; then
             # create run directory
             rundir="${GOTMRUN_ROOT}/${setup}/${turbmethod}/${casename}"
@@ -124,7 +144,7 @@ while [ ${lat} -le ${lat_end} ]; do
 
         # set run parameters
         ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} \
-        -ds ${datestart} -de ${dateend} -method nc2dat_latlon -skipdata
+        -ds ${date_start} -de ${date_end} -method nc2dat_latlon -skipdata
         ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
         ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
         ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
