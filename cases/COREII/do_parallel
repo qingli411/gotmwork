@@ -1,34 +1,124 @@
 #!/bin/bash
 #
 # Manually parallel run by submitting multiple jobs
+#
+# Qing Li, 20181101
 
-# lon_slist=(  2  70 126 166 194 226 266 322)
-# lon_elist=( 66 122 162 190 222 262 318 360)
-# lon_slist=(  2  78 138 178 210 234 266 322)
-# lon_elist=( 74 134 174 206 230 262 318 360)
-# lon_slist=(  2  70 126 170 202 238 282 330)
-# lon_elist=( 66 122 166 198 234 278 326 360)
-lon_slist=(  2  126 202 282 )
-lon_elist=( 122 198 278 360 )
+# flag for preprocessing data
+do_preproc_data=False
+# flag for run multiple gotm cases
+do_run_multi=True
 
-tmethod_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK" "SMC" "SMCLT" "EPBL" "EPBL-LT" "OSMOSIS" "K-EPSILON-SG" )
+# Note: for maximum efficiency, let ndate*nmodel%njob=0
 
-# tmethod=${tmethod_list[0]}
-# echo ${tmethod}
-# for i in {9..10}; do
-    # lon_start=${lon_slist[i]}
-    # lon_end=${lon_elist[i]}
+# number of parallel jobs
+njob=8
 
+# indices for dates
+# - start from 0
+# - leave empty if run all dates
+idate_list=( )
+
+# indices for turbulence models
+# - start from 0
+# - leave empty if run all models
+imodel_list=( )
+
+# list of starting and ending dates
+dst_list=( "20080701" "20080801" "20080901" "20081001" "20081101" "20081201" "20090101" "20090201" "20090301" "20090401" "20090501" "20090601" )
+ded_list=( "20080731" "20080831" "20080930" "20081031" "20081130" "20081231" "20090131" "20090228" "20090331" "20090430" "20090531" "20090630" )
+
+# list of turbulence models
+model_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK" "SMC" "SMCLT" "EPBL" "EPBL-LT" "OSMOSIS" "K-EPSILON-SG" )
+
+# run all the dates if $idate_list is empty
+if [[ ${#idate_list[@]} -eq 0 ]]; then
+    idate_list=( ${!dst_list[@]} )
+fi
+
+# number of dates
+ndate=${#idate_list[@]}
+
+# run all the models if $imodel_list is empty
+if [[ ${#imodel_list[@]} -eq 0 ]]; then
+    imodel_list=( ${!model_list[@]} )
+fi
+
+# number of models
+nmodel=${#imodel_list[@]}
+
+# preprocessing the data
+if [[ ${do_preproc_data} == "True" ]]; then
+    # list of starting and ending longitude
+    if [[ ${njob} -eq 8 ]]; then
+        lon_slist=(  2  70 126 170 202 238 282 330)
+        lon_elist=( 66 122 166 198 234 278 326 360)
+    elif [[ ${njob} -eq 4 ]]; then
+        lon_slist=(  2  126 202 278 )
+        lon_elist=( 122 198 274 360 )
+    else
+        echo "Number of jobs ${njob} not supported for preproc_data."
+        exit 1
+    fi
     # Preprocess input data
-    # ./preproc_data ${lon_start} ${lon_end} > log.${i} &
+    for i in ${!lon_slist[@]}; do
+        lon_start=${lon_slist[i]}
+        lon_end=${lon_elist[i]}
+        ./preproc_data -l ${lon_start} -L ${lon_end} > log.${i} &
+    done
+fi
 
-    # Run GOTM
-    # ./case_run_multi ${lon_start} ${lon_end} ${tmethod} > log.${i} &
-# done
-
-for j in {0..3}; do
-    tmethod=${tmethod_list[j]}
-    echo ${tmethod}
-    # Run GOTM
-    ./case_run_multi 2 360 ${tmethod} > log.${j} &
-done
+# run gotm
+if [[ ${do_run_multi} == "True" ]]; then
+    # number of total runs
+    nrun=$((ndate*nmodel))
+    # number of cases in a job
+    if [[ $((nrun % njob)) -eq 0 ]]; then
+        njcase=$((nrun/njob))
+    else
+        njcase=$((nrun/njob+1))
+    fi
+    # print a summary
+    echo "--------"
+    echo "Number of parallel jobs: ${njob}"
+    echo "Number of total runs: ${nrun}"
+    echo "Maximum number of runs in each job: ${njcase}"
+    echo "--------"
+    echo "List of runs:"
+    # get pool of indices for each job
+    j_list=()
+    k_list=()
+    j=0
+    k=0
+    for ((m=0; m<njob; m++)); do
+        for ((n=0; n<njcase; n++)); do
+            if [[ ${k} -lt ${ndate} ]]; then
+                j_list+=(${imodel_list[j]})
+                k_list+=(${idate_list[k]})
+                # print out the command of runs
+                jj=${imodel_list[j]}
+                kk=${idate_list[k]}
+                echo "./case_run_multi -m ${model_list[jj]} -d ${dst_list[kk]} -D ${ded_list[kk]}"
+                j=$((j+1))
+                if [[ ${j} -eq ${nmodel} ]]; then
+                    k=$((k+1))
+                    j=0
+                fi
+            fi
+        done
+    done
+    echo "--------"
+    # submit jobs
+    for ((m=0; m<njob; m++)); do
+        {
+        for ((n=0; n<njcase; n++)); do
+            ii=$((m*njcase+n))
+            if [[ ${ii} -lt $((ndate*nmodel)) ]]; then
+                jj=${j_list[ii]}
+                kk=${k_list[ii]}
+                ./case_run_multi -m ${model_list[jj]} -d ${dst_list[kk]} -D ${ded_list[kk]} > log.${ii};
+            fi
+        done
+        } &
+    done
+fi

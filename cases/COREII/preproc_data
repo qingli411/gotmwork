@@ -2,6 +2,25 @@
 # This script preprocess CORE-II data for GOTM input
 #
 # Qing Li, 20180503
+#          20181104, named options
+
+#######################################################################
+#                           parse arguments                           #
+#######################################################################
+lon_start=2
+lon_end=360
+
+while getopts l:L: options
+do
+    case $options in
+        # starting longitude
+        l) lon_start=$OPTARG ;;
+        # ending longitude
+        L) lon_end=$OPTARG ;;
+        \?) echo "Unknown option -$OPTARG"
+            exit 1 ;;
+    esac
+done
 
 #######################################################################
 #                              Set path                               #
@@ -36,8 +55,8 @@ title="COREII"
 maxdepth=2000
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20080601"
-dateend="20091231"
+date_start="20080601"
+date_end="20091231"
 
 # flag for dry run
 l_dry_run="no"
@@ -48,10 +67,6 @@ yyyymmdd=$(date "+%Y%m%d")
 #######################################################################
 #                         Loop over locations                         #
 #######################################################################
-lon_start=$1
-lon_end=$2
-# lon_start=2
-# lon_end=360
 dlon=4
 lat_start=-70
 lat_end=70
@@ -71,11 +86,11 @@ while [ ${lat} -le ${lat_end} ]; do
     if [ ${l_sea} == "yes" ]; then
 
         # case name
-        casename="${title}_LAT${lat}_LON${lon}_${datestart}-${dateend}"
+        casename="${title}_LAT${lat}_LON${lon}_${date_start}-${date_end}"
 
         # dry run first and check the availability of argo profiles
         ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-            -r 2 -d ${datestart} -dr 20 -dry -iy
+            -r 2 -d ${date_start} -dr 20 -dry -iy
         nstate=$?
 
         if [ ${l_dry_run} == "no" ]; then
@@ -105,29 +120,29 @@ while [ ${lat} -le ${lat_end} ]; do
 
             # set run parameters
             ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} -data ${datadir} \
-                -ds ${datestart} -de ${dateend} -method nc2dat_latlon
+                -ds ${date_start} -de ${date_end} -method nc2dat_latlon
 
             # processing shortwave radiation
             ${cmd_nc2dat_core2swr} -i ${datadir}/${swrdata} -o "swr_file.dat" \
-                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend}
+                -lat ${lat} -lon ${lon} -ds ${date_start} -de ${date_end}
 
             # processing Stokes drift data
             ${cmd_nc2dat_ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
-                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} -usp
+                -lat ${lat} -lon ${lon} -ds ${date_start} -de ${date_end} -usp
 
             # processing bulk wave parameter
             ${cmd_nc2dat_ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
-                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} \
+                -lat ${lat} -lon ${lon} -ds ${date_start} -de ${date_end} \
                 -v hs fp dir
 
             # processing Argo data for initialization
             # save 12 initialization profiles
             for i in {1..12}; do
                 mm=$(printf '%02d' ${i})
-                if [ ${i} -ge ${datestart:4:2} ]; then
-                    argostart="${datestart:0:4}${mm}${datestart:6:2}"
+                if [ ${i} -ge ${date_start:4:2} ]; then
+                    argostart="${date_start:0:4}${mm}${date_start:6:2}"
                 else
-                    argostart="$((${datestart:0:4}+1))${mm}${datestart:6:2}"
+                    argostart="$((${date_start:0:4}+1))${mm}${date_start:6:2}"
                 fi
                 tprof_name="tprof_file_${argostart}.dat"
                 sprof_name="sprof_file_${argostart}.dat"
