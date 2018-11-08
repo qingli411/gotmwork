@@ -1,23 +1,52 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Plot map of diagnostics
+#
+# Qing Li, 20181107
+
 import sys
 import os
+import argparse
 sys.path.append(os.environ['GOTMWORK_ROOT']+'/tools', )
 from gotmanalysis import *
 
-timetag = '20080701-20080731'
+# process the input arguments
+parser = argparse.ArgumentParser(description="""
+        Plot global map of diagnostics.\n
+        Supported diagnostics:
+            mld_deltaR_mean
+            PE_delta """,
+            formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('-c', '--casename', action='store', dest='cname',
+        metavar='CASENAME', required=True, help='Case name')
+parser.add_argument('-t', '--timetag', action='store', dest='ttag',
+        metavar='TIMETAG', required=True, help='Time tag (yyyymmdd-yyyymmdd)')
+parser.add_argument('-d', '--diagname', action='store', dest='diagname',
+        metavar='DIAGNAME', required=True, help='Diagnostic name')
+parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_data',
+        help='Update data')
+# parsing arguments and save to args
+args=parser.parse_args()
+
 # timetag = '20090101-20090131'
 # casename = 'COREII_Global'
-casename = 'JRA55-do_Global'
+casename = args.cname
+timetag = args.ttag
+var = args.diagname
+update_data = args.l_update_data
 
 # diagnostics
-# var = 'mld_deltaR_mean'
-# levels1 = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 110, 130, 150, 180, 210, 240, 280, 320, 360, 407, 454, 500]
-# levels2 = [-90, -75, -60, -45, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 45, 60, 75, 90]
-var = 'PE_delta'
-levels1 = None
-levels2 = None
-
-# update data
-update_data = False
+if var == 'mld_deltaR_mean':
+    levels1 = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 110, 130, 150, 180, 210, 240, 280, 320, 360, 407, 454, 500]
+    levels2 = [-90, -75, -60, -45, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 45, 60, 75, 90]
+elif var == 'PE_delta':
+    levels1 = None
+    levels2 = None
+else:
+    print('Variable {} not supported. Stop.'.format(var))
+    parser.print_help()
+    sys.exit(1)
 
 # paths
 s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/VR1m_DT600s_'+timetag
