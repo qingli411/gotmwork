@@ -120,7 +120,7 @@ while [[ ${lat} -le ${lat_end} ]]; do
         # skip if initial temperature and salinity profiles are not available
         tprofdata=${dataroot}/${inputname}/tprof_file_${date_start}.dat
         sprofdata=${dataroot}/${inputname}/sprof_file_${date_start}.dat
-        if [[ -s ${tprofdata} -a -s ${sprofdata} ]]; then
+        if [[ -s ${tprofdata} ]] && [[ -s ${sprofdata} ]]; then
             # create run directory
             rundir="${GOTMRUN_ROOT}/${setup}/${turbmethod}/${casename}"
             mkdir -p ${rundir}
