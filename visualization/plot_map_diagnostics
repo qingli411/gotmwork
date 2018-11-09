@@ -92,9 +92,9 @@ for i in np.arange(nm):
     basepath = s1data_root+'/'+tmname
     s2data_name = s2data_root+'/data_'+var+'_'+tmname+'.npz'
     figname = fig_root+'/fig_'+var+'.png'
-    loclist = sorted(os.listdir(basepath))
     if update_data or not os.path.isfile(s2data_name):
         # save data
+        loclist = sorted(os.listdir(basepath))
         pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
         godmobj = GOTMOutputDataMap(pathlist)
         gmobj = godmobj.diagnostics(var)
@@ -103,12 +103,12 @@ for i in np.arange(nm):
         # read data
         gmobj = GOTMMap().load(s2data_name)
     if i == 0:
-        nloc = len(loclist)
-        darr = np.zeros([nm, nloc])
         lon = gmobj.lon
         lat = gmobj.lat
         name = gmobj.name
         units = gmobj.units
+        nloc = len(lon)
+        darr = np.zeros([nm, nloc])
     darr[i,:] = gmobj.data
 
 # forcing regime
