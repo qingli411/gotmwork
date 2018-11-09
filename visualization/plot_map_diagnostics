@@ -26,6 +26,8 @@ parser.add_argument('-d', '--diagname', action='store', dest='diagname',
         metavar='DIAGNAME', required=True, help='Diagnostic name')
 parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_data',
         help='Update data')
+parser.add_argument('-P', '--plotfigure', action='store_true', dest='l_plot_figure',
+        help='Plot figure')
 # parsing arguments and save to args
 args=parser.parse_args()
 
@@ -35,6 +37,7 @@ casename = args.cname
 timetag = args.ttag
 var = args.diagname
 update_data = args.l_update_data
+plot_figure = args.l_plot_figure
 
 # diagnostics
 if var == 'mld_deltaR_mean':
@@ -131,69 +134,70 @@ else:
     # read data
     gmobj_fr = GOTMMap().load(s2data_name)
 
-# create figure
-nrow = (nm+2)//2
-fig_width = 12
-fig_height = 3+2*(nrow-1)
+if plot_figure:
+    # create figure
+    nrow = (nm+2)//2
+    fig_width = 12
+    fig_height = 3+2*(nrow-1)
 
-# plot figure
-height_ratios = [1]*nrow
-height_ratios.append(0.15)
-width_ratios = [1, 1, 0.05]
-f, axarr = plt.subplots(nrow, 2, sharex='col')
-f.set_size_inches(fig_width, fig_height)
-
-for i in np.arange(nm):
     # plot figure
-    n = icol_2col[i]
-    m = irow_2col[i]
-    if i == 0:
-        gmdata = darr[i,:]
-        gmobj = GOTMMap(data=gmdata, lon=lon, lat=lat, name=name, units=units)
-        im1 = gmobj.plot(axis=axarr[m,n], levels=levels1, add_colorbar=False)
-    else:
-        gmdata = darr[i,:] - darr[0,:]
-        gmobj = GOTMMap(data=gmdata, lon=lon, lat=lat, name=name, units=units)
-        im2 = gmobj.plot(axis=axarr[m,n], levels=levels2, add_colorbar=False, cmap='RdBu_r')
-    axarr[m,n].text(0.02, 0.94, labels_2col[i]+' '+legend_list[i], transform=axarr[m,n].transAxes,
-                     fontsize=12, color='white', fontweight='bold', va='top')
+    height_ratios = [1]*nrow
+    height_ratios.append(0.15)
+    width_ratios = [1, 1, 0.05]
+    f, axarr = plt.subplots(nrow, 2, sharex='col')
+    f.set_size_inches(fig_width, fig_height)
 
-# standard deviation
-# dstd = np.std(darr, axis=0)
-# gmobj = GOTMMap(data=dstd, lon=lon, lat=lat, name=name, units=units)
-# im0 = gmobj.plot(axis=axarr[0,0], add_colorbar=False, cmap='viridis', vmax=vmax0, vmin=vmin0)
-# axarr[0,0].text(0.02, 0.94, '(a) STD', transform=axarr[0,0].transAxes,
-#                      fontsize=12, color='white', fontweight='bold', va='top')
+    for i in np.arange(nm):
+        # plot figure
+        n = icol_2col[i]
+        m = irow_2col[i]
+        if i == 0:
+            gmdata = darr[i,:]
+            gmobj = GOTMMap(data=gmdata, lon=lon, lat=lat, name=name, units=units)
+            im1 = gmobj.plot(axis=axarr[m,n], levels=levels1, add_colorbar=False)
+        else:
+            gmdata = darr[i,:] - darr[0,:]
+            gmobj = GOTMMap(data=gmdata, lon=lon, lat=lat, name=name, units=units)
+            im2 = gmobj.plot(axis=axarr[m,n], levels=levels2, add_colorbar=False, cmap='RdBu_r')
+        axarr[m,n].text(0.02, 0.94, labels_2col[i]+' '+legend_list[i], transform=axarr[m,n].transAxes,
+                         fontsize=12, color='white', fontweight='bold', va='top')
 
-# forcing regime
-im0 = plot_forcing_regime(gmobj_fr, axis=axarr[0,0], add_colorbar=False)
-axarr[0,0].text(0.02, 0.94, '(a) Forcing regime', transform=axarr[0,0].transAxes,
-                     fontsize=12, color='white', fontweight='bold', va='top')
+    # standard deviation
+    # dstd = np.std(darr, axis=0)
+    # gmobj = GOTMMap(data=dstd, lon=lon, lat=lat, name=name, units=units)
+    # im0 = gmobj.plot(axis=axarr[0,0], add_colorbar=False, cmap='viridis', vmax=vmax0, vmin=vmin0)
+    # axarr[0,0].text(0.02, 0.94, '(a) STD', transform=axarr[0,0].transAxes,
+    #                      fontsize=12, color='white', fontweight='bold', va='top')
 
-# reduce margin
-plt.tight_layout()
+    # forcing regime
+    im0 = plot_forcing_regime(gmobj_fr, axis=axarr[0,0], add_colorbar=False)
+    axarr[0,0].text(0.02, 0.94, '(a) Forcing regime', transform=axarr[0,0].transAxes,
+                         fontsize=12, color='white', fontweight='bold', va='top')
 
-# colorbar
-plt.subplots_adjust(right=0.95)
-cax0 = plt.axes([0.85, 0.7, 0.1, 0.25])
-cax0.set_visible(False)
-cb_ticks = [1, 2, 3, 4, 5, 6, 7, 8]
-cb_ticks_labels = ['S', 'L', 'C', 'SL', 'SC', 'LC', 'SLC', 'NA']
-cb0 = plt.colorbar(im0, ax=cax0, ticks=cb_ticks)
-cb0.ax.set_yticklabels(cb_ticks_labels)
-# cb0.formatter.set_powerlimits((-2, 2))
-# cb0.update_ticks()
-cax1 = plt.axes([0.85, 0.37, 0.1, 0.25])
-cax1.set_visible(False)
-cb1 = plt.colorbar(im1, ax=cax1)
-cb1.formatter.set_powerlimits((-2, 3))
-cb1.update_ticks()
-cax2 = plt.axes([0.85, 0.04, 0.1, 0.25])
-cax2.set_visible(False)
-cb2 = plt.colorbar(im2, ax=cax2)
-cb2.formatter.set_powerlimits((-3, 3))
-cb2.update_ticks()
+    # reduce margin
+    plt.tight_layout()
 
-# save figure
-plt.savefig(figname, dpi = 300)
+    # colorbar
+    plt.subplots_adjust(right=0.95)
+    cax0 = plt.axes([0.85, 0.7, 0.1, 0.25])
+    cax0.set_visible(False)
+    cb_ticks = [1, 2, 3, 4, 5, 6, 7, 8]
+    cb_ticks_labels = ['S', 'L', 'C', 'SL', 'SC', 'LC', 'SLC', 'NA']
+    cb0 = plt.colorbar(im0, ax=cax0, ticks=cb_ticks)
+    cb0.ax.set_yticklabels(cb_ticks_labels)
+    # cb0.formatter.set_powerlimits((-2, 2))
+    # cb0.update_ticks()
+    cax1 = plt.axes([0.85, 0.37, 0.1, 0.25])
+    cax1.set_visible(False)
+    cb1 = plt.colorbar(im1, ax=cax1)
+    cb1.formatter.set_powerlimits((-2, 3))
+    cb1.update_ticks()
+    cax2 = plt.axes([0.85, 0.04, 0.1, 0.25])
+    cax2.set_visible(False)
+    cb2 = plt.colorbar(im2, ax=cax2)
+    cb2.formatter.set_powerlimits((-3, 3))
+    cb2.update_ticks()
+
+    # save figure
+    plt.savefig(figname, dpi = 300)
 
