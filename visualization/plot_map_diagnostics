@@ -43,9 +43,11 @@ plot_figure = args.l_plot_figure
 if var == 'mld_deltaR_mean':
     levels1 = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 110, 130, 150, 180, 210, 240, 280, 320, 360, 407, 454, 500]
     levels2 = [-90, -75, -60, -45, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 45, 60, 75, 90]
+    fill_value = 499.5
 elif var == 'PE_delta':
     levels1 = None
     levels2 = None
+    fill_value = None
 else:
     print('Variable {} not supported. Stop.'.format(var))
     parser.print_help()
@@ -97,7 +99,7 @@ for i in np.arange(nm):
         loclist = sorted(os.listdir(basepath))
         pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
         godmobj = GOTMOutputDataMap(pathlist)
-        gmobj = godmobj.diagnostics(var)
+        gmobj = godmobj.diagnostics(var, fillvalue=fill_value)
         gmobj.save(s2data_name)
     else:
         # read data
