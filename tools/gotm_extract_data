@@ -1,0 +1,66 @@
+#!/bin/bash
+#
+# Extract data from archive
+#
+# Qing Li, 20181113
+
+# parse input arguments
+casename="none"
+casesetup="none"
+while getopts c:s: options
+do
+    case ${options} in
+        # case name
+        c) casename=${OPTARG} ;;
+        # case setup
+        s) casesetup=${OPTARG} ;;
+        \?) echo "Unknown option -${OPTARG}"
+            exit 1 ;;
+    esac
+done
+
+# check input arguments
+if [[ ${casename} == "none" ]]; then
+    echo "Missing option -c [case name]"
+    exit 1
+fi
+
+if [[ ${casesetup} == "none" ]]; then
+    echo "Missing option -s [case setup]"
+    exit 1
+fi
+
+# check environment variables
+if [[ -z ${GOTMRUN_ROOT} ]]; then
+    echo "Environment variable GOTMRUN_ROOT not set. Run 'source set_tools.sh' first."
+    exit 1
+fi
+
+if [[ -z ${GOTMARCHIVE_ROOT} ]]; then
+    echo "Environment variable GOTMARCHIVE_ROOT not set. Run 'source set_tools.sh' first."
+    exit 1
+fi
+
+GOTMARCHIVE_ROOT="/Volumes/LaCie/gotm/gotmrun"
+GOTMRUN_ROOT="/Users/qingli/work/gotm/gotmrun2"
+
+# run directory
+run_dir=${GOTMRUN_ROOT}/${casename}/${casesetup}
+
+# archive directory
+arc_dir=${GOTMARCHIVE_ROOT}/${casename}/${casesetup}
+
+# current directory
+cur_dir=$(pwd)
+
+# extract data
+echo "Extracting data to ..."
+echo "  ${run_dir}"
+mkdir -p ${run_dir}
+cd ${run_dir}
+for f in ${arc_dir}/*.tar.gz; do
+    echo "    ${f} ..."
+    tar -zxf ${f}
+done
+cd ${cur_dir}
+
