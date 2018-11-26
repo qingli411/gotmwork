@@ -48,6 +48,14 @@ elif var == 'PE_delta':
     levels1 = None
     levels2 = None
     fill_value = None
+elif var == 'SST':
+    levels1 = list(np.arange(31))
+    levels2 = list((np.arange(21)-10)*0.1)
+    fill_value = None
+elif var == 'SSS':
+    levels1 = None
+    levels2 = None
+    fill_value = None
 else:
     print('Variable {} not supported. Stop.'.format(var))
     parser.print_help()
