@@ -647,6 +647,7 @@ class GOTMOutputData(object):
                 'mld_maxNsqr': self._get_mld_maxNsqr,
                 'mld_deltaT': self._get_mld_deltaT,
                 'mld_deltaR': self._get_mld_deltaR,
+                'Nsqr_mld': self._get_Nsqr_mld,
                 'PE': self._get_pez
                 }
         if list_keys:
@@ -890,6 +891,27 @@ class GOTMOutputData(object):
                 mld[i] = np.min(z[i,:])
         return np.abs(mld)
 
+    def _get_Nsqr_mld(self, tidx_start=None, tidx_end=None):
+        """Find the stratification N^2 at the base of the
+           mixed layer (density criterion)
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (numpy array) N^2
+
+        """
+        # get boundary layer depth
+        hbl   = self._get_derived_timeseries('mld_deltaR')(tidx_start=tidx_start, tidx_end=tidx_end)
+        # read N^2
+        Nsqr = self.dataset.variables['NN'][tidx_start:tidx_end,:,0,0]
+        z = self.dataset.variables['z'][tidx_start:tidx_end,:,0,0]
+        nt = Nsqr.shape[0]
+        Nsqr_mld = np.zeros(nt)
+        for i in np.arange(nt):
+            ihbl = np.argmin(np.abs(z[i,:]+hbl[i]))
+            Nsqr_mld[i] = Nsqr[i, ihbl]
+        return Nsqr_mld
+
     def _get_pez(self, tidx_start=None, tidx_end=None, depth=None):
         """Calculate the total potential energy (PE) integrated from
            surface to a certain depth
@@ -1055,6 +1077,7 @@ class GOTMOutputDataMap(object):
                 'PE_delta': self.delta_timeseries(var='PE', **kwargs),
                 'SST': self.mean_state_timeseries(var='sst', **kwargs),
                 'SSS': self.mean_state_timeseries(var='sss', **kwargs),
+                'Nsqr_mld': self.mean_state_timeseries(var='Nsqr_mld', **kwargs),
                 }
         if list_keys:
             return list(switcher.keys())

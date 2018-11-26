@@ -16,7 +16,10 @@ parser = argparse.ArgumentParser(description="""
         Plot global map of diagnostics.\n
         Supported diagnostics:
             mld_deltaR_mean
-            PE_delta """,
+            PE_delta
+            SST
+            SSS
+            Nsqr_mld""",
             formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-c', '--casename', action='store', dest='cname',
         metavar='CASENAME', required=True, help='Case name')
@@ -55,6 +58,10 @@ elif var == 'SST':
 elif var == 'SSS':
     levels0 = None
     levels1 = None
+    fill_value = None
+elif var == 'Nsqr_mld':
+    levels0 = list((np.arange(26)*1e-4))
+    levels1 = list((np.arange(21)-10)*2e-4)
     fill_value = None
 else:
     print('Variable {} not supported. Stop.'.format(var))
@@ -98,16 +105,16 @@ labels_2col = ['(b)', '(c)', '(g)', '(h)', '(i)', '(d)', '(j)', '(e)', '(k)','(f
 # get diagnostics
 for i in np.arange(nm):
     tmname = turbmethod_list[i]
-    print(tmname)
     basepath = s1data_root+'/'+tmname
     s2data_name = s2data_root+'/data_'+var+'_'+tmname+'.npz'
-    figname = fig_root+'/fig_'+var+'.png'
     if update_data or not os.path.isfile(s2data_name):
-        # save data
+        # update data
+        print('Updating data for {}...'.format(tmname))
         loclist = sorted(os.listdir(basepath))
         pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
         godmobj = GOTMOutputDataMap(pathlist)
         gmobj = godmobj.diagnostics(var, fillvalue=fill_value)
+        # save data
         gmobj.save(s2data_name)
     else:
         # read data
@@ -121,28 +128,25 @@ for i in np.arange(nm):
         darr = np.zeros([nm, nloc])
     darr[i,:] = gmobj.data
 
+# plot figure
 if plot_figure:
     # create figure
     nrow = (nm+2)//2
     fig_width = 12
     fig_height = 3+2*(nrow-1)
-
-    # plot figure
     height_ratios = [1]*nrow
     height_ratios.append(0.15)
     width_ratios = [1, 1, 0.05]
     f, axarr = plt.subplots(nrow, 2, sharex='col')
     f.set_size_inches(fig_width, fig_height)
-
     # median
     gmdata_md = np.median(darr, axis=0)
     gmobj = GOTMMap(data=gmdata_md, lon=lon, lat=lat, name=name, units=units)
     im0 = gmobj.plot(axis=axarr[0,0], levels=levels0, add_colorbar=False)
     axarr[0,0].text(0.02, 0.94, '(a) Median', transform=axarr[0,0].transAxes,
                          fontsize=12, color='white', fontweight='bold', va='top')
-
+    # plot the differences from the median
     for i in np.arange(nm):
-        # plot figure
         n = icol_2col[i]
         m = irow_2col[i]
         gmdata = darr[i,:] - gmdata_md
@@ -150,10 +154,8 @@ if plot_figure:
         im1 = gmobj.plot(axis=axarr[m,n], levels=levels1, add_colorbar=False, cmap='RdBu_r')
         axarr[m,n].text(0.02, 0.94, labels_2col[i]+' '+legend_list[i], transform=axarr[m,n].transAxes,
                          fontsize=12, color='white', fontweight='bold', va='top')
-
     # reduce margin
     plt.tight_layout()
-
     # colorbar
     plt.subplots_adjust(right=0.95)
     cax0 = plt.axes([0.85, 0.55, 0.1, 0.4])
@@ -166,7 +168,7 @@ if plot_figure:
     cb1 = plt.colorbar(im1, ax=cax1)
     cb1.formatter.set_powerlimits((-3, 3))
     cb1.update_ticks()
-
     # save figure
+    figname = fig_root+'/fig_'+var+'.png'
     plt.savefig(figname, dpi = 300)
 
