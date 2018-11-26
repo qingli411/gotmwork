@@ -76,7 +76,7 @@ for i in np.arange(godmobj.ncase):
         rho = tmp.dataset.variables['rho'][:]
         tmp.close()
     except FloatingPointError:
-        filter_list.append()
+        filter_list.append(i)
 
 if len(filter_list) > 0:
     print('Removing the following directories...')
