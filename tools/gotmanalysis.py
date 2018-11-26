@@ -1075,9 +1075,9 @@ class GOTMOutputDataMap(object):
         switcher = {
                 'mld_deltaR_mean': self.mean_state_timeseries(var='mld_deltaR', **kwargs),
                 'PE_delta': self.delta_timeseries(var='PE', **kwargs),
-                'SST': self.mean_state_timeseries(var='sst', **kwargs),
-                'SSS': self.mean_state_timeseries(var='sss', **kwargs),
-                'Nsqr_mld': self.mean_state_timeseries(var='Nsqr_mld', **kwargs),
+                'SST_mean': self.mean_state_timeseries(var='sst', **kwargs),
+                'SSS_mean': self.mean_state_timeseries(var='sss', **kwargs),
+                'Nsqr_mld_mean': self.mean_state_timeseries(var='Nsqr_mld', **kwargs),
                 }
         if list_keys:
             return list(switcher.keys())

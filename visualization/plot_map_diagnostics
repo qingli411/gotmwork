@@ -17,9 +17,9 @@ parser = argparse.ArgumentParser(description="""
         Supported diagnostics:
             mld_deltaR_mean
             PE_delta
-            SST
-            SSS
-            Nsqr_mld""",
+            SST_mean
+            SSS_mean
+            Nsqr_mld_mean""",
             formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-c', '--casename', action='store', dest='cname',
         metavar='CASENAME', required=True, help='Case name')
@@ -51,15 +51,15 @@ elif var == 'PE_delta':
     levels0 = None
     levels1 = None
     fill_value = None
-elif var == 'SST':
+elif var == 'SST_mean':
     levels0 = list(np.arange(31))
     levels1 = list((np.arange(21)-10)*0.1)
     fill_value = None
-elif var == 'SSS':
+elif var == 'SSS_mean':
     levels0 = None
     levels1 = None
     fill_value = None
-elif var == 'Nsqr_mld':
+elif var == 'Nsqr_mld_mean':
     levels0 = list((np.arange(26)*1e-4))
     levels1 = list((np.arange(21)-10)*2e-4)
     fill_value = None
