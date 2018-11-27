@@ -41,9 +41,6 @@ if [[ -z ${GOTMARCHIVE_ROOT} ]]; then
     exit 1
 fi
 
-GOTMARCHIVE_ROOT="/Volumes/LaCie/gotm/gotmrun"
-GOTMRUN_ROOT="/Users/qingli/work/gotm/gotmrun2"
-
 # run directory
 run_dir=${GOTMRUN_ROOT}/${casename}/${casesetup}
 
