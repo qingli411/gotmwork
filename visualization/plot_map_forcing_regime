@@ -76,9 +76,9 @@ if update_data or not os.path.isfile(s2data_name):
             print('{:6.2f} %'.format(i/godmobj.ncase*100.0))
         tmp = GOTMOutputData(godmobj._paths[i], init_time_location=False)
         if forcing_reg_type == 'BG12':
-            forcing_regime[i] = tmp.diag_forcing_regime_BG12()
+            forcing_regime[i] = tmp.diag_forcing_regime_BG12(cfrac=0.25)
         elif forcing_reg_type == 'LF17':
-            forcing_regime[i] = tmp.diag_forcing_regime_LF17()
+            forcing_regime[i] = tmp.diag_forcing_regime_LF17(cfrac=0.25)
 
     gmobj = GOTMMap(data=forcing_regime, lon=godmobj.lon, lat=godmobj.lat, name='forcing_regime')
     # save data

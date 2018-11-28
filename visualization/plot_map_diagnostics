@@ -48,8 +48,8 @@ if var == 'mld_deltaR_mean':
     levels1 = [-90, -75, -60, -45, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 45, 60, 75, 90]
     fill_value = 499.5
 elif var == 'PE_delta':
-    levels0 = None
-    levels1 = None
+    levels0 = list((np.arange(21)-10)*2e4)
+    levels1 = list((np.arange(21)-10)*2e3)
     fill_value = None
 elif var == 'SST_mean':
     levels0 = list(np.arange(31))

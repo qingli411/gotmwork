@@ -439,12 +439,13 @@ class GOTMOutputData(object):
         self.close()
         return out
 
-    def diag_forcing_regime_BG12(self, tidx_start=None, tidx_end=None):
+    def diag_forcing_regime_BG12(self, tidx_start=None, tidx_end=None, cfrac=0.25):
         """Diagnose the forcing regime according to the dissipation based
            definition in Belcher et al., 2012
 
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
+        :cfrac: (float, optional) critical fraction, 0<cfrac<1/3
         :returns: (int) forcing regime flag
 
         """
@@ -483,22 +484,22 @@ class GOTMOutputData(object):
             mfrac_ST = np.mean(frac_ST)
             mfrac_LT = np.mean(frac_LT)
             mfrac_CT = np.mean(frac_CT)
-            if mfrac_LT < 0.25 and mfrac_CT < 0.25:
+            if mfrac_LT < cfrac and mfrac_CT < cfrac:
                 # ST dominant
                 forcing_regime = 1
-            elif mfrac_ST < 0.25 and mfrac_CT < 0.25:
+            elif mfrac_ST < cfrac and mfrac_CT < cfrac:
                 # LT dominant
                 forcing_regime = 2
-            elif mfrac_ST < 0.25 and mfrac_LT < 0.25:
+            elif mfrac_ST < cfrac and mfrac_LT < cfrac:
                 # CT dominant
                 forcing_regime = 3
-            elif mfrac_ST >= 0.25 and mfrac_LT >= 0.25 and mfrac_CT < 0.25:
+            elif mfrac_ST >= cfrac and mfrac_LT >= cfrac and mfrac_CT < cfrac:
                 # combined ST and LT
                 forcing_regime = 4
-            elif mfrac_ST >= 0.25 and mfrac_CT >= 0.25 and mfrac_LT < 0.25:
+            elif mfrac_ST >= cfrac and mfrac_CT >= cfrac and mfrac_LT < cfrac:
                 # combined ST and CT
                 forcing_regime = 5
-            elif mfrac_LT >= 0.25 and mfrac_CT >= 0.25 and mfrac_ST < 0.25:
+            elif mfrac_LT >= cfrac and mfrac_CT >= cfrac and mfrac_ST < cfrac:
                 # combined LT and CT
                 forcing_regime = 6
             else:
@@ -506,12 +507,13 @@ class GOTMOutputData(object):
                 forcing_regime = 7
         return forcing_regime*unstable
 
-    def diag_forcing_regime_LF17(self, tidx_start=None, tidx_end=None):
+    def diag_forcing_regime_LF17(self, tidx_start=None, tidx_end=None, cfrac=0.25):
         """Diagnose the forcing regime according to the entrainment buoyancy
            flux based definition in Li and Fox-Kemper, 2017
 
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
+        :cfrac: (float, optional) critical fraction, 0<cfrac<1/3
         :returns: (int) forcing regime flag
 
         """
@@ -550,22 +552,22 @@ class GOTMOutputData(object):
             mfrac_ST = np.mean(frac_ST)
             mfrac_LT = np.mean(frac_LT)
             mfrac_CT = np.mean(frac_CT)
-            if mfrac_LT < 0.25 and mfrac_CT < 0.25:
+            if mfrac_LT < cfrac and mfrac_CT < cfrac:
                 # ST dominant
                 forcing_regime = 1
-            elif mfrac_ST < 0.25 and mfrac_CT < 0.25:
+            elif mfrac_ST < cfrac and mfrac_CT < cfrac:
                 # LT dominant
                 forcing_regime = 2
-            elif mfrac_ST < 0.25 and mfrac_LT < 0.25:
+            elif mfrac_ST < cfrac and mfrac_LT < cfrac:
                 # CT dominant
                 forcing_regime = 3
-            elif mfrac_ST >= 0.25 and mfrac_LT >= 0.25 and mfrac_CT < 0.25:
+            elif mfrac_ST >= cfrac and mfrac_LT >= cfrac and mfrac_CT < cfrac:
                 # combined ST and LT
                 forcing_regime = 4
-            elif mfrac_ST >= 0.25 and mfrac_CT >= 0.25 and mfrac_LT < 0.25:
+            elif mfrac_ST >= cfrac and mfrac_CT >= cfrac and mfrac_LT < cfrac:
                 # combined ST and CT
                 forcing_regime = 5
-            elif mfrac_LT >= 0.25 and mfrac_CT >= 0.25 and mfrac_ST < 0.25:
+            elif mfrac_LT >= cfrac and mfrac_CT >= cfrac and mfrac_ST < cfrac:
                 # combined LT and CT
                 forcing_regime = 6
             else:
