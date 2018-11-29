@@ -69,7 +69,7 @@ class GOTMProfile(object):
 
         """
         # use curret axis if not specified
-        if not axis:
+        if axis is None:
             axis = plt.gca()
         # plot type
         if ptype == 'contourf':
@@ -79,20 +79,20 @@ class GOTMProfile(object):
         else:
             raise ValueError('Plot type (ptype) should be \'contourf\' or \'pcolor\', got {}.'.format(ptype))
         # x- and y-label, turn off by passing in 'off'
-        if not xlabel:
+        if xlabel is None:
             axis.set_xlabel('Time')
         else:
             if xlabel != 'off':
                 axis.set_xlabel(xlabel)
-        if not ylabel:
+        if ylabel is None:
             axis.set_ylabel('Depth (m)')
         else:
             if ylabel != 'off':
                 axis.set_ylabel(ylabel)
         # x- and y-limits
-        if xlim:
+        if xlim is not None:
             axis.set_xlim(xlim)
-        if ylim:
+        if ylim is not None:
             axis.set_ylim(ylim)
         # return figure
         return fig
@@ -112,25 +112,25 @@ class GOTMProfile(object):
 
         """
         # use curret axis if not specified
-        if not axis:
+        if axis is None:
             axis = plt.gca()
         # plot figure
         fig = plt.plot(self.data_mean, self.z, **kwargs)
         # x- and y-label, turn off by passing in 'off'
-        if not xlabel:
+        if xlabel is None:
             axis.set_xlabel(self.name)
         else:
             if xlabel != 'off':
                 axis.set_xlabel(xlabel)
-        if not ylabel:
+        if ylabel is None:
             axis.set_ylabel('Depth (m)')
         else:
             if ylabel != 'off':
                 axis.set_ylabel(ylabel)
         # x- and y-limits
-        if xlim:
+        if xlim is not None:
             axis.set_xlim(xlim)
-        if ylim:
+        if ylim is not None:
             axis.set_ylim(ylim)
         # return figure
         return fig
@@ -175,25 +175,25 @@ class GOTMTimeseries(object):
 
         """
         # use curret axis if not specified
-        if not axis:
+        if axis is None:
             axis = plt.gca()
         # plot figure
         fig = axis.plot(self.time, self.data, **kwargs)
         # x- and y-label, turn off by passing in 'off'
-        if not xlabel:
+        if xlabel is None:
             axis.set_xlabel('Time')
         else:
             if xlabel != 'off':
                 axis.set_xlabel(xlabel)
-        if not ylabel:
+        if ylabel is None:
             axis.set_ylabel(self.name)
         else:
             if ylabel != 'off':
                 axis.set_ylabel(ylabel)
         # x- and y-limits
-        if xlim:
+        if xlim is not None:
             axis.set_xlim(xlim)
-        if ylim:
+        if ylim is not None:
             axis.set_ylim(ylim)
         # return figure
         return fig
@@ -269,7 +269,7 @@ class GOTMMap(object):
 
         """
         # use curret axis if not specified
-        if not axis:
+        if axis is None:
             axis = plt.gca()
         # plot map
         m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=20, urcrnrlon=380, ax=axis)
@@ -287,7 +287,7 @@ class GOTMMap(object):
         x, y = m(lon, lat)
         # manually mapping levels to the colormap if levels is passed in,
         # otherwise linear mapping
-        if levels:
+        if levels is not None:
             bounds = np.array(levels)
             norm = colors.BoundaryNorm(boundaries=bounds, ncolors=256)
             fig = m.scatter(x, y, marker='.', s=32, c=data, norm=norm, cmap=plt.cm.get_cmap(cmap), **kwargs)
@@ -1003,7 +1003,7 @@ class GOTMOutputDataSet(object):
 
         """
         # reference case
-        if not ref_cname:
+        if ref_cname is None:
             ref_cname = self.ref_casename
         # read profiles
         prfl  = self.cases[ref_cname].read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end)
@@ -1135,7 +1135,8 @@ class GOTMOutputDataMap(object):
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
             ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
-            ts.data = np.where(ts.data == fillvalue, np.nan, ts.data)
+            if fillvalue is not None:
+                ts.data = np.where(ts.data == fillvalue, np.nan, ts.data)
             mdat[i] = ts.data.mean()
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
@@ -1154,7 +1155,8 @@ class GOTMOutputDataMap(object):
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
             ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
-            ts.data = np.where(ts.data == fillvalue, np.nan, ts.data)
+            if fillvalue is not None:
+                ts.data = np.where(ts.data == fillvalue, np.nan, ts.data)
             mdat[i] = ts.data[-1] - ts.data[0]
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
@@ -1175,7 +1177,7 @@ def plot_forcing_regime(f_regime, axis=None, add_colorbar=True, **kwargs):
 
     """
     # use curret axis if not specified
-    if not axis:
+    if axis is None:
         axis = plt.gca()
     # plot map
     m = Basemap(projection='cyl', llcrnrlat=-72, urcrnrlat=72, llcrnrlon=20, urcrnrlon=380, ax=axis)
