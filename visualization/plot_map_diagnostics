@@ -31,6 +31,8 @@ parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_da
         help='Update data')
 parser.add_argument('-P', '--plotfigure', action='store_true', dest='l_plot_figure',
         help='Plot figure')
+parser.add_argument('-M', '--mask', action='store_true', dest='l_apply_mask',
+        help='Plot figure')
 # parsing arguments and save to args
 args=parser.parse_args()
 
@@ -41,6 +43,7 @@ timetag = args.ttag
 var = args.diagname
 update_data = args.l_update_data
 plot_figure = args.l_plot_figure
+apply_mask = args.l_apply_mask
 
 # diagnostics
 if var == 'mld_deltaR_mean':
@@ -107,6 +110,7 @@ for i in np.arange(nm):
     tmname = turbmethod_list[i]
     basepath = s1data_root+'/'+tmname
     s2data_name = s2data_root+'/data_'+var+'_'+tmname+'.npz'
+    mask_name = s2data_root+'/mask_'+tmname+'.npz'
     if update_data or not os.path.isfile(s2data_name):
         # update data
         print('Updating data for {}...'.format(tmname))
@@ -114,11 +118,24 @@ for i in np.arange(nm):
         pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
         godmobj = GOTMOutputDataMap(pathlist)
         gmobj = godmobj.diagnostics(var, fillvalue=fill_value)
+        if apply_mask:
+            # read mask
+            gmobj_mask = GOTMMap().load(mask_name)
+            # apply mask
+            gmobj.masked(gmobj_mask)
         # save data
         gmobj.save(s2data_name)
     else:
         # read data
         gmobj = GOTMMap().load(s2data_name)
+        if apply_mask:
+            # read mask
+            gmobj_mask = GOTMMap().load(mask_name)
+            # apply mask
+            gmobj.masked(gmobj_mask)
+            # update data
+            gmobj.save(s2data_name)
+
     if i == 0:
         lon = gmobj.lon
         lat = gmobj.lat
