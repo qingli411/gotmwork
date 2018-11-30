@@ -104,6 +104,7 @@ nm = len(turbmethod_list)
 irow_2col = [1, 2, 0, 1, 2, 3, 3, 4, 4, 5, 5]
 icol_2col = [0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1]
 labels_2col = ['(b)', '(c)', '(g)', '(h)', '(i)', '(d)', '(j)', '(e)', '(k)','(f)','(l)']
+l_nlt = [True, True, False, False, False, True, False, True, False, True, False]
 
 # get diagnostics
 for i in np.arange(nm):
@@ -156,11 +157,11 @@ if plot_figure:
     width_ratios = [1, 1, 0.05]
     f, axarr = plt.subplots(nrow, 2, sharex='col')
     f.set_size_inches(fig_width, fig_height)
-    # median
-    gmdata_md = np.median(darr, axis=0)
+    # mean of all non-Langmuir cases
+    gmdata_md = np.nanmean(darr[l_nlt], axis=0)
     gmobj = GOTMMap(data=gmdata_md, lon=lon, lat=lat, name=name, units=units)
     im0 = gmobj.plot(axis=axarr[0,0], levels=levels0, add_colorbar=False)
-    axarr[0,0].text(0.02, 0.94, '(a) Median', transform=axarr[0,0].transAxes,
+    axarr[0,0].text(0.02, 0.94, '(a) Mean of NLT', transform=axarr[0,0].transAxes,
                          fontsize=12, color='white', fontweight='bold', va='top')
     # plot the differences from the median
     for i in np.arange(nm):
