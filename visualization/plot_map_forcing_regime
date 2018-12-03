@@ -53,6 +53,27 @@ if forcing_reg_type not in fr_list:
     parser.print_help()
     sys.exit(1)
 
+# check time tag
+month_labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+timetag_list = ['20090101-20090131',
+                '20090201-20090228',
+                '20090301-20090331',
+                '20090401-20090430',
+                '20090501-20090531',
+                '20080601-20080630',
+                '20080701-20080731',
+                '20080801-20080831',
+                '20080901-20080930',
+                '20081001-20081031',
+                '20081101-20081130',
+                '20081201-20081231']
+try:
+    idx = timetag_list.index(timetag)
+except ValueError:
+    print('Time tag {} not supported. Stop.'.format(timetag))
+
+mlabel = month_labels[idx]
+
 # paths
 s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/VR1m_DT600s_'+timetag
 s2data_root = os.environ['GOTMFIG_ROOT']+'/data/'+casename+'/VR1m_DT600s_'+timetag
@@ -70,7 +91,6 @@ if update_data or not os.path.isfile(s2data_name):
     pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
     godmobj = GOTMOutputDataMap(pathlist)
     forcing_regime = np.zeros(godmobj.ncase)
-    unstable = np.zeros(godmobj.ncase)
     for i in np.arange(godmobj.ncase):
         if np.mod(i, 100) == 0:
             print('{:6.2f} %'.format(i/godmobj.ncase*100.0))
@@ -94,6 +114,9 @@ if plot_figure:
     fig.set_size_inches(6, 2.2)
     # plot
     plot_forcing_regime(gmobj)
+    # label
+    plt.text(40, 55, mlabel, fontsize=14, color='k', fontweight='bold', va='top',
+            bbox=dict(boxstyle="square",ec='k',fc='w'))
     # reduce margin
     plt.tight_layout()
     # save figure
