@@ -71,6 +71,26 @@ else:
     parser.print_help()
     sys.exit(1)
 
+# check time tag
+month_labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+timetag_list = ['20090101-20090131',
+                '20090201-20090228',
+                '20090301-20090331',
+                '20090401-20090430',
+                '20090501-20090531',
+                '20080601-20080630',
+                '20080701-20080731',
+                '20080801-20080831',
+                '20080901-20080930',
+                '20081001-20081031',
+                '20081101-20081130',
+                '20081201-20081231']
+try:
+    idx = timetag_list.index(timetag)
+except ValueError:
+    print('Time tag {} not supported. Stop.'.format(timetag))
+mlabel = month_labels[idx]
+
 # paths
 s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/VR1m_DT600s_'+timetag
 s2data_root = os.environ['GOTMFIG_ROOT']+'/data/'+casename+'/VR1m_DT600s_'+timetag
@@ -93,7 +113,7 @@ legend_list = ['KPP-CVMix',
                'KPP-ROMS',
                'KPPLT-VR12',
                'KPPLT-LF17',
-               'KPPLT-RWHGK16',
+               'KPPLT-R16',
                'ePBL',
                'ePBL-LT',
                'SMC-KC94',
@@ -172,6 +192,10 @@ if plot_figure:
         im1 = gmobj.plot(axis=axarr[m,n], levels=levels1, add_colorbar=False, cmap='RdBu_r')
         axarr[m,n].text(0.02, 0.94, labels_2col[i]+' '+legend_list[i], transform=axarr[m,n].transAxes,
                          fontsize=12, color='white', fontweight='bold', va='top')
+    # add month
+    axarr[0,1].text(1.07, 0.94, mlabel, transform=axarr[0,1].transAxes,
+                   fontsize=16, color='k', fontweight='bold', va='top',
+                   bbox=dict(boxstyle="square",ec='k',fc='w'))
     # reduce margin
     plt.tight_layout()
     # colorbar
