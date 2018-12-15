@@ -48,23 +48,33 @@ apply_mask = args.l_apply_mask
 # diagnostics
 if var == 'mld_deltaR_mean':
     levels0 = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 110, 130, 150, 180, 210, 240, 280, 320, 360, 407, 454, 500]
-    levels1 = [-90, -75, -60, -45, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 45, 60, 75, 90]
+    cb_ticks0 = [0, 30, 60, 90, 150, 240, 360, 500]
+    levels1 = [-70, -60, -50, -40, -30, -20, -18, -16, -14, -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70]
+    cb_ticks1 = [-60, -40, -20, -16, -12, -8, -4, 0, 4, 8, 12, 16, 20, 40, 60]
     fill_value = 499.5
 elif var == 'PE_delta':
     levels0 = list((np.arange(21)-10)*2e4)
+    cb_ticks0 = None
     levels1 = list((np.arange(21)-10)*2e3)
+    cb_ticks1 = None
     fill_value = None
 elif var == 'SST_mean':
     levels0 = list(np.arange(31))
+    cb_ticks0 = None
     levels1 = list((np.arange(21)-10)*0.1)
+    cb_ticks1 = None
     fill_value = None
 elif var == 'SSS_mean':
     levels0 = None
+    cb_ticks0 = None
     levels1 = None
+    cb_ticks1 = None
     fill_value = None
 elif var == 'Nsqr_mld_mean':
     levels0 = list((np.arange(26)*1e-4))
+    cb_ticks0 = None
     levels1 = list((np.arange(21)-10)*2e-4)
+    cb_ticks1 = None
     fill_value = None
 else:
     print('Variable {} not supported. Stop.'.format(var))
@@ -202,12 +212,12 @@ if plot_figure:
     plt.subplots_adjust(right=0.95)
     cax0 = plt.axes([0.85, 0.55, 0.1, 0.4])
     cax0.set_visible(False)
-    cb0 = plt.colorbar(im0, ax=cax0)
+    cb0 = plt.colorbar(im0, ax=cax0, ticks=cb_ticks0)
     cb0.formatter.set_powerlimits((-2, 3))
     cb0.update_ticks()
     cax1 = plt.axes([0.85, 0.05, 0.1, 0.4])
     cax1.set_visible(False)
-    cb1 = plt.colorbar(im1, ax=cax1)
+    cb1 = plt.colorbar(im1, ax=cax1, ticks=cb_ticks1)
     cb1.formatter.set_powerlimits((-3, 3))
     cb1.update_ticks()
     # save figure
