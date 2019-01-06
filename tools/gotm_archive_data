@@ -4,12 +4,27 @@
 #
 # Qing Li, 20181113
 
+# usage
+function print_usage(){
+    echo "usage: gotm_archive_data [-h] [-c CASENAME] [-s SETUPNAME]"
+    echo ""
+    echo "Compress and archive data."
+    echo ""
+    echo "arguments:"
+    echo "  -h            show this help message and exit"
+    echo "  -c CASENAME   case name"
+    echo "  -s SETUPNAME  setup name"
+    exit 1
+}
+
 # parse input arguments
 casename="none"
 casesetup="none"
-while getopts c:s: options
+while getopts hc:s: options
 do
     case ${options} in
+        # help
+        h) print_usage  ;;
         # case name
         c) casename=${OPTARG} ;;
         # case setup

@@ -5,11 +5,9 @@
 #
 # Qing Li, 20181107
 
-import sys
 import os
 import shutil
 import argparse
-sys.path.append(os.environ['GOTMWORK_ROOT']+'/tools', )
 from gotmanalysis import *
 np.seterr(all='raise')
 
