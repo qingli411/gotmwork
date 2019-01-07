@@ -2,7 +2,7 @@
 
 source "../../set_tools.sh"
 
-cp ../../namelist/*.nml ./
+cp ../namelist/*.nml ./
 
 #--------------------------------
 # MOMturb.nml
