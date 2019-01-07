@@ -1,0 +1,57 @@
+!-------------------------------------------------------------------------------
+! jhl turbulence model
+!-------------------------------------------------------------------------------
+! rino_crit     [float]
+!                 Critical Richardson number for JHL08.  Range in paper is
+!                   0.25-0.35.
+! shearmix_rate [float]
+!                 Non-dimensional rate scale for shear-driven entrainment.
+!                   Range in paper is 0.085-0.089.
+! fri_curvature [float]
+!                 Curvature of the Richardson number function relating shear
+!                   sources in the Kappa equation.  Range in paper is -0.97 to
+!                   -0.89.
+! c_n           [float]
+!                 Coefficient for decay of TKE due to stratification.  Range in
+!                   paper is 0.24 to 0.28.
+! c_s           [float]
+!                 Coefficient for decay of TKE due to shear.  Range in paper is
+!                   0.12 to 0.14
+! lambda        [float]
+!                 Coefficient for the buoyancy length scale.  Range in paper is
+!                   0.81 to 0.82.
+! lambda2_n_s   [float]
+!                 Square of buoyancy and shear scale equation.  Set to 0 to
+!                   eliminate shear scale.
+! tke_bg        [float]
+!                 Background level of TKE in m2/s2
+! kappa_0       [float]
+!                 Background diapycnal diffusicity in m2/s.
+! kappa_tol_err [float]
+!                 Tolerance for error in kappa.
+! prandtl_turb  [float]
+!                 Turbulent Prandtl number to relate turbulence diffusivity to
+!                   turbulent viscosity.
+! max_rino_it   [integer]
+!                 Limit to number of iterations to get shear-driven mixing rate.
+! max_ks_it     [integer]
+!                 Limit to number of iterations to estimate time averaged
+!                   diffusivity.
+!-------------------------------------------------------------------------------
+
+&jhl
+   rino_crit = 0.25,
+   shearmix_rate = 0.089,
+   fri_curvature = -0.97,
+   c_n = 0.24,
+   c_s = 0.14,
+   lambda = 0.82,
+   lambda2_n_s = 0.0,
+   tke_bg = 0.0,
+   kappa_0 = 1e-07,
+   kappa_tol_err = 0.1,
+   prandtl_turb = 1.0,
+   max_rino_it = 50,
+   max_ks_it = 13,
+/
+

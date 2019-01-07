@@ -1,8 +1,7 @@
 #!/bin/bash
 # Run GOTM using with idealized forcing and initial conditions
+# from Li and Fox-Kemper, 2017
 #
-# Brandon Reichl
-
 #######################################################################
 #                              Set paths                              #
 #######################################################################
@@ -11,7 +10,7 @@
 source "../../set_tools.sh"
 
 # directory of base case
-basecase="${GOTMWORK_ROOT}/data/Idealized"
+basecase="${GOTMWORK_ROOT}/data/Idealized_Tests_LF17"
 
 # current path
 curdir=$(pwd)
@@ -21,18 +20,19 @@ curdir=$(pwd)
 #######################################################################
 
 # name of the dataset
-title="Idealized"
+title="Idealized_Tests_LF17"
 
 # set levels, grid zooming at surface
-nlev=150
-depth=300
+nlev=256
+depth=163.84
 ddu=0
 ddl=0
 
 # set Coriolis
+Latitude=45
+
 # set Heat Flux
 # set Wind Stress
-Latitude=30
 taux=0.25
 tauy=0.00
 heatflux=-100
@@ -47,10 +47,10 @@ dateend="20000111"
 
 # name of the turbulence model
 # turbmethod="KPPLT-EFACTOR"
-# turbmethod="KPPLT-ENTR"
+turbmethod="KPPLT-ENTR"
 # turbmethod="KPPLT-RWHGK"
 # turbmethod="EPBL"
-turbmethod="EPBL-LT"
+# turbmethod="EPBL-LT"
 # turbmethod="KPP-CVMix"
 # turbmethod="SMCLT"
 # turbmethod="SMC"
