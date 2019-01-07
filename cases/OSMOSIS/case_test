@@ -16,6 +16,9 @@ season="spring"
 # input data root directory
 datadir="${GOTMDATA_ROOT}/OSMOSIS/${season}"
 
+# current path
+curdir=$(pwd)
+
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
@@ -142,11 +145,11 @@ ${cmd_nmlchange} -f osm.nml -e h_i -v ${h_i}
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-gotm 2> log.${outname}
+${cmd_gotm} 2> log.${outname}
 
 #######################################################################
 #                           Postprocessing                            #
 #######################################################################
 
 # plot surface forcing and profiles
-source ${scpt_case_postproc}
+source ${curdir}/case_postproc.sh

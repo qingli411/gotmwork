@@ -15,6 +15,9 @@ source "../../set_tools.sh"
 # directory of base case
 basecase="${GOTMWORK_ROOT}/data/OCSPapa_20120101-20131204"
 
+# current path
+curdir=$(pwd)
+
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
@@ -94,4 +97,4 @@ ${cmd_gotm} 2> log.${outname}
 #######################################################################
 
 # plot surface forcing and profiles
-source ${scpt_case_postproc}
+source ${curdir}/case_postproc.sh

@@ -17,6 +17,9 @@ fluxdata="${GOTMDATA_ROOT}/OCS/Papa/Papa_20100616-20150101"
 # input data - waves
 specdata="${GOTMDATA_ROOT}/CDIP/Papa/166p1_historic.nc"
 
+# current path
+curdir=$(pwd)
+
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
@@ -101,4 +104,4 @@ ${cmd_gotm} 2> log.${outname}
 #######################################################################
 
 # plot surface forcing and profiles
-source ${scpt_case_postproc}
+source ${curdir}/case_postproc.sh

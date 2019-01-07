@@ -16,6 +16,9 @@ source "../../set_tools.sh"
 # directory of base case
 basecase="${GOTMWORK_ROOT}/data/OCSPapa_20120101-20131204"
 
+# current directory
+curdir=$(pwd)
+
 # starting and ending date - in the format of YYYYMMDD
 # starting from summer solstice
 datestart="20130621"
@@ -28,4 +31,4 @@ title="OCSPapa_${datestart}-${dateend}"
 depth=150
 
 # loop over cases
-source ./case_loop.sh
+source ${curdir}/case_loop.sh

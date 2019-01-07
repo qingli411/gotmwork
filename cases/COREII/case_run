@@ -106,9 +106,9 @@ if [ -d ${dataroot}/${inputname} ]; then
 
     xmlfile=${title}.xml
     cp ${xmldir}/${xmlfile} ./
-    sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
-    sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
-    sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
+    sed -i.bk "s/_TAG_LAT/\"${lat}\"/g" ./${xmlfile}
+    sed -i.bk "s/_TAG_LON/\"${lon}\"/g" ./${xmlfile}
+    sed -i.bk "s/_TAG_MAXDEPTH/\"${maxdepth}\"/g" ./${xmlfile}
 
     # set run parameters
     ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} \

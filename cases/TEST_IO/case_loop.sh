@@ -107,7 +107,7 @@ for vrelax in ${vrelaxlist[@]}; do
 
     # plot some figures
     if [ ${l_test} == "yes" ]; then
-        source ${scpt_case_postproc}
+        source ${curdir}/case_postproc.sh
     fi
 
     # clean up input data

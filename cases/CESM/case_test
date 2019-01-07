@@ -13,6 +13,9 @@ source "../../set_tools.sh"
 # input data - surface fluxes
 datadir="/Volumes/Qing_Work/data/yellowstone/b1850_f19_gx1_vr12-ma_v2"
 
+# current path
+curdir=$(pwd)
+
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
@@ -57,9 +60,9 @@ cp ${nmldir}/*.nml ./
 
 xmlfile=${title}.xml
 cp ${xmldir}/${xmlfile} ./
-sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
-sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
-sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
+sed -i.bk "s/_TAG_LAT/\"${lat}\"/g" ./${xmlfile}
+sed -i.bk "s/_TAG_LON/\"${lon}\"/g" ./${xmlfile}
+sed -i.bk "s/_TAG_MAXDEPTH/\"${maxdepth}\"/g" ./${xmlfile}
 
 # set run parameters
 ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} -data ${datadir} \
@@ -89,4 +92,4 @@ fi # l_run_gotm
 #######################################################################
 
 # plot surface forcing and profiles
-source ${scpt_case_postproc}
+source ${curdir}/case_postproc.sh

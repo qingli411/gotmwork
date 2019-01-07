@@ -13,6 +13,9 @@ source "../../set_tools.sh"
 # input data - surface fluxes
 datadir="${GOTMDATA_ROOT}/OCS/KEO/KEO_2008-2009"
 
+# current path
+curdir=$(pwd)
+
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
@@ -99,4 +102,4 @@ ${cmd_gotm} 2> log.${outname}
 #######################################################################
 
 # plot surface forcing and profiles
-source ${scpt_case_postproc}
+source ${curdir}/case_postproc.sh

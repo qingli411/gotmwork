@@ -32,6 +32,4 @@ cmd_plotts="${tooldir}/plotts"
 cmd_is_sea="${tooldir}/is_sea"
 
 # bash script
-scpt_case_postproc="${scriptdir}/case_postproc.sh"
 scpt_case_turbmethod="${scriptdir}/case_turbmethod.sh"
-scpt_gotm_extract_variables="${scriptdir}/gotm_extract_variables.sh"

@@ -56,6 +56,9 @@ source "../../set_tools.sh"
 # data directory for preprocessed input data
 dataroot="${GOTMDATA_ROOT}/gotmdata_jra55do"
 
+# current path
+curdir=$(pwd)
+
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
@@ -138,9 +141,9 @@ while [[ ${lat} -le ${lat_end} ]]; do
 
         xmlfile=${title}.xml
         cp ${xmldir}/${xmlfile} ./
-        sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
-        sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
-        sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
+        sed -i.bk "s/_TAG_LAT/\"${lat}\"/g" ./${xmlfile}
+        sed -i.bk "s/_TAG_LON/\"${lon}\"/g" ./${xmlfile}
+        sed -i.bk "s/_TAG_MAXDEPTH/\"${maxdepth}\"/g" ./${xmlfile}
 
         # set run parameters
         ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} \
@@ -189,8 +192,9 @@ while [[ ${lat} -le ${lat_end} ]]; do
         # run GOTM
         ${cmd_gotm} 2> log.${outname}
 
+        # post-processing data
         # extract variables from gotm output data
-        source ${scpt_gotm_extract_variables}
+        source ${curdir}/case_postproc.sh
 
     fi # input exist
 
