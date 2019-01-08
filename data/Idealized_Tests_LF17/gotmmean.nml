@@ -96,7 +96,7 @@
    dtgrid = 2.0,
    grid_file = '',
    gravity = 9.81,
-   rho_0 = 1027.0,
+   rho_0 = 1000.0,
    cp = 3985.0,
    avmolu = 1.3e-06,
    avmolt = 1.4e-07,

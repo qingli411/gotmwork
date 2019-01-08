@@ -175,10 +175,10 @@
 &eqstate
    eq_state_mode = 1,
    eq_state_method = 4,
-   T0 = 10.0,
+   T0 = 12.0,
    S0 = 35.0,
    p0 = 0.0,
-   dtr0 = -0.15,
+   dtr0 = -0.20,
    dsr0 = 0.75,
 /
 
