@@ -5,7 +5,7 @@
 !                   Choose mode of MOMturbulence
 !                   0: Max of ePBL and JHL.
 !                   1: ePBL.
-!                   2: JHLL.
+!                   2: JHL.
 !                   3: ePBL + JHL.
 ! langmuir_method [integer]
 !                   1 to enable Langmuir turbulence in MOMturb methods.

@@ -543,19 +543,23 @@
 !                  5: calculated from the theory wave approach of Li et al.,
 !                    2017
 !                  6: calculated from the hurricane spectrum
+!                  7: calculated from the Donelan et al., 1985 (DHH85) spectrum
 ! nfreq          [integer]
 !                  number of frequency bands
 !                  This variable is only used if (ustokes_method = 2 or
 !                    ustokes_method = 3)
 ! spec_file      [file path]
 !                  filename for wave spectrum file
-!                  This variable is only used if (ustokes_method = 2)
+!                  This variable is only used if ustokes_method = 2
 ! usp_file       [file path]
 !                  filename for partitioned surface Stokes drift file
-!                  This variable is only used if (ustokes_method = 3)
+!                  This variable is only used if ustokes_method = 3
 ! usdelta_file   [file path]
 !                  filename for surface Stokes drift and penetration depth file
-!                  This variable is only used if (ustokes_method = 4)
+!                  This variable is only used if ustokes_method = 4
+! wave_age       [float, unit = unitless]
+!                  wave age
+!                  This variable is only used if ustokes_method = 7
 !-------------------------------------------------------------------------------
 
 &stokes_drift
@@ -564,5 +568,6 @@
    spec_file = '',
    usp_file = '',
    usdelta_file = 'ustokes_file.dat',
+   wave_age = 1.2,
 /
 
