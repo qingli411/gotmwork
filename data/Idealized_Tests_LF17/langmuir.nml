@@ -17,7 +17,7 @@
 !-------------------------------------------------------------------------------
 
 &langmuir
-   langmuir_number_method = 1,
+   langmuir_number_method = 4,
    langmuir_number_file = '',
 /
 

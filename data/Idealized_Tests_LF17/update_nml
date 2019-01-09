@@ -49,7 +49,7 @@ ${cmd_nmlchange} -f ${nml} -e dsr0 -v 0.75
 #--------------------------------
 # langmuir.nml
 nml="langmuir.nml"
-${cmd_nmlchange} -f ${nml} -e langmuir_number_method -v 1
+${cmd_nmlchange} -f ${nml} -e langmuir_number_method -v 4
 #--------------------------------
 # obs.nml
 nml="obs.nml"
