@@ -42,17 +42,17 @@ casename="LF17"
 # output file name
 outname="gotm_out"
 
-# set levels, grid zooming at surface
+# set levels
 nlev=256
 depth=163.84
-ddu=0
-ddl=0
+ddu=0.0
+ddl=0.0
 
 # set Coriolis
 latitude=45
 
 # run parameters
-dt=60
+dt=60.0
 nsave=15
 
 # starting and ending date - in the format of YYYYMMDD
@@ -61,7 +61,7 @@ dateend="20000103"
 
 # heat flux (W/m^2)
 heatflux_labels=( "BF05" "BF10" "BF25" "BF50" "BF1h" "BF2h" "BF3h" "BF5h" )
-heatflux_list=( -5 -10 -25 -50 -100 -200 -300 -500 )
+heatflux_list=( -5.0 -10.0 -25.0 -50.0 -100.0 -200.0 -300.0 -500.0 )
 
 # 10-meter wind (m/s)
 wind_labels=( "WD05" "WD08" "WD10"  )
@@ -114,7 +114,8 @@ do
             cd ${rundir}
 
             # copy base case
-            cp ${basecase}/* ./
+            cp ${basecase}/*.nml ./
+            cp ${basecase}/*.dat ./
 
             # set run parameters
             start_time="${datestart:0:4}-${datestart:4:2}-${datestart:6:2} 00:00:00"
