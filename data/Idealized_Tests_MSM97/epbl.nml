@@ -1,0 +1,163 @@
+!-------------------------------------------------------------------------------
+! ePBL turbulence model
+!-------------------------------------------------------------------------------
+! nstar                    [float]
+!                            Fraction of convectively released TKE that is
+!                              available for mixing (bounded to be between 0 and
+!                              1).
+! mstar_mode               [integer]
+!                            Choice of method to compute mstar for ePBL.
+!                            0: Prescribed value of mstar with optional TKE
+!                              decay methods based on f and N.
+!                            1: Parameterize value of mstar from a) the ratio of
+!                              the boundary layer depth to the Ekman depth and
+!                              b) the ratio of the boundary layer depth to the
+!                              Obukhov depth.
+!                            2: Parameterize value of mstar from a) the ratio of
+!                              the boundary layer depth to the Ekman depth and
+!                              b) the ratio of the Ekman depth to the Obukhov
+!                              depth.
+! mstar                    [float]
+!                            Constant (non-dim) multiplied by u*^3 to get
+!                              integrated energy rate of mixing.
+!                            This variable is only used if mstar_mode = 0
+! tke_decay                [float]
+!                            Constant (non-dim) multiplied by u*/f to set the
+!                              TKE decay rate due to rotation.
+!                            This variable is only used if mstar_mode = 0
+! ekman_scale_coef         [float]
+!                            Non-dim scaling factor that sets the Ekman depth as
+!                              used for TKE decay
+!                            This variable is only used if mstar_mode = 0
+! mstar_slope              [float]
+!                            Slope of linear relationship between Hf/u* and
+!                              mstar.
+!                            This variable is only used if mstar_mode = 1
+! mstar_xint               [float]
+!                            Starting point for linear relationship between
+!                              Hf/u* and mstar.
+!                            This variable is only used if mstar_mode = 1
+! mstar_at_xint            [float]
+!                            Starting mstar at Hf/u* of mstar_xint.
+!                            This variable is only used if mstar_mode = 1
+! mstar_n                  [float]
+!                            Exponent in decay at negative and positive limits
+!                              of Hf/u_*
+!                            This variable is only used if mstar_mode = 1
+! c_ek                     [float]
+!                            Coefficient in rotation limit for mstar = c_ek
+!                              log(u*f/H)
+!                            This variable is only used if mstar_mode = 2
+! mstar_coef               [float]
+!                            Coefficient in stabilizing limit for mstar =
+!                              mstar_coef sqrt(Bf/u*^2f).
+!                            This variable is only used if mstar_mode = 2
+! mixlenexponent           [float]
+!                            Exponent gamma used to set shape of mixing profile
+!                              for 0<|z|<H in L=|z|(1-|z|/H)^gamma
+! mke_to_tke_effic         [float]
+!                            Efficiency (0 to 1) of conversion of MKE to TKE
+!                              (experimental).
+! wstar_ustar_coef         [float]
+!                            Ratio (non-dim) multiplied by convectively released
+!                              energy to convert to turbulent velocity (relative
+!                              to mechanically forced TKE)
+! vstar_scale_fac          [float]
+!                            Non-dim scaling factor for vstar.  Note that the
+!                              Vstar conversion already includes von Karman
+!                              coefficient.
+! cnv_mst_fac              [float]
+!                            coefficient in reduction of mstar in destabilizing
+!                              condition
+! translay_scale           [float]
+!                            Transition Layer Scale for the mixing length at the
+!                              interface between the OSBL and the interior.  A
+!                              positive, non-zero value accounts for mixing
+!                              length not becoming zero at the interface.
+! mld_tol                  [float]
+!                            The tolerance (in meters) for the iteration to
+!                              determine the boundary layer depth
+! min_mix_len              [float]
+!                            The minimum value of the mixing length in the
+!                              boundary layer.  A negative value disables this
+!                              feature.
+! n2_dissipation_scale_neg [float]
+!                            Dissipation scale for TKE (w/ N^2) in the vertical
+!                              due to unstable stratification.
+! n2_dissipation_scale_pos [float]
+!                            Dissipation scale for TKE (w/ N^2) in the vertical
+!                              due to stable stratification.
+! mstar_cap                [float]
+!                            Maximum allowed value of mstar.
+! lt_enhance_form          [integer]
+!                            Choice for including Langmuir turbulence in ePBL
+!                            0: No Langmuir turbulence
+!                            1: Multiplicative enhancement following Van Roekel
+!                              et al. 2012
+!                            2: Multiplicative enhancement of form 1 + a LA^b
+!                              (where a=LT_ENHNACE_COEF and b=LT_ENHANCE_EXP.
+!                            3: Additive enhancement of form a LA^b (where
+!                              a=LT_ENHANCE_COEF and b=LT_ENHANCE_EXP.
+! lt_enhance_coef          [float]
+!                            This variable is only used if (lt_enhance_form = 2
+!                              or lt_enhance_form = 3)
+! lt_enhance_exp           [float]
+!                            Exponent in fit for Langmuir Enhancement.
+! lac_mldoek               [float]
+!                            Coefficient Langmuir number modification based on
+!                              Hf/u*
+! lac_mldoob_stab          [float]
+!                            Coefficient Langmuir number modification based on
+!                              HBf/u*^3 when Bf is stabilizing
+! lac_ekoob_stab           [float]
+!                            Coefficient Langmuir number modification based on
+!                              Bf/u*^2f when Bf is stabilizing
+! lac_mldoob_un            [float]
+!                            Coefficient Langmuir number modification based on
+!                              HBf/u*^3 when Bf is unstabilizing.
+! lac_ekoob_un             [float]
+!                            Coefficient Langmuir number modification based on
+!                              Bf/u*^2f when Bf is unstabilizing
+! ladepthratio             [float]
+!                            Thickness to average Stokes drift over in Langmuir
+!                              number calculation
+! max_enhance_m            [float]
+!                            Maximum value to enhance mixing by due to Langmuir
+!                              Turbulence.
+!-------------------------------------------------------------------------------
+
+&epbl
+   nstar = 0.065,
+   mstar_mode = 2,
+   mstar = 1.0,
+   tke_decay = 0.01,
+   ekman_scale_coef = 1.0,
+   mstar_slope = 0.85,
+   mstar_xint = -0.3,
+   mstar_at_xint = 0.095,
+   mstar_n = -2.0,
+   c_ek = 0.17,
+   mstar_coef = 0.3,
+   mixlenexponent = 2.0,
+   mke_to_tke_effic = 0.0,
+   wstar_ustar_coef = 1.0,
+   vstar_scale_fac = 1.0,
+   cnv_mst_fac = 0.667,
+   translay_scale = 0.01,
+   mld_tol = 1.0,
+   min_mix_len = -1.0,
+   n2_dissipation_scale_neg = 0.0,
+   n2_dissipation_scale_pos = 0.0,
+   mstar_cap = 10.0,
+   lt_enhance_form = 0,
+   lt_enhance_coef = 0.137,
+   lt_enhance_exp = -1.0,
+   lac_mldoek = 0.0,
+   lac_mldoob_stab = 0.0,
+   lac_ekoob_stab = 0.8,
+   lac_mldoob_un = 0.0,
+   lac_ekoob_un = 0.8,
+   ladepthratio = 0.2,
+   max_enhance_m = 5.0,
+/
+

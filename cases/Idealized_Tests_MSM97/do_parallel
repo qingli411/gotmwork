@@ -1,0 +1,68 @@
+#!/bin/bash
+#
+# Manually parallel run by submitting multiple jobs
+#
+# Qing Li, 20190109
+
+# number of parallel jobs
+njob=1
+
+# indices for turbulence models
+# - start from 0
+# - leave empty if run all models
+imodel_list=( )
+
+# list of turbulence models
+model_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK" "SMC" "SMCLT" "EPBL" "EPBL-LT" "OSMOSIS" "K-EPSILON-SG" )
+
+# run all the models if $imodel_list is empty
+if [[ ${#imodel_list[@]} -eq 0 ]]; then
+    imodel_list=( ${!model_list[@]} )
+fi
+
+# number of models
+nmodel=${#imodel_list[@]}
+
+# run gotm
+# number of total runs
+nrun=${nmodel}
+# number of cases in a job
+if [[ $((nrun % njob)) -eq 0 ]]; then
+    njcase=$((nrun/njob))
+else
+    njcase=$((nrun/njob+1))
+fi
+# print a summary
+echo "--------"
+echo "Number of parallel jobs: ${njob}"
+echo "Number of total runs: ${nrun}"
+echo "Maximum number of runs in each job: ${njcase}"
+echo "--------"
+echo "List of runs:"
+# get pool of indices for each job
+j_list=()
+j=0
+for ((m=0; m<njob; m++)); do
+    for ((n=0; n<njcase; n++)); do
+        if [[ ${j} -lt ${nrun} ]]; then
+            j_list+=(${imodel_list[j]})
+            # print out the command of runs
+            jj=${imodel_list[j]}
+            echo "Job $m: ./case_run_multi -m ${model_list[jj]}"
+            j=$((j+1))
+        fi
+    done
+done
+echo "--------"
+# submit jobs
+for ((m=0; m<njob; m++)); do
+    {
+    for ((n=0; n<njcase; n++)); do
+        ii=$((m*njcase+n))
+        if [[ ${ii} -lt ${nrun} ]]; then
+            jj=${j_list[ii]}
+            ./case_run_multi -m ${model_list[jj]} > log.${ii};
+        fi
+    done
+    } &
+done

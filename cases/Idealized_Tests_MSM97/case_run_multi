@@ -1,0 +1,131 @@
+#!/bin/bash
+# Run GOTM using with idealized forcing and initial conditions
+# from McWilliams et al., 1997
+#
+#######################################################################
+#                           parse arguments                           #
+#######################################################################
+turbmethod="none"
+
+while getopts m: options
+do
+    case $options in
+        # turbulence model
+        m) turbmethod=$OPTARG ;;
+        \?) echo "Unknown option -$OPTARG"
+            exit 1 ;;
+    esac
+done
+
+if [[ ${turbmethod} == "none" ]]; then
+    echo "Missing option -m [turbulence model]"
+    exit 1
+fi
+
+#######################################################################
+#                              Set paths                              #
+#######################################################################
+
+# setup paths and tools
+source "../../set_tools.sh"
+
+# directory of base case
+basecase="${GOTMWORK_ROOT}/data/Idealized_Tests_MSM97"
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+# case name
+casename="MSM97"
+
+# output file name
+outname="gotm_out"
+
+# set levels
+nlev=150
+depth=90.0
+ddu=0.0
+ddl=0.0
+
+# set Coriolis
+latitude=45
+
+# run parameters
+dt=60.0
+nsave=15
+
+# starting and ending date - in the format of YYYYMMDD
+datestart="20000101"
+dateend="20000103"
+
+# heat flux (W/m^2)
+heatflux=-5.0
+
+# 10-meter wind (m/s)
+taux=0.037
+tauy=0.0
+u10=5.0
+v10=0.0
+
+# wave age (unitless, DHH spectrum)
+wave_labels=( "ST" "LT" )
+
+#######################################################################
+#                         Loop over all cases                         #
+#######################################################################
+
+for k in ${!wave_labels[@]}
+do
+    wv_label=${wave_labels[k]}
+    echo ${wv_label}
+    # turn off waves for ST
+    if [[ ${wv_label} == "ST" ]]; then
+        ustokes_method=0
+    elif [[ ${wv_label} == "LT" ]]; then
+        ustokes_method=4
+    fi
+
+    # title  of the simulation
+    title="${casename}_${wv_label}_${turbmethod}"
+
+    # create run directory
+    rundir="${GOTMRUN_ROOT}/${casename}/${turbmethod}/${wv_label}"
+    mkdir -p ${rundir}
+    cd ${rundir}
+
+    # copy base case
+    cp ${basecase}/*.nml ./
+    cp ${basecase}/*.dat ./
+
+    # set run parameters
+    start_time="${datestart:0:4}-${datestart:4:2}-${datestart:6:2} 00:00:00"
+    stop_time="${dateend:0:4}-${dateend:4:2}-${dateend:6:2} 00:00:00"
+    ${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
+    ${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
+    ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+    ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+    ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+    ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+    ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+    ${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
+    ${cmd_nmlchange} -f gotmrun.nml -e latitude -v ${latitude}
+    ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
+    ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
+    ${cmd_nmlchange} -f airsea.nml -e u10_method -v 1
+    ${cmd_nmlchange} -f airsea.nml -e const_u10 -v ${u10}
+    ${cmd_nmlchange} -f airsea.nml -e const_v10 -v ${v10}
+    ${cmd_nmlchange} -f airsea.nml -e momentum_method -v 1
+    ${cmd_nmlchange} -f airsea.nml -e const_tx -v ${taux}
+    ${cmd_nmlchange} -f airsea.nml -e const_ty -v ${tauy}
+    ${cmd_nmlchange} -f airsea.nml -e heat_method -v 1
+    ${cmd_nmlchange} -f airsea.nml -e const_heat -v ${heatflux}
+    ${cmd_nmlchange} -f obs.nml -e ustokes_method -v ${ustokes_method}
+
+    # set turbulence method
+    source ${scpt_case_turbmethod}
+
+    # run gotm
+    ${cmd_gotm} 2> log.${outname}
+
+done

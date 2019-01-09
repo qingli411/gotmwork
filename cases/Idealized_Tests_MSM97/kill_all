@@ -1,0 +1,17 @@
+#!/bin/bash
+#
+# This script finds all the processes named ${kproc} and kill them
+#
+# Qing Li, 20180410
+
+for kproc in case_run_multi preproc_data gotm python3; do
+
+    klist=$(ps aux | grep ${kproc} | awk '{if($11!="grep") print $2}')
+
+    for i in ${klist}; do
+        echo "Killing process ${i} ..."
+        kill ${i}
+    done
+
+done
+
