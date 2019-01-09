@@ -44,7 +44,6 @@ ${cmd_nmlchange} -f ${nml} -e depth -v 300.0
 ${cmd_nmlchange} -f ${nml} -e start -v '2012-01-01 00:00:00'
 ${cmd_nmlchange} -f ${nml} -e stop -v '2013-12-04 19:00:00'
 ${cmd_nmlchange} -f ${nml} -e nsave -v 6
-${cmd_nmlchange} -f ${nml} -e sync_out -v 0
 ${cmd_nmlchange} -f ${nml} -e eq_state_method -v 4
 #--------------------------------
 # gotmturb.nml
