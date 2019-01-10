@@ -1,0 +1,201 @@
+#!/bin/bash
+# Run GOTM using with idealized forcing and initial conditions
+# from Li and Fox-Kemper, 2017
+#
+#######################################################################
+#                           parse arguments                           #
+#######################################################################
+turbmethod="none"
+
+while getopts m: options
+do
+    case $options in
+        # turbulence model
+        m) turbmethod=$OPTARG ;;
+        \?) echo "Unknown option -$OPTARG"
+            exit 1 ;;
+    esac
+done
+
+if [[ ${turbmethod} == "none" ]]; then
+    echo "Missing option -m [turbulence model]"
+    exit 1
+fi
+
+#######################################################################
+#                              Set paths                              #
+#######################################################################
+
+# setup paths and tools
+source "../../set_tools.sh"
+
+# directory of base case
+basecase="${GOTMWORK_ROOT}/data/Idealized_Tests_R19"
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+# case name
+casename="R19"
+
+# output file name
+outname="gotm_out"
+
+# set levels
+nlev=20
+depth=200.0
+dz=$(echo "${depth} ${nlev}" | awk '{print $1/$2}')
+vres="VR${dz}m"
+echo ${vres}
+
+# set Coriolis
+latitude=0
+
+# run parameters
+dt=60.0
+nsave=15
+
+# starting and ending date - in the format of YYYYMMDD
+datestart="20000101"
+dateend="20000105"
+
+# constants
+rho_0=1000.0
+cp=3985.0
+S0=35.0
+
+# case 1: Cooling
+case1_labels=( "Cooling1" "Cooling2" "Cooling4" "Cooling16" )
+case1_wtsfc=( 1.2512e-5 2.5025e-5 5.0050e-5 2.0020e-4 )
+case1_wssfc=( 0.0 0.0 0.0 0.0 )
+case1_taux=( 0.0 0.0 0.0 0.0 )
+case1_tprof="tprof_file_Cooling.dat"
+case1_sprof="sprof_file_Cooling.dat"
+
+# case 2: Evap
+case2_labels=( "Evap1" "Evap4" )
+case2_wtsfc=( 0.0 0.0 )
+case2_wssfc=( -3.1281e-6 -1.2512e-5 )
+case2_taux=( 0.0 0.0 )
+case2_tprof="tprof_file_Evap.dat"
+case2_sprof="sprof_file_Evap.dat"
+
+# case 3: Strat
+case3_labels=( "Strat1" "Strat10" "Strat20" )
+case3_wtsfc=( 2.5025e-5 2.5025e-5 2.5025e-5 )
+case3_wssfc=( 0.0 0.0 0.0 )
+case3_taux=( 0.0 0.0 0.0 )
+case3_tprof=( "tprof_file_Strat1.dat" "tprof_file_Strat10.dat" "tprof_file_Strat20.dat" )
+case3_sprof=( "sprof_file_Strat1.dat" "sprof_file_Strat10.dat" "sprof_file_Strat20.dat" )
+
+# case 4: wind
+case4_labels=( "Wind1" "Wind2" "Wind5" )
+case4_wtsfc=( 0.0 0.0 0.0 )
+case4_wssfc=( 0.0 0.0 0.0 )
+case4_taux=( 0.01 0.02 0.05 )
+case4_tprof="tprof_file_Wind.dat"
+case4_sprof="sprof_file_Wind.dat"
+
+# case 5: T & S
+case5_labels=( "T1S0" "T1S1" "T1S3" "T1S15" )
+case5_wtsfc=( 1.2512e-5 1.2512e-5 1.2512e-5 1.2512e-5  )
+case5_wssfc=( 0.0 -3.1281e-6 -9.3844e-6 -4.6922e-5 )
+case5_taux=( 0.0 0.0 0.0 0.0 )
+case5_tprof="tprof_file_TS.dat"
+case5_sprof="sprof_file_TS.dat"
+
+# case 6: T & Wind
+case6_labels=( "T1Wind" "T2Wind" "T4Wind" )
+case6_wtsfc=( 1.2512e-5 2.5025e-5 5.0050e-5 )
+case6_wssfc=( 0.0 0.0 0.0 )
+case6_taux=( 0.01 0.01 0.01 )
+case6_tprof="tprof_file_TWind.dat"
+case6_sprof="sprof_file_TWind.dat"
+
+#######################################################################
+#                         Loop over all cases                         #
+#######################################################################
+
+for casenum in {1..6}
+do
+    varname="case${casenum}_labels"
+    declare -a 'arr_labels=("${'"$varname"'[@]}")'
+    varname="case${casenum}_wtsfc"
+    declare -a 'arr_wtsfc=("${'"$varname"'[@]}")'
+    varname="case${casenum}_wssfc"
+    declare -a 'arr_wssfc=("${'"$varname"'[@]}")'
+    varname="case${casenum}_taux"
+    declare -a 'arr_taux=("${'"$varname"'[@]}")'
+    varname="case${casenum}_tprof"
+    declare -a 'tprof_file=(${'"$varname"'[@]})'
+    varname="case${casenum}_sprof"
+    declare -a 'sprof_file=(${'"$varname"'[@]})'
+    for i in ${!arr_labels[@]}
+    do
+        # label for surface forcing
+        sf_label="${arr_labels[i]}"
+        echo ${sf_label}
+
+        # heat flux
+        wtsfc=${arr_wtsfc[i]}
+        heatflux=$(echo "-1 ${wtsfc} ${rho_0} ${cp}" | awk '{print $1*$2*$3*$4}')
+        echo "Heat flux: ${heatflux} W/m^2"
+
+        # precipitation
+        wssfc=${arr_wssfc[i]}
+        precip=$(echo "${wssfc} ${S0}" | awk '{print $1/$2}')
+        echo "PME: ${precip} m/s"
+
+        # momentum flux
+        taux=${arr_taux[i]}
+        tauy=0.0
+        echo "taux: ${taux} N/m^2, tauy: ${tauy} N/m^2 "
+
+        echo "----"
+
+        # title  of the simulation
+        title="${casename}_${sf_label}_${vres}_${turbmethod}"
+
+        # create run directory
+        rundir="${GOTMRUN_ROOT}/${casename}/${turbmethod}/${vres}/${sf_label}"
+        mkdir -p ${rundir}
+        cd ${rundir}
+
+        # copy base case
+        cp ${basecase}/*.nml ./
+        cp ${basecase}/${sprof_file} ./
+        cp ${basecase}/${tprof_file} ./
+
+        # set run parameters
+        start_time="${datestart:0:4}-${datestart:4:2}-${datestart:6:2} 00:00:00"
+        stop_time="${dateend:0:4}-${dateend:4:2}-${dateend:6:2} 00:00:00"
+        ${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
+        ${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
+        ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+        ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+        ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+        ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+        ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+        ${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
+        ${cmd_nmlchange} -f gotmrun.nml -e latitude -v ${latitude}
+        ${cmd_nmlchange} -f airsea.nml -e momentum_method -v 1
+        ${cmd_nmlchange} -f airsea.nml -e const_tx -v ${taux}
+        ${cmd_nmlchange} -f airsea.nml -e const_ty -v ${tauy}
+        ${cmd_nmlchange} -f airsea.nml -e heat_method -v 1
+        ${cmd_nmlchange} -f airsea.nml -e const_heat -v ${heatflux}
+        ${cmd_nmlchange} -f airsea.nml -e precip_method -v 1
+        ${cmd_nmlchange} -f airsea.nml -e const_precip -v ${precip}
+        ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
+        ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_file}
+        ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
+        ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_file}
+
+        # set turbulence method
+        source ${scpt_case_turbmethod}
+
+        # run gotm
+        ${cmd_gotm} 2> log.${outname}
+
+    done
+done
