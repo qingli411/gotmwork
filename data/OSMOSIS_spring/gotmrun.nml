@@ -23,7 +23,7 @@
 
 &model_setup
    title = 'OSMOSIS_spring',
-   nlev = 128,
+   nlev = 480,
    dt = 1800,
    cnpar = 1.0,
    buoy_method = 1,
@@ -46,7 +46,7 @@
    name = 'OSMOSIS_spring',
    latitude = 49.0,
    longitude = 0.0,
-   depth = 240.0,
+   depth = 480.0,
 /
 
 !-------------------------------------------------------------------------------
@@ -125,7 +125,7 @@
    out_fn = 'gotm_out',
    nfirst = 0,
    nsave = 6,
-   sync_out = 0,
+   sync_out = 1,
    diagnostics = .false.,
    mld_method = 1,
    diff_k = 1e-05,

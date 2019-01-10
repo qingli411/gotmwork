@@ -12,7 +12,6 @@ nml="airsea.nml"
 ${cmd_nmlchange} -f ${nml} -e calc_fluxes -v .false.
 ${cmd_nmlchange} -f ${nml} -e swr_method -v 0
 ${cmd_nmlchange} -f ${nml} -e albedo_method -v 0
-${cmd_nmlchange} -f ${nml} -e const_albedo -v 0.0
 ${cmd_nmlchange} -f ${nml} -e heat_method -v 1
 ${cmd_nmlchange} -f ${nml} -e momentum_method -v 1
 ${cmd_nmlchange} -f ${nml} -e u10_method -v 1

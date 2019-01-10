@@ -22,7 +22,7 @@
 !-------------------------------------------------------------------------------
 
 &model_setup
-   title = 'Idealized',
+   title = 'Idealized_Hurricane',
    nlev = 250,
    dt = 100,
    cnpar = 1.0,
@@ -43,7 +43,7 @@
 !-------------------------------------------------------------------------------
 
 &station
-   name = 'Idealized',
+   name = 'Idealized_Hurricane',
    latitude = 27.836,
    longitude = 0.0,
    depth = 250.0,
@@ -125,7 +125,7 @@
    out_fn = 'gotm_out',
    nfirst = 0,
    nsave = 6,
-   sync_out = 0,
+   sync_out = 1,
    diagnostics = .false.,
    mld_method = 1,
    diff_k = 1e-05,

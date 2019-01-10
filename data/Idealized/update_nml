@@ -9,6 +9,7 @@ cp ${nmldir}/*.nml ./
 #--------------------------------
 # airsea.nml
 nml="airsea.nml"
+${cmd_nmlchange} -f ${nml} -e calc_fluxes -v .false.
 ${cmd_nmlchange} -f ${nml} -e swr_method -v 0
 ${cmd_nmlchange} -f ${nml} -e albedo_method -v 0
 ${cmd_nmlchange} -f ${nml} -e momentum_method -v 1
@@ -19,9 +20,6 @@ ${cmd_nmlchange} -f ${nml} -e const_u10 -v 10
 # epbl.nml
 #--------------------------------
 # gotmmean.nml
-nml="gotmmean.nml"
-${cmd_nmlchange} -f ${nml} -e stokes_coriolis -v .true.
-${cmd_nmlchange} -f ${nml} -e lagrangian_mixing -v .true.
 #--------------------------------
 # gotmrun.nml
 nml="gotmrun.nml"
@@ -55,7 +53,6 @@ ${cmd_nmlchange} -f ${nml} -e s_prof_file -v 'sprof_file.dat'
 ${cmd_nmlchange} -f ${nml} -e t_prof_method -v 2
 ${cmd_nmlchange} -f ${nml} -e t_prof_file -v 'tprof_file.dat'
 ${cmd_nmlchange} -f ${nml} -e ustokes_method -v 5
-${cmd_nmlchange} -f ${nml} -e spec_file -v 'spec_file.dat'
 #--------------------------------
 # osm.nml
 #--------------------------------

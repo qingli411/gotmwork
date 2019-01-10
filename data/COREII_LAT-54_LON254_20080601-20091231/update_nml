@@ -14,14 +14,11 @@ ${cmd_nmlchange} -f ${nml} -e fluxes_method -v 2
 ${cmd_nmlchange} -f ${nml} -e meteo_file -v 'meteo_file.dat'
 ${cmd_nmlchange} -f ${nml} -e hum_method -v 4
 ${cmd_nmlchange} -f ${nml} -e swr_method -v 2
-${cmd_nmlchange} -f ${nml} -e albedo_method -v 0
 ${cmd_nmlchange} -f ${nml} -e swr_file -v 'swr_file.dat'
-${cmd_nmlchange} -f ${nml} -e momentum_method -v 1
-${cmd_nmlchange} -f ${nml} -e const_tx -v 0.1027
+${cmd_nmlchange} -f ${nml} -e albedo_method -v 0
 ${cmd_nmlchange} -f ${nml} -e precip_method -v 2
 ${cmd_nmlchange} -f ${nml} -e precip_file -v 'precip_file.dat'
 ${cmd_nmlchange} -f ${nml} -e precip_factor -v 1.1574e-8
-${cmd_nmlchange} -f ${nml} -e const_u10 -v 10
 #--------------------------------
 # epbl.nml
 #--------------------------------
@@ -30,7 +27,7 @@ ${cmd_nmlchange} -f ${nml} -e const_u10 -v 10
 # gotmrun.nml
 nml="gotmrun.nml"
 ${cmd_nmlchange} -f ${nml} -e title -v 'COREII'
-${cmd_nmlchange} -f ${nml} -e nlev -v 128
+${cmd_nmlchange} -f ${nml} -e nlev -v 500
 ${cmd_nmlchange} -f ${nml} -e dt -v 1800
 ${cmd_nmlchange} -f ${nml} -e name -v 'COREII'
 ${cmd_nmlchange} -f ${nml} -e latitude -v -54

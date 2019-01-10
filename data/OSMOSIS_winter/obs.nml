@@ -564,7 +564,7 @@
 
 &stokes_drift
    ustokes_method = 4,
-   nfreq = 1,
+   nfreq = 64,
    spec_file = '',
    usp_file = '',
    usdelta_file = 'ustokes_file.dat',

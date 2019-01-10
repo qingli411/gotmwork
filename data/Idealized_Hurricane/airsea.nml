@@ -178,7 +178,7 @@
    swr_factor = 1.0,
    shf_factor = 1.0,
    momentum_method = 2,
-   const_tx = 0.1,
+   const_tx = 0.0,
    const_ty = 0.0,
    momentumflux_file = 'momentumflux.dat',
    precip_method = 0,

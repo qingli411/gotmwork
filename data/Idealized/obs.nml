@@ -565,7 +565,7 @@
 &stokes_drift
    ustokes_method = 5,
    nfreq = 64,
-   spec_file = 'spec_file.dat',
+   spec_file = '',
    usp_file = '',
    usdelta_file = '',
    wave_age = 1.2,

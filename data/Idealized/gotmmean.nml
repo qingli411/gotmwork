@@ -103,7 +103,7 @@
    avmols = 1.1e-09,
    MaxItz0b = 1,
    no_shear = .false.,
-   stokes_coriolis = .true.,
-   lagrangian_mixing = .true.,
+   stokes_coriolis = .false.,
+   lagrangian_mixing = .false.,
 /
 

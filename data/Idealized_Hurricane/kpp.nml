@@ -64,7 +64,7 @@
    kpp_interior = .true.,
    clip_mld = .false.,
    Ric = 0.235,
-   kpp_opt = 0,
+   kpp_opt = 1,
    lnoDGat1 = .true.,
    interp_type = 'quadratic',
    interp_type2 = 'LMD94',
