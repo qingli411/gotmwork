@@ -8,6 +8,11 @@ import argparse
 import os
 
 def main():
+    # add a space in front of the arguments starting with '-', and remove
+    # it later to resolve the bug that negative numbers in scientific
+    # notation are not recognized by argparse
+    for i, arg in enumerate(sys.argv):
+        if (arg[0] == '-') and arg[1].isdigit(): sys.argv[i] = ' ' + arg
     # process the input arguments
     parser = argparse.ArgumentParser(description="""
             Change the value of an entry in a namelist. If OUTFILE is not
@@ -32,7 +37,7 @@ def main():
     # test string_nmlvalue
     if args.nml_test:
         print('Testing the funtion of parsing entry value')
-        alltest = ['2', '-10', '2.', '3.14', '-2.45', '2e3', '2E-10', '3.234e-8',
+        alltest = ['2', '-10', '2.', '3.14', '-2.45', '2e3', '2E-10', '3.234e-8', '-2.4e-09',
                    'T', 'F', 'true', 'false', '.true.', '.false.', 'True', 'False',
                    'Test', 'Flow', '2001-03-25 00:00:00', './']
         for stest in alltest:
@@ -51,7 +56,7 @@ def main():
         sys.exit(1)
 
     # process new value for the entry
-    new_nmlvalue = string_nmlvalue(args.nml_value)
+    new_nmlvalue = string_nmlvalue(args.nml_value.lstrip())
     # pattern of the entry
     re_var = args.nml_entry.strip()+' ='
     # pattern of the comments
@@ -113,7 +118,7 @@ def string_nmlvalue(value):
     """
     re_int = r'^[-0-9]+$'
     re_float = r'^[-0-9]+\.[0-9]*$'
-    re_exp = r'^[0-9]+\.*[0-9]*[eE][+-]*[0-9]+$'
+    re_exp = r'^[-0-9]+\.*[0-9]*[eE][+-]*[0-9]+$'
     re_false = r'^[Ff]alse$|^\.false\.$'
     re_true = r'^[Tt]rue$|^\.true\.$'
     bool_str = {True: '.true.', False: '.false.'}
