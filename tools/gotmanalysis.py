@@ -300,6 +300,20 @@ class GOTMMap(object):
             cb.update_ticks()
         return fig
 
+    def zonal_mean(self):
+        """Calculate the zonal mean.
+
+        :returns: (numpy array) array of latitude and zonal mean data
+
+        """
+        lat_all = self.lat
+        lat = np.unique(lat_all)
+        nlat = lat.size
+        val = np.zeros(nlat)
+        for i in np.arange(nlat):
+            tmp_arr = self.data[lat_all==lat[i]]
+            val[i] = np.nanmean(tmp_arr)
+        return lat, val
 
 #--------------------------------
 # GOTMOutputData
