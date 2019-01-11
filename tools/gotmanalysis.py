@@ -307,12 +307,15 @@ class GOTMMap(object):
 
         """
         lat_all = self.lat
-        lat = np.unique(lat_all)
+        lat, counts = np.unique(lat_all, return_counts=True)
         nlat = lat.size
         val = np.zeros(nlat)
         for i in np.arange(nlat):
-            tmp_arr = self.data[lat_all==lat[i]]
-            val[i] = np.nanmean(tmp_arr)
+            if counts[i] >=5:
+                tmp_arr = self.data[lat_all==lat[i]]
+                val[i] = np.nanmean(tmp_arr)
+            else:
+                val[i] = None
         return lat, val
 
 #--------------------------------
@@ -1153,6 +1156,7 @@ class GOTMOutputDataMap(object):
                 ts.data = np.where(ts.data == fillvalue, np.nan, ts.data)
             mdat[i] = ts.data.mean()
         # create GOTMMap object
+        mdat = np.where(mdat == fillvalue, np.nan, mdat)
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
         return out
 
