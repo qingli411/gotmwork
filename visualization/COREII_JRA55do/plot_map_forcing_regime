@@ -30,6 +30,8 @@ parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_da
         help='Update data')
 parser.add_argument('-P', '--plotfigure', action='store_true', dest='l_plot_figure',
         help='Plot figure')
+parser.add_argument('-M', '--mask', action='store_true', dest='l_apply_mask',
+        help='Plot figure')
 # parsing arguments and save to args
 args=parser.parse_args()
 
@@ -41,6 +43,7 @@ timetag = args.ttag
 forcing_reg_type = args.diagname
 update_data = args.l_update_data
 plot_figure = args.l_plot_figure
+apply_mask = args.l_apply_mask
 if args.method:
     tmname = args.basecase
 else:
@@ -84,6 +87,7 @@ os.makedirs(fig_root, exist_ok=True)
 # get forcing regime
 basepath = s1data_root+'/'+tmname
 s2data_name = s2data_root+'/data_forcing_regime_'+forcing_reg_type+'_'+tmname+'.npz'
+mask_name = s2data_root+'/mask_'+tmname+'.npz'
 if update_data or not os.path.isfile(s2data_name):
     # update data
     print('Updating data...')
@@ -99,13 +103,24 @@ if update_data or not os.path.isfile(s2data_name):
             forcing_regime[i] = tmp.diag_forcing_regime_BG12(cfrac=0.25)
         elif forcing_reg_type == 'LF17':
             forcing_regime[i] = tmp.diag_forcing_regime_LF17(cfrac=0.25)
-
     gmobj = GOTMMap(data=forcing_regime, lon=godmobj.lon, lat=godmobj.lat, name='forcing_regime')
+    if apply_mask:
+        # read mask
+        gmobj_mask = GOTMMap().load(mask_name)
+        # apply mask
+        gmobj.masked(gmobj_mask)
     # save data
     gmobj.save(s2data_name)
 else:
     # read data
     gmobj = GOTMMap().load(s2data_name)
+    if apply_mask:
+        # read mask
+        gmobj_mask = GOTMMap().load(mask_name)
+        # apply mask
+        gmobj.masked(gmobj_mask)
+        # update data
+        gmobj.save(s2data_name)
 
 # plot figure
 if plot_figure:

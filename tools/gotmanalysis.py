@@ -244,18 +244,19 @@ class GOTMMap(object):
                 name=str(dat['name']), units=str(dat['units']))
         return self
 
-    def masked(self, mask):
+    def masked(self, mask, mask_data=np.nan):
         """Apply mask to GOTMMap object. The mask should also be a GOTMMap object,
            with 1 for valid and 0 for invalid.
 
         :mask: (GOTMMap object) mask, 1 for valid, 0 for invalid
+        :mask_data: (optional) values to be filled in maked points
         :return: (GOTMMap object) masked GOTMMap
 
         """
         if mask.data.size != self.data.size:
             raise ValueError('The dimension of mask does not match.')
         dat = self.data
-        self.data = np.where(mask.data==0, np.nan, dat)
+        self.data = np.where(mask.data==0, mask_data, dat)
 
     def plot(self, axis=None, levels=None, add_colorbar=True, cmap='rainbow', **kwargs):
         """Plot scatters on a map
@@ -1222,7 +1223,8 @@ def plot_forcing_regime(f_regime, axis=None, add_colorbar=True, **kwargs):
     norm = colors.BoundaryNorm(boundaries=bounds, ncolors=len(color_list))
     fig = m.scatter(x, y, marker='.', s=32, c=data, norm=norm, cmap=cmap, **kwargs)
     # mark stable regions
-    smask = f_regime.data<0
+    freg_data = np.where(np.isnan(f_regime.data), 999, f_regime.data)
+    smask = freg_data<0
     lat_s = lat[smask]
     lon_s = lon[smask]
     # shift longitude
