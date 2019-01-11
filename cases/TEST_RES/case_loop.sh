@@ -37,7 +37,7 @@ fi
 outname="gotm_out"
 
 # damping
-t_dampV="1d"
+t_dampV="5d"
 
 case ${t_dampV} in
     "1d")

@@ -21,8 +21,8 @@ curdir=$(pwd)
 
 # starting and ending date - in the format of YYYYMMDD
 # starting from summer solstice
-datestart="20130621"
-dateend="20131201"
+datestart="20120321"
+dateend="20130320"
 
 # name of the dataset
 title="OCSPapa_${datestart}-${dateend}"
