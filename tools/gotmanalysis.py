@@ -951,7 +951,7 @@ class GOTMOutputData(object):
 
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
-        :depth: (float, optional) index of depth
+        :depth: (float, optional) reference depth
         :returns: (numpy array) rate of change in PE
 
         """

@@ -102,7 +102,7 @@ do
             fi
 
             # label for surface forcing
-            sf_label="R8_${heatflux_labels[i]}${wind_labels[j]}${wave_labels[k]}"
+            sf_label="R7_${heatflux_labels[i]}${wind_labels[j]}${wave_labels[k]}"
             echo ${sf_label}
 
             # title  of the simulation
