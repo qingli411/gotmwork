@@ -23,7 +23,7 @@
 
 &model_setup
    title = 'Idealized_Hurricane',
-   nlev = 250,
+   nlev = 240,
    dt = 100,
    cnpar = 1.0,
    buoy_method = 1,
@@ -46,7 +46,7 @@
    name = 'Idealized_Hurricane',
    latitude = 27.836,
    longitude = 0.0,
-   depth = 250.0,
+   depth = 240.0,
 /
 
 !-------------------------------------------------------------------------------

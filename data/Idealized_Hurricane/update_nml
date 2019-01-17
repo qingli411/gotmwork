@@ -29,11 +29,11 @@ ${cmd_nmlchange} -f ${nml} -e grid_file -v 'Depth.txt'
 # gotmrun.nml
 nml="gotmrun.nml"
 ${cmd_nmlchange} -f ${nml} -e title -v 'Idealized_Hurricane'
-${cmd_nmlchange} -f ${nml} -e nlev -v 250
+${cmd_nmlchange} -f ${nml} -e nlev -v 240
 ${cmd_nmlchange} -f ${nml} -e dt -v 100
 ${cmd_nmlchange} -f ${nml} -e name -v 'Idealized_Hurricane'
 ${cmd_nmlchange} -f ${nml} -e latitude -v 27.836
-${cmd_nmlchange} -f ${nml} -e depth -v 250.0
+${cmd_nmlchange} -f ${nml} -e depth -v 240.0
 ${cmd_nmlchange} -f ${nml} -e start -v '2012-01-01 00:00:00'
 ${cmd_nmlchange} -f ${nml} -e stop -v '2013-12-04 19:00:00'
 ${cmd_nmlchange} -f ${nml} -e nsave -v 6
