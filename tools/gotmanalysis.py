@@ -851,9 +851,13 @@ class GOTMOutputData(object):
         Nsqr = self.dataset.variables['NN'][tidx_start:tidx_end,:,0,0]
         z = self.dataset.variables['z'][tidx_start:tidx_end,:,0,0]
         nt = Nsqr.shape[0]
+        nz = Nsqr.shape[1]
         mld = np.zeros(nt)
         # find the indices where N^2 reaches its maximum
-        idx_max = np.argmax(Nsqr, 1)
+        # add small noise that increase with depth to find the shallowest
+        # occurrence when N^2 is constant
+        noise = np.array(np.arange(nz))*1e-15
+        idx_max = np.argmax(Nsqr+noise, 1)
         for i in np.arange(nt):
             mld[i] = z[i,idx_max[i]]
         return np.abs(mld)
