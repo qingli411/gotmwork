@@ -23,6 +23,7 @@ else
     # vertical resolution
     #  1 m
     #  5 m
+    #  10 m
     #  typical regional models (e.g., ROMS)
     #  typical GCMs (e.g., CESM)
     vrlist=(1m 5m 10m)
@@ -30,6 +31,7 @@ else
     #  1 min
     #  10 min
     #  30 min
+    #  60 min
     dtlist=(60 600 1800 3600)
 fi
 
