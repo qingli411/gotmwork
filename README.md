@@ -5,13 +5,13 @@ A work directory of [GOTM](http://gotm.net), which contains a set of scripts and
 __Latest version__: lt_v1.5, compatible with [GOTM version lt_v1.5.x](https://gitlab.com/fox-kemper_lab/gotm) and [CVMix version lt_v1.3](https://gitlab.com/fox-kemper_lab/CVMix-src).
 
 ---
-## Get started
+## Quick Start
 
 ### Setup
 Use `setup_gotmwork.sh` to check Python version (3.x) and required Python module, and set up the necessary environment variables. It only needs to be used once. It will generate a file `.gotmwork_env.sh` in the HOME directory which saves all the necessary environment variables.
 You may optionally add `source $HOME/.gotmwork_env.sh` in the file `$HOME/.bashrc` (bash shell) to automatically set up these environment variables when opening a new terminal.
 
-### How to build 
+### How to build
 CVMix has to be built before building GOTM.See [CVMix Homepage](http://cvmix.github.io) for more information on how to build CVMix.
 Use `build_src.sh -build` or simply `build_src.sh` to compile GOTM.
 Use `build_src.sh -clean` to clean the old build.
@@ -33,16 +33,16 @@ Test cases. In each case, `case_test` sets up the namelist, preprocess the input
 Run one set of simulations in each 4 by 4 degree box to cover the global ocean, foced by CORE-II.
   - `case_test_multi` sets up multiple runs under CORE-II forcing.
   - `case_run_multi` is similar to `case_test_multi`, but uses preprocessed CORE-II data and is therefore significantly faster.
-  - `do_parallel` automatically submit parallel jobs to multiple cores. 
+  - `do_parallel` automatically submit parallel jobs to multiple cores.
   - `kill_all` kills all the jobs.
-  - `preproc_data` preprocesses the CORE-II data. 
+  - `preproc_data` preprocesses the CORE-II data.
 
 - __JRA55do__
 Run one set of simulations in each 4 by 4 degree box to cover the global ocean, foced by JRA55-do.
   - `case_run_multi` sets up multiple runs under JRA55-do forcing using preprocessed data.
-  - `do_parallel` automatically submit parallel jobs to multiple cores. 
+  - `do_parallel` automatically submit parallel jobs to multiple cores.
   - `kill_all` kills all the jobs.
-  - `preproc_data` preprocesses the JRA55-do data. 
+  - `preproc_data` preprocesses the JRA55-do data.
 
 - __OCSKEO__
 
@@ -86,7 +86,7 @@ All namelists are in the directory `./data/namelist/`. Use `init_namelist` to ge
 ## A List of Tools
 
 A list of tools in the directory `./tools/`.
-Most of the tools listed below are written in Python3, some in Bash script. The file `gotmtool.py` contains some shared Python3 functions used by many of the tools. Option `-h` can be used with all tools to get the usage. 
+Most of the tools listed below are written in Python3, some in Bash script. The file `gotmtool.py` contains some shared Python3 functions used by many of the tools. Option `-h` can be used with all tools to get the usage.
 
 | Tool name                  | Description |
 | -------------------------- |:----------- |
@@ -115,7 +115,7 @@ Most of the tools listed below are written in Python3, some in Bash script. The 
 ---
 ## A List of Scripts
 
-A list of scripts in the directory `./scripts/`. 
+A list of scripts in the directory `./scripts/`.
 Bash scripts to setup the tools and runs, and Matlab and NCL scripts to preprocess the input data.
 
 | Script name                | Description |
@@ -128,7 +128,7 @@ Bash scripts to setup the tools and runs, and Matlab and NCL scripts to preproce
 | `core2_prep_meteo.ncl`     | NCL script to prepare meteorology data from CORE-II. |
 | `install_python_tools.sh`  | Bash script to download and install Python tools for GOTM from Github, including `editscenario`, `xmlstore`, `xmlplot` and `gotmgui`. |
 | `jar55do_prep_meteo.ncl`   | NCL script to prepare meteorology data from JRA55-do. |
-| `ocs_heatflux.ncl`         | NCL script to prepare the net heat flux (excluding shortwave) data from longwave, sensible and latent heat fluxes for GOTM. 
+| `ocs_heatflux.ncl`         | NCL script to prepare the net heat flux (excluding shortwave) data from longwave, sensible and latent heat fluxes for GOTM.
 | `roms_dz.m`                | Matlab script to generate ROMS style stretching vertical grid. |
 
 ### Other Scripts
