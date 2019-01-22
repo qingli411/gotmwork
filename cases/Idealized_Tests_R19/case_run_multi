@@ -43,7 +43,7 @@ casename="R19"
 outname="gotm_out"
 
 # set levels
-nlev=20
+nlev=200
 depth=200.0
 dz=$(echo "${depth} ${nlev}" | awk '{print $1/$2}')
 vres="VR${dz}m"
@@ -117,7 +117,8 @@ case6_sprof="sprof_file_TWind.dat"
 #                         Loop over all cases                         #
 #######################################################################
 
-for casenum in {1..6}
+# for casenum in {1..6}
+for casenum in 3
 do
     varname="case${casenum}_labels"
     declare -a 'arr_labels=("${'"$varname"'[@]}")'
@@ -162,10 +163,21 @@ do
         mkdir -p ${rundir}
         cd ${rundir}
 
+        if [[ ${#tprof_file[@]} -gt 1 ]]; then
+            #statements
+            tprof_file_in=${tprof_file[i]}
+            sprof_file_in=${sprof_file[i]}
+        else
+            tprof_file_in=${tprof_file}
+            sprof_file_in=${sprof_file}
+        fi
+        echo ${tprof_file_in}
+        echo ${sprof_file_in}
+
         # copy base case
         cp ${basecase}/*.nml ./
-        cp ${basecase}/${sprof_file} ./
-        cp ${basecase}/${tprof_file} ./
+        cp ${basecase}/${sprof_file_in} ./
+        cp ${basecase}/${tprof_file_in} ./
 
         # set run parameters
         start_time="${datestart:0:4}-${datestart:4:2}-${datestart:6:2} 00:00:00"
@@ -187,9 +199,9 @@ do
         ${cmd_nmlchange} -f airsea.nml -e precip_method -v 1
         ${cmd_nmlchange} -f airsea.nml -e const_precip -v ${precip}
         ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
-        ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_file}
+        ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_file_in}
         ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
-        ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_file}
+        ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_file_in}
 
         # set turbulence method
         source ${scpt_case_turbmethod}
