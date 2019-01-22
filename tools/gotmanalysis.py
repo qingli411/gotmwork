@@ -599,7 +599,9 @@ class GOTMOutputData(object):
         switcher = {
                 'buoy': self._get_buoyancy,
                 'buoyancy': self._get_buoyancy,
-                'spice': self._get_spice
+                'spice': self._get_spice,
+                'wt': self._get_wt,
+                'ws': self._get_ws
                 }
         if list_keys:
             return list(switcher.keys())
@@ -643,6 +645,61 @@ class GOTMOutputData(object):
         # z
         z     = self.dataset.variables['z'][0,:,0,0]
         return spice, z
+
+    def _get_wt(self, tidx_start=None, tidx_end=None):
+        """Find the vertical temperature flux (K m/s)
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (numpy array) surface buoyancy flux
+
+        """
+        # temperature profiles
+        temp = self.dataset.variables['temp'][tidx_start:tidx_end,:,0,0]
+        # turbulent diffusivity of heat
+        nuh  = self.dataset.variables['nuh'][tidx_start:tidx_end,:,0,0]
+        # nonlocal temperature flux
+        gamh = self.dataset.variables['gamh'][tidx_start:tidx_end,:,0,0]
+        # layer thickness
+        h    = self.dataset.variables['h'][tidx_start:tidx_end,:,0,0]
+        # depth
+        zi   = self.dataset.variables['zi'][0,1:,0,0]
+        # surface temperature flux
+        wt0  = -self.dataset.variables['heat'][tidx_start:tidx_end,0,0]/cp/rho_0
+        # vertical temperature flux
+        wt = np.zeros(temp.shape)
+        wt[:,-1] = wt0
+        wt[:,0:-1] = -2.0*nuh[:,1:-1]*(temp[:,1:]-temp[:,0:-1])/(h[:,1:]+h[:,0:-1]) + gamh[:,1:-1]
+        return wt, zi
+
+    def _get_ws(self, tidx_start=None, tidx_end=None):
+        """Find the vertical salinity flux (g/kg m/s)
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (numpy array) surface buoyancy flux
+
+        """
+        # salinity profiles
+        salt = self.dataset.variables['salt'][tidx_start:tidx_end,:,0,0]
+        # surface salinity
+        salt0 = salt[:,-1]
+        # turbulent diffusivity of salinity
+        nus  = self.dataset.variables['nus'][tidx_start:tidx_end,:,0,0]
+        # nonlocal salinity flux
+        gams = self.dataset.variables['gams'][tidx_start:tidx_end,:,0,0]
+        # layer thickness
+        h    = self.dataset.variables['h'][tidx_start:tidx_end,:,0,0]
+        # depth
+        zi   = self.dataset.variables['zi'][0,1:,0,0]
+        # surface salinity flux
+        ws0  =  (self.dataset.variables['precip'][tidx_start:tidx_end,0,0]
+               - self.dataset.variables['evap'][tidx_start:tidx_end,0,0])*salt0
+        # vertical temperature flux
+        ws = np.zeros(salt.shape)
+        ws[:,-1] = ws0
+        ws[:,0:-1] = -2.0*nus[:,1:-1]*(salt[:,1:]-salt[:,0:-1])/(h[:,1:]+h[:,0:-1]) + gams[:,1:-1]
+        return ws, zi
 
     def _get_derived_timeseries(self, name=None, list_keys=False):
         """Find the derived variable
