@@ -128,7 +128,7 @@ if plot_figure:
     fig = plt.figure()
     fig.set_size_inches(6, 2.2)
     # plot
-    plot_forcing_regime(gmobj)
+    plot_forcing_regime_map(gmobj)
     # label
     plt.text(40, 55, mlabel, fontsize=14, color='k', fontweight='bold', va='top',
             bbox=dict(boxstyle="square",ec='k',fc='w'))
