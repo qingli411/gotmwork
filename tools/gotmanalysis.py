@@ -1170,6 +1170,7 @@ class GOTMOutputDataMap(object):
         """
         switcher = {
                 'mld_deltaR_mean': self.mean_state_timeseries(var='mld_deltaR', **kwargs),
+                'mld_deltaRp1_mean': self.mean_state_timeseries(var='mld_deltaR', deltaR=0.1, **kwargs),
                 'PE_delta': self.delta_timeseries(var='PE', **kwargs),
                 'SST_mean': self.mean_state_timeseries(var='sst', **kwargs),
                 'SSS_mean': self.mean_state_timeseries(var='sss', **kwargs),
@@ -1182,7 +1183,7 @@ class GOTMOutputDataMap(object):
         else:
             raise ValueError('Variable \'{}\' not found.'.format(name))
 
-    def mean_state_profile(self, var, tidx_start=None, tidx_end=None, zidx_start=None, zidx_end=None):
+    def mean_state_profile(self, var, tidx_start=None, tidx_end=None, zidx_start=None, zidx_end=None, **kwargs):
         """Return the mean state of a profile variable
 
         :var: (str) variable name
@@ -1196,13 +1197,13 @@ class GOTMOutputDataMap(object):
         mdat = np.zeros(self.ncase)
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
-            prfl = tmp.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
+            prfl = tmp.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs)
             mdat[i] = np.mean(np.mean(prfl.data, axis=0)[zidx_start:zidx_end], 0)
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
         return out
 
-    def mean_state_timeseries(self, var, fillvalue=None, tidx_start=None, tidx_end=None):
+    def mean_state_timeseries(self, var, fillvalue=None, tidx_start=None, tidx_end=None, **kwargs):
         """Return the mean state of a timeseries variable
 
         :var: (str) variable name
@@ -1215,7 +1216,7 @@ class GOTMOutputDataMap(object):
         mdat = np.zeros(self.ncase)
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
-            ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
+            ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs)
             if fillvalue is not None:
                 ts.data = np.where(ts.data == fillvalue, np.nan, ts.data)
             mdat[i] = ts.data.mean()
@@ -1224,7 +1225,7 @@ class GOTMOutputDataMap(object):
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
         return out
 
-    def delta_timeseries(self, var, fillvalue=None, tidx_start=None, tidx_end=None):
+    def delta_timeseries(self, var, fillvalue=None, tidx_start=None, tidx_end=None, **kwargs):
         """Return the net change of a timeseries variable
 
         :var: (str) variable name
@@ -1236,7 +1237,7 @@ class GOTMOutputDataMap(object):
         mdat = np.zeros(self.ncase)
         for i in range(self.ncase):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
-            ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True)
+            ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs)
             if fillvalue is not None:
                 ts.data = np.where(ts.data == fillvalue, np.nan, ts.data)
             mdat[i] = ts.data[-1] - ts.data[0]
