@@ -24,15 +24,17 @@ def main():
         case = case_list[i]
         depth = depth_list[i]
         print(case)
+        xloc = xloc_list[i]
+        yloc = yloc_list[i]
         for j in np.arange(nv):
             var = pfl_list[j]
             c_max = pfl_cmax_list[j,i]
             c_min = pfl_cmin_list[j,i]
             d_max = pfl_dmax_list[j,i]
             # two column, comparing with the first in turbmethod_list
-            plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth)
+            plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth, xloc, yloc)
 
-def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
+def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth, xloc, yloc):
 
     # input data directory
     dataroot = dir_in+'/'+case
@@ -49,7 +51,7 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     # figure
     nrow = (nm+2)//2
     fig_width = 12
-    fig_height = 3+2*(nrow-1)
+    fig_height = 2.5+2*(nrow-1)
 
     # plot figure
     height_ratios = [1]*nrow
@@ -60,7 +62,7 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
 
     # contour levels
     c_int = (c_max-c_min)/20
-    levels0 = np.arange(c_min, c_max+c_int, c_int)
+    levels0 = np.arange(c_min, c_max+c_int/2, c_int)
     d_int = d_max/10
     levels1 = np.arange(-d_max-0.5*d_int, d_max+d_int, d_int)
     cb_ticks = np.arange(-d_max, d_max+d_int*2, d_int*2)
@@ -74,7 +76,7 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     bflux0  = gotmdata0.read_timeseries('bflux').data
     par1 = axarr[0, 0].twinx()
     axarr[0, 0].plot(dttime0, ustar0*20, color='black', linewidth=1.5)
-    axarr[0, 0].set_ylabel('$20 \\times u^*$ (m s$^{-1}$); $\mathrm{La}_t$', fontsize=12)
+    axarr[0, 0].set_ylabel('$20 \\times u_*$ (m s$^{-1}$); $\mathrm{La}_t$', fontsize=12)
     axarr[0, 0].set_ylim([0, 1])
     axarr[0, 0].plot(dttime0, laturb0, color='steelblue', linewidth=1.5)
     axarr[0, 0].axhline(0.3, color='navy', linewidth=0.75)
@@ -86,7 +88,7 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     par1.axhline(0, color='darkred', linewidth=0.75)
     axarr[0, 0].set_zorder(par1.get_zorder()+1)
     axarr[0, 0].patch.set_visible(False)
-    axarr[0, 0].text(0.04, 0.92, '(a)', transform=axarr[0, 0].transAxes, fontsize=16, fontweight='bold', va='top')
+    axarr[0, 0].text(0.04, 0.92, '(a)', transform=axarr[0, 0].transAxes, fontsize=12, fontweight='bold', va='top')
 
     # panel b
     n = icol_2col[0]
@@ -100,10 +102,8 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
     im0 = axarr[m, n].contourf(dttime0, z0, np.transpose(fld0), levels0, extend='both', cmap='rainbow')
     axarr[m, n].set_ylabel('Depth (m)', fontsize=12)
     axarr[m, n].set_ylim([depth, 0])
-    title0 = case+' '+var+' '+turbmethod_list[0]
-    axarr[m, n].set_title(title0, fontsize=12)
     axarr[m, n].plot(dttime0, -mld0, color='silver', linewidth=1.5)
-    axarr[m, n].text(0.04, 0.2, labels_2col[0], transform=axarr[m, n].transAxes, color='white', fontsize=16, fontweight='bold', va='top')
+    axarr[m, n].text(xloc, yloc, labels_2col[0]+' '+legend_list[0], transform=axarr[m, n].transAxes, color='white', fontsize=12, fontweight='bold', va='top')
 
     # panel c-l
     # loop over other turbmethods
@@ -123,11 +123,9 @@ def plot_pfl_cmp_turbmethods_2col(case, var, c_max, c_min, d_max, depth):
         if n == 0:
             axarr[m, n].set_ylabel('Depth (m)', fontsize=12)
         axarr[m, n].set_ylim([depth, 0])
-        title1 = legend_list[j]+' $-$ '+legend_list[0]
-        axarr[m, n].set_title(title1, fontsize=12)
         axarr[m, n].plot(dttime0, -mld0, color='silver', linewidth=1.5)
         axarr[m, n].plot(dttime0, -mld1, color='black', linewidth=1.5)
-        axarr[m, n].text(0.04, 0.2, labels_2col[j], transform=axarr[m, n].transAxes, fontsize=16, fontweight='bold', va='top')
+        axarr[m, n].text(xloc, yloc, labels_2col[j]+' '+legend_list[j], transform=axarr[m, n].transAxes, fontsize=12, fontweight='bold', va='top')
 
      # reduce margin
     plt.tight_layout()
