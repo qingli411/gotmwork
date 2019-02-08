@@ -4,6 +4,26 @@
 # Brandon Reichl
 
 #######################################################################
+#                           parse arguments                           #
+#######################################################################
+turbmethod="none"
+
+while getopts m: options
+do
+    case $options in
+        # turbulence model
+        m) turbmethod=$OPTARG ;;
+        \?) echo "Unknown option -$OPTARG"
+            exit 1 ;;
+    esac
+done
+
+if [[ ${turbmethod} == "none" ]]; then
+    echo "Missing option -m [turbulence model]"
+    exit 1
+fi
+
+#######################################################################
 #                              Set paths                              #
 #######################################################################
 
@@ -21,8 +41,8 @@ basecase="${GOTMWORK_ROOT}/data/Idealized_Hurricane"
 title="Idealized_Hurricane"
 
 # set levels, grid zooming at surface
-nlev=250
-depth=250
+nlev=240
+depth=240
 ddu=0
 ddl=0
 
@@ -34,35 +54,21 @@ heatflux=-5
 
 # run parameters
 dt=60
-nsave=60
+nsave=15
 
 # starting and ending date - in the format of YYYYMMDD
 datestart="20110401"
 dateend="20110404"
 
-# name of the turbulence model
-# turbmethod="KPPLT-EFACTOR"
-turbmethod="KPPLT-ENTR"
-# turbmethod="KPPLT-RWHGK"
-# turbmethod="EPBL"
-# turbmethod="EPBL-LT"
-#turbmethod="KPP-CVMix"
-# turbmethod="K-EPSILON-SG"
-# turbmethod="SMCLT"
-# turbmethod="SMC"
-
 # output file name
 outname="gotm_out"
-
-# case name
-casename="${title}_${turbmethod}_${datestart}-${dateend}"
 
 #######################################################################
 #                        Preprocess input data                        #
 #######################################################################
 
 # create run directory
-rundir="${GOTMRUN_ROOT}/Idealized_Hurricane_Experiment/${casename}"
+rundir="${GOTMRUN_ROOT}/${title}/${turbmethod}"
 mkdir -p ${rundir}/STORAGE
 cd ${rundir}
 

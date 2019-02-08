@@ -14,6 +14,7 @@ cmd_gotm="${GOTMEXE_ROOT}/bin/gotm"
 
 # paths
 tooldir="${GOTMWORK_ROOT}/tools"
+scriptdir="${GOTMWORK_ROOT}/scripts"
 nmldir="${GOTMWORK_ROOT}/namelist"
 xmldir="${GOTMWORK_ROOT}/data"
 
@@ -23,12 +24,12 @@ cmd_case_preproc="${tooldir}/case_preproc"
 cmd_nc2dat="${tooldir}/nc2dat"
 cmd_nc2dat_argo="${tooldir}/nc2dat_argo"
 cmd_nc2dat_cdip="${tooldir}/nc2dat_cdip_spec"
-cmd_nc2dat_core2ww3="${tooldir}/nc2dat_core2ww3"
+cmd_nc2dat_core2swr="${tooldir}/nc2dat_core2swr"
+cmd_nc2dat_ww3="${tooldir}/nc2dat_ww3"
 cmd_nc2dat_latlon="${tooldir}/nc2dat_latlon"
 cmd_plotpfl="${tooldir}/plotpfl"
 cmd_plotts="${tooldir}/plotts"
 cmd_is_sea="${tooldir}/is_sea"
 
 # bash script
-scpt_case_postproc="${tooldir}/case_postproc.sh"
-scpt_case_turbmethod="${tooldir}/case_turbmethod.sh"
+scpt_case_turbmethod="${scriptdir}/case_turbmethod.sh"

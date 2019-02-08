@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data name="JRA55-do" lat=_TAG_LAT lon=_TAG_LON maxdepth=_TAG_MAXDEPTH >
+    <var name="meteo">
+        <longname>Meteorology data</longname>
+        <filename>meteo.nc</filename>
+        <vartype>meteo</vartype>
+        <varname_u10>uas_10m</varname_u10>
+        <varname_v10>vas_10m</varname_v10>
+        <varname_slp>psl</varname_slp>
+        <varname_sat>tas_10m</varname_sat>
+        <varname_hum>huss_10m</varname_hum>
+        <varname_cld>cld</varname_cld>
+        <hum_method>4</hum_method>
+        <outname>meteo_file.dat</outname>
+    </var>
+    <var name="swr">
+        <longname>Shortwave radiation (W/m2)</longname>
+        <filename>jra55do_rad.nc</filename>
+        <vartype>scalar</vartype>
+        <varname>rsds</varname>
+        <outname>swr_file.dat</outname>
+    </var>
+    <var name="precip">
+        <longname>Precipitation (mm/day)</longname>
+        <filename>jra55do_precip.nc</filename>
+        <vartype>scalar</vartype>
+        <varname>prrn</varname>
+        <outname>precip_file.dat</outname>
+        <scale_factor>1.e-3</scale_factor>
+    </var>
+</data>
+

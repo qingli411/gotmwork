@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Remove runs with NaNs in the output data
+#
+# Qing Li, 20181107
+
+import os
+import shutil
+import argparse
+from gotmanalysis import *
+np.seterr(all='raise')
+
+# process the input arguments
+parser = argparse.ArgumentParser(description="""
+        Filter out brokern runs and runs with NaN in the output data.""")
+parser.add_argument('-c', '--casename', action='store', dest='cname',
+        metavar='CASENAME', required=True, help='Case name')
+parser.add_argument('-t', '--timetag', action='store', dest='ttag',
+        metavar='TIMETAG', required=True, help='Time tag (yyyymmdd-yyyymmdd)')
+# parsing arguments and save to args
+args=parser.parse_args()
+
+# timetag = '20090101-20090131'
+# casename = 'COREII_Global'
+casename = args.cname
+timetag = args.ttag
+s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/VR1m_DT600s_'+timetag
+
+tmname = 'KPP-CVMix'
+basepath = s1data_root+'/'+tmname
+loclist = sorted(os.listdir(basepath))
+pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
+tmlist = sorted(os.listdir(s1data_root))
+ntm = len(tmlist)
+
+# check if netcdf file exists
+print('-'*32)
+print('Checking if netCDF output file exists...')
+print('-'*32)
+filter_list = []
+npath = len(pathlist)
+for i in np.arange(npath):
+    if np.mod(i, 100) == 0:
+        print('{:6.2f} %'.format(i/npath*100.0))
+    if not os.path.isfile(pathlist[i]):
+        filter_list.append(i)
+
+if len(filter_list) > 0:
+    print('Removing the following directories...')
+    for i in filter_list:
+        locname = loclist[i]
+        for tm in tmlist:
+            filter_dir = s1data_root+'/'+tm+'/'+locname
+            print(filter_dir)
+            shutil.rmtree(filter_dir)
+    # update loclist and pathlist
+    for i in filter_list:
+        loclist.pop(i)
+        pathlist.pop(i)
+
+# check if NaN
+print('\n'+'-'*32)
+print('Checking if netCDF output contains NaN values...')
+print('-'*32)
+filter_list = []
+godmobj = GOTMOutputDataMap(pathlist)
+for i in np.arange(godmobj.ncase):
+    if np.mod(i, 100) == 0:
+        print('{:6.2f} %'.format(i/godmobj.ncase*100.0))
+    tmp = GOTMOutputData(godmobj._paths[i], init_time_location=False)
+    try:
+        tmp.open()
+        rho = tmp.dataset.variables['rho'][:]
+        tmp.close()
+    except FloatingPointError:
+        filter_list.append(i)
+
+if len(filter_list) > 0:
+    print('Removing the following directories...')
+    for i in filter_list:
+        locname = loclist[i]
+        for tm in tmlist:
+            filter_dir = s1data_root+'/'+tm+'/'+locname
+            print(filter_dir)
+            shutil.rmtree(filter_dir)
+
+print('\n'+'-'*32)
+print('Done')
+print('-'*32)

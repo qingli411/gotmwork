@@ -1,0 +1,42 @@
+#!/bin/bash
+# This script sets up test cases to test the sensitivity of different
+# boundary layer schemes to vertical resolution and time step using
+# forcing data from OSMOSIS
+#
+# OSMOSIS
+# latitude:  49.0
+# longitude: 0.0
+# depth (m): 200.0 (winter)
+#            480.0 (spring)
+#
+# Qing Li, 20180507
+
+# setup paths and tools
+source "../../set_tools.sh"
+
+# current directory
+curdir=$(pwd)
+
+# season
+seasonlist=(winter spring)
+
+# depth
+depthlist=(200 480)
+
+# season (winter or spring)
+for idx in ${!seasonlist[@]}; do
+    # season
+    season=${seasonlist[idx]}
+
+    # directory of base case
+    basecase="${GOTMWORK_ROOT}/data/OSMOSIS_${season}"
+
+    # name of the dataset
+    title="OSMOSIS_${season}"
+
+    # depth
+    depth=${depthlist[idx]}
+
+    # loop over cases
+    source ${curdir}/case_loop.sh
+done

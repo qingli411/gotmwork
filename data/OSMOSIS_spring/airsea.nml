@@ -178,7 +178,7 @@
    swr_factor = 1.0,
    shf_factor = 1.0,
    momentum_method = 2,
-   const_tx = 0.1027,
+   const_tx = 0.0,
    const_ty = 0.0,
    momentumflux_file = 'tau_file.dat',
    precip_method = 2,
@@ -191,7 +191,7 @@
    sss_file = '',
    ssuv_method = 0,
    u10_method = 0,
-   const_u10 = 10,
+   const_u10 = 0.0,
    const_v10 = 0.0,
    u10_file = '',
 /

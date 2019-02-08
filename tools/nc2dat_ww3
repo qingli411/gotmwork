@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+#  Qing Li, 20180311
+
+import argparse
+import sys
+import numpy as np
+from netCDF4 import Dataset
+from gotmtool import nctime_to_datetime, nctime_indices, write_spec, write_ts
+
+def main():
+    # process the input arguments
+    parser = argparse.ArgumentParser(description="""
+            Read the WW3 partitioned Stokes drift file in netCDF format and
+            output in a text file in the GOTM input file format.""")
+    parser.add_argument('-i', '--input', action='store', dest='fname_in',
+            metavar='NCFILENAME', required=True, help='Input netCDF filename')
+    parser.add_argument('-o', '--output', action='store', dest='fname_out',
+            metavar='DATFILENAME', required=True, help='Output filename')
+    parser.add_argument('-lat', '--latitude', action='store', dest='lat',
+            metavar='LATITUDE', required=True,
+            help='Latitude of the requested location (-85, 85)')
+    parser.add_argument('-lon', '--longitude', action='store', dest='lon',
+            metavar='LONGITUDE', required=True,
+            help='Longitude of the requested location (-180, 360)')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE',
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE',
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-usp', '--usp', action='store_true', dest='lusp',
+            help='Read partitioned Stokes drift file instead of bulk wave parameters, override -v VARNAME')
+    parser.add_argument('-v', '--variable', action='store', dest='vname_in',
+            metavar='VARNAME', nargs='+',
+            help='Variable name in netCDF file, support multiple variables')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
+    # parsing arguments and save to args
+    args=parser.parse_args()
+
+    # check arguments
+    if not args.lusp:
+        if not args.vname_in:
+            print('-v VARNAME is required if -usp is not set.')
+            parser.print_help()
+            sys.exit(1)
+
+    fname_in = args.fname_in
+    fname_out = args.fname_out
+    date_start = args.date_start
+    date_end = args.date_end
+    rlat = float(args.lat)
+    rlon = float(args.lon)
+    if rlon >= 180:
+        rlon = rlon - 360.0
+
+    if rlat > 85.0 or rlat < -85.0 or rlon > 180.0 or rlon < -180.0:
+        parser.print_help()
+        sys.exit(1)
+
+    # print out some message
+    print('Converting {} to {}...'.format(fname_in, fname_out))
+
+    # read data
+    infile = Dataset(fname_in, 'r')
+    # wave time
+    nctime = infile.variables['time']
+    dttime = nctime_to_datetime(nctime) # time in datetime format
+    # get starting and ending indices
+    tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
+    tdat = [dttime[i].strftime('%Y-%m-%d %H:%M:%S')
+            for i in range(tidx_start, tidx_end+1)] # truncated to seconds
+
+    # read latitude and longitude
+    lat = infile.variables['latitude'][:]
+    lon = infile.variables['longitude'][:]
+
+    ind_lat = np.argmin(np.abs(lat-rlat))
+    ind_lon = np.argmin(np.abs(lon-rlon))
+
+    region_mask = infile.variables['MAPSTA'][:]
+    point_mask = region_mask[ind_lat, ind_lon]
+    if point_mask <= 0 or point_mask >=10:
+        print('Not valid sea point. Stop.')
+        sys.exit(2)
+
+    if args.lusp:
+        # frequency
+        freq = infile.variables['f'][:]
+        # partitioned surface Stokes drift
+        ussp = infile.variables['ussp'][tidx_start:tidx_end+1,:,ind_lat,ind_lon]
+        vssp = infile.variables['vssp'][tidx_start:tidx_end+1,:,ind_lat,ind_lon]
+        # write to output file
+        write_spec(fname_out, tdat, freq, [ussp, vssp])
+    else:
+        # read variables
+        vdat = []    # a list of arrays, an array for each variable
+        for vname in args.vname_in:
+            vtmp = infile.variables[vname][tidx_start:tidx_end+1,ind_lat,ind_lon]
+            vdat.append(vtmp)
+        # write to output file
+        write_ts(fname_out, tdat, vdat)
+
+if __name__ == "__main__":
+    main()

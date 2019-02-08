@@ -1,0 +1,117 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Qing Li, 20180722
+
+import argparse
+import sys
+import numpy as np
+from netCDF4 import Dataset
+from gotmtool import nctime_to_datetime, nctime_indices, write_ts
+
+def main():
+    # process the input arguments
+    parser = argparse.ArgumentParser(description="""
+            Read the daily maximum shortwave radiation from COREII in netCDF
+            format, add an idealized diurnal cycle, and output the hourly
+            shortwave radiation in a text file in the GOTM input file format.""")
+    parser.add_argument('-i', '--input', action='store', dest='fname_in',
+            metavar='NCFILENAME', required=True, help='Input netCDF filename')
+    parser.add_argument('-o', '--output', action='store', dest='fname_out',
+            metavar='DATFILENAME', required=True, help='Output filename')
+    parser.add_argument('-lat', '--latitude', action='store', dest='lat',
+            metavar='LATITUDE', required=True,
+            help='Latitude of the requested location (-85, 85)')
+    parser.add_argument('-lon', '--longitude', action='store', dest='lon',
+            metavar='LONGITUDE', required=True,
+            help='Longitude of the requested location (-180, 360)')
+    parser.add_argument('-ds', '--date_start', action='store', dest='date_start',
+            metavar='STARTDATE',
+            help='Starting date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-de', '--date_end', action='store', dest='date_end',
+            metavar='ENDDATE',
+            help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
+    # parsing arguments and save to args
+    args=parser.parse_args()
+
+    fname_in = args.fname_in
+    fname_out = args.fname_out
+    date_start = args.date_start
+    date_end = args.date_end
+    rlat = float(args.lat)
+    rlon = float(args.lon)
+    if rlon >= 180:
+        rlon = rlon - 360.0
+
+    if rlat > 85.0 or rlat < -85.0 or rlon > 180.0 or rlon < -180.0:
+        parser.print_help()
+        sys.exit(1)
+
+    # print out some message
+    print('Converting {} to {}...'.format(fname_in, fname_out))
+
+    # read data
+    infile = Dataset(fname_in, 'r')
+    # time
+    nctime = infile.variables['TIME']
+    dttime = nctime_to_datetime(nctime) # time in datetime format
+    # get starting and ending indices
+    tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
+
+    # number of days
+    ndays = tidx_end-tidx_start+1
+    dtday = dttime[tidx_start:tidx_end+1]
+
+    # read latitude and longitude
+    lat = infile.variables['LAT'][:]
+    lon = infile.variables['LON'][:]
+
+    ind_lat = np.argmin(np.abs(lat-rlat))
+    ind_lon = np.argmin(np.abs(lon-rlon))
+
+    # read daily averaged shortwave radiation
+    swr = infile.variables['SWDN_MOD'][tidx_start:tidx_end+1,ind_lat,ind_lon]
+
+    # add idealized diurnal cycle according to
+    # factor[t] = np.sin(np.pi*(t-6.)/12.)**2 # t in [6, 18]
+    tdat = []
+    swr_hourly = np.zeros(ndays*24)
+    diurnal_factor = np.zeros(24)
+    for j in np.arange(6, 19):
+        if j == 6:
+            t1 = j
+            t2 = j+0.5
+        elif j == 18:
+            t1 = j-0.5
+            t2 = j
+        else:
+            t1 = j-0.5
+            t2 = j+0.5
+        diurnal_factor[j] = integral_dirunal_factor(t2)-integral_dirunal_factor(t1)
+
+    int_factor = np.sum(diurnal_factor)
+    diurnal_factor = 24./int_factor*diurnal_factor
+
+    for i in np.arange(ndays):
+        for j in np.arange(24):
+            k = i*24+j
+            dttemp = dtday[i].replace(hour=j)
+            tdat.append(dttemp.strftime('%Y-%m-%d %H:%M:%S'))
+            swr_hourly[k] = swr[i]*diurnal_factor[j]
+
+    # variables
+    vdat = [swr_hourly]
+
+    # write to output file
+    write_ts(fname_out, tdat, vdat)
+
+def integral_dirunal_factor(t):
+    # idealized diurnal cycle according to
+    # factor[t] = np.sin(np.pi*(t-6.)/12.)**2 # t in [6, 18]
+    # whose integral is
+    a=0.5*t+3./np.pi*np.sin(np.pi*t/6.)
+    return a
+
+if __name__ == "__main__":
+    main()

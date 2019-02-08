@@ -1,0 +1,161 @@
+#!/bin/bash
+# This script preprocess JRA55-do data for GOTM input
+#
+# Qing Li, 20180904
+#          20181101, named options
+
+#######################################################################
+#                           parse arguments                           #
+#######################################################################
+lon_start=2
+lon_end=360
+
+while getopts l:L: options
+do
+    case $options in
+        # starting longitude
+        l) lon_start=$OPTARG ;;
+        # ending longitude
+        L) lon_end=$OPTARG ;;
+        \?) echo "Unknown option -$OPTARG"
+            exit 1 ;;
+    esac
+done
+
+#######################################################################
+#                              Set path                               #
+#######################################################################
+
+# setup paths and tools
+source "../../set_tools.sh"
+
+# input data - surface fluxes
+datadir="${GOTMDATA_ROOT}/JRA55-do"
+
+# input data - waves
+uspdir="${GOTMDATA_ROOT}/WAVEWATCH_JRA55-do"
+uspdata="ww3.2008-2009_usp.nc"
+wavdir="${GOTMDATA_ROOT}/WAVEWATCH_JRA55-do"
+wavdata="ww3.2008-2009.nc"
+
+# input data - Argo profiles for initialization
+argodir="${GOTMDATA_ROOT}/Argo"
+argodata="WOD13_PFL_2000.nc"
+
+# mask data
+maskfile="${GOTMDATA_ROOT}/mask/ww3_mask_1dx1d.nc"
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+# name of the dataset
+title="JRA55-do"
+maxdepth=2000
+
+# starting and ending date - in the format of YYYYMMDD
+date_start="20080601"
+date_end="20091231"
+
+# flag for dry run
+l_dry_run="no"
+
+# get date
+yyyymmdd=$(date "+%Y%m%d")
+
+#######################################################################
+#                         Loop over locations                         #
+#######################################################################
+dlon=4
+lat_start=-70
+lat_end=70
+dlat=4
+
+# start outer loop over lon
+lon=${lon_start}
+while [ ${lon} -le ${lon_end} ]; do
+# start inner loop over lat
+lat=${lat_start}
+while [ ${lat} -le ${lat_end} ]; do
+
+    # check if it is a sea point
+    l_sea=$(${cmd_is_sea} -fmask ${maskfile} -lat ${lat} -lon ${lon})
+
+    # skip if not a sea point
+    if [ ${l_sea} == "yes" ]; then
+
+        # case name
+        casename="${title}_LAT${lat}_LON${lon}_${date_start}-${date_end}"
+
+        # dry run first and check the availability of argo profiles
+        ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+            -r 2 -d ${date_start} -dr 20 -dry -iy
+        nstate=$?
+
+        if [ ${l_dry_run} == "no" ]; then
+            # print case name
+            echo ${casename}
+
+            # skip if no argo profile is available
+            if [ $nstate == 1 ]; then
+                echo "[preproc_data] No Argo profile available. Skip."
+                lat=$((${lat}+${dlat}))
+                continue
+            fi
+
+            # create run directory
+            rundir="${GOTMDATA_ROOT}/gotmdata_jra55do_${yyyymmdd}/${casename}"
+            mkdir -p ${rundir}
+            cd ${rundir}
+
+            # set up namelists
+            cp ${nmldir}/*.nml ./
+
+            xmlfile=${title}.xml
+            cp ${xmldir}/${xmlfile} ./
+            sed -i.bk "s/_TAG_LAT/\"${lat}\"/g" ./${xmlfile}
+            sed -i.bk "s/_TAG_LON/\"${lon}\"/g" ./${xmlfile}
+            sed -i.bk "s/_TAG_MAXDEPTH/\"${maxdepth}\"/g" ./${xmlfile}
+
+            # set run parameters
+            ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} -data ${datadir} \
+                -ds ${date_start} -de ${date_end} -method nc2dat_latlon
+
+            # processing Stokes drift data
+            ${cmd_nc2dat_ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
+                -lat ${lat} -lon ${lon} -ds ${date_start} -de ${date_end} -usp
+
+            # processing bulk wave parameter
+            ${cmd_nc2dat_ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
+                -lat ${lat} -lon ${lon} -ds ${date_start} -de ${date_end} \
+                -v hs fp dir
+
+            # processing Argo data for initialization
+            # save 12 initialization profiles
+            for i in {1..12}; do
+                mm=$(printf '%02d' ${i})
+                if [ ${i} -ge ${date_start:4:2} ]; then
+                    argostart="${date_start:0:4}${mm}${date_start:6:2}"
+                else
+                    argostart="$((${date_start:0:4}+1))${mm}${date_start:6:2}"
+                fi
+                tprof_name="tprof_file_${argostart}.dat"
+                sprof_name="sprof_file_${argostart}.dat"
+                ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
+                    -r 2 -ot ${tprof_name} -os ${sprof_name} \
+                    -d ${argostart} -dr 20 -maxd ${maxdepth} -iy
+            done
+            rm ./*.nml
+            rm ./*.xml
+            rm ./*.bk
+
+        fi # l_dry_run
+    fi # l_sea
+
+# end inner loop over lat
+lat=$((${lat}+${dlat}))
+done
+# end outer loop over lon
+lon=$((${lon}+${dlon}))
+done
+

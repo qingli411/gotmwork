@@ -1,0 +1,232 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Plot map of diagnostics
+#
+# Qing Li, 20181107
+
+import sys
+import os
+import argparse
+sys.path.append(os.environ['GOTMWORK_ROOT']+'/tools', )
+from gotmanalysis import *
+
+# process the input arguments
+parser = argparse.ArgumentParser(description="""
+        Plot global map of diagnostics.\n
+        Supported diagnostics:
+            mld_deltaR_mean
+            PE_delta
+            SST_mean
+            SSS_mean
+            Nsqr_mld_mean""",
+            formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('-c', '--casename', action='store', dest='cname',
+        metavar='CASENAME', required=True, help='Case name')
+parser.add_argument('-t', '--timetag', action='store', dest='ttag',
+        metavar='TIMETAG', required=True, help='Time tag (yyyymmdd-yyyymmdd)')
+parser.add_argument('-d', '--diagname', action='store', dest='diagname',
+        metavar='DIAGNAME', required=True, help='Diagnostic name')
+parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_data',
+        help='Update data')
+parser.add_argument('-P', '--plotfigure', action='store_true', dest='l_plot_figure',
+        help='Plot figure')
+parser.add_argument('-M', '--mask', action='store_true', dest='l_apply_mask',
+        help='Plot figure')
+# parsing arguments and save to args
+args=parser.parse_args()
+
+# timetag = '20090101-20090131'
+# casename = 'COREII_Global'
+casename = args.cname
+timetag = args.ttag
+var = args.diagname
+update_data = args.l_update_data
+plot_figure = args.l_plot_figure
+apply_mask = args.l_apply_mask
+
+# diagnostics
+if var == 'mld_deltaR_mean':
+    levels0 = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 110, 130, 150, 180, 210, 240, 280, 320, 360, 407, 454, 500]
+    cb_ticks0 = [0, 30, 60, 90, 150, 240, 360, 500]
+    levels1 = [-70, -60, -50, -40, -30, -20, -18, -16, -14, -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70]
+    cb_ticks1 = [-60, -40, -20, -16, -12, -8, -4, 0, 4, 8, 12, 16, 20, 40, 60]
+    fill_value = 499.5
+elif var == 'mld_deltaRp1_mean':
+    levels0 = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 110, 130, 150, 180, 210, 240, 280, 320, 360, 407, 454, 500]
+    cb_ticks0 = [0, 30, 60, 90, 150, 240, 360, 500]
+    levels1 = [-70, -60, -50, -40, -30, -20, -18, -16, -14, -12, -10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 30, 40, 50, 60, 70]
+    cb_ticks1 = [-60, -40, -20, -16, -12, -8, -4, 0, 4, 8, 12, 16, 20, 40, 60]
+    fill_value = 499.5
+elif var == 'PE_delta':
+    levels0 = list((np.arange(21)-10)*2e4)
+    cb_ticks0 = None
+    levels1 = list((np.arange(21)-10)*2e3)
+    cb_ticks1 = None
+    fill_value = None
+elif var == 'SST_mean':
+    levels0 = list(np.arange(31))
+    cb_ticks0 = None
+    levels1 = list((np.arange(21)-10)*0.1)
+    cb_ticks1 = None
+    fill_value = None
+elif var == 'SSS_mean':
+    levels0 = None
+    cb_ticks0 = None
+    levels1 = None
+    cb_ticks1 = None
+    fill_value = None
+elif var == 'Nsqr_mld_mean':
+    levels0 = list((np.arange(26)*1e-4))
+    cb_ticks0 = None
+    levels1 = list((np.arange(21)-10)*2e-4)
+    cb_ticks1 = None
+    fill_value = None
+else:
+    print('Variable {} not supported. Stop.'.format(var))
+    parser.print_help()
+    sys.exit(1)
+
+# check time tag
+month_labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+timetag_list = ['20090101-20090131',
+                '20090201-20090228',
+                '20090301-20090331',
+                '20090401-20090430',
+                '20090501-20090531',
+                '20080601-20080630',
+                '20080701-20080731',
+                '20080801-20080831',
+                '20080901-20080930',
+                '20081001-20081031',
+                '20081101-20081130',
+                '20081201-20081231']
+try:
+    idx = timetag_list.index(timetag)
+except ValueError:
+    print('Time tag {} not supported. Stop.'.format(timetag))
+mlabel = month_labels[idx]
+
+# paths
+s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/VR1m_DT600s_'+timetag
+s2data_root = os.environ['GOTMFIG_ROOT']+'/data/'+casename+'/VR1m_DT600s_'+timetag
+fig_root = os.environ['GOTMFIG_ROOT']+'/'+casename+'/VR1m_DT600s_'+timetag
+os.makedirs(s2data_root, exist_ok=True)
+os.makedirs(fig_root, exist_ok=True)
+
+turbmethod_list = ['KPP-CVMix',
+                   'KPP-ROMS',
+                   'KPPLT-EFACTOR',
+                   'KPPLT-ENTR',
+                   'KPPLT-RWHGK',
+                   'EPBL',
+                   'EPBL-LT',
+                   'SMC',
+                   'SMCLT',
+                   'K-EPSILON-SG',
+                   'OSMOSIS']
+legend_list = ['KPP-CVMix',
+               'KPP-ROMS',
+               'KPPLT-VR12',
+               'KPPLT-LF17',
+               'KPPLT-R16',
+               'ePBL',
+               'ePBL-LT',
+               'SMC-KC94',
+               'SMCLT-H15',
+               'k-epsilon',
+               'OSMOSIS']
+nm = len(turbmethod_list)
+irow_2col = [1, 2, 0, 1, 2, 3, 3, 4, 4, 5, 5]
+icol_2col = [0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1]
+labels_2col = ['(b)', '(c)', '(g)', '(h)', '(i)', '(d)', '(j)', '(e)', '(k)','(f)','(l)']
+l_nlt = [True, True, False, False, False, True, False, True, False, True, False]
+
+# get diagnostics
+for i in np.arange(nm):
+    tmname = turbmethod_list[i]
+    basepath = s1data_root+'/'+tmname
+    s2data_name = s2data_root+'/data_'+var+'_'+tmname+'.npz'
+    mask_name = s2data_root+'/mask_'+tmname+'.npz'
+    if update_data or not os.path.isfile(s2data_name):
+        # update data
+        print('Updating data for {}...'.format(tmname))
+        loclist = sorted(os.listdir(basepath))
+        pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
+        godmobj = GOTMOutputDataMap(pathlist)
+        gmobj = godmobj.diagnostics(var, fillvalue=fill_value)
+        if apply_mask:
+            # read mask
+            gmobj_mask = GOTMMap().load(mask_name)
+            # apply mask
+            gmobj.masked(gmobj_mask)
+        # save data
+        gmobj.save(s2data_name)
+    else:
+        # read data
+        gmobj = GOTMMap().load(s2data_name)
+        if apply_mask:
+            # read mask
+            gmobj_mask = GOTMMap().load(mask_name)
+            # apply mask
+            gmobj.masked(gmobj_mask)
+            # update data
+            gmobj.save(s2data_name)
+
+    if i == 0:
+        lon = gmobj.lon
+        lat = gmobj.lat
+        name = gmobj.name
+        units = gmobj.units
+        nloc = len(lon)
+        darr = np.zeros([nm, nloc])
+    darr[i,:] = gmobj.data
+
+# plot figure
+if plot_figure:
+    # create figure
+    nrow = (nm+2)//2
+    fig_width = 12
+    fig_height = 3+2*(nrow-1)
+    height_ratios = [1]*nrow
+    height_ratios.append(0.15)
+    width_ratios = [1, 1, 0.05]
+    f, axarr = plt.subplots(nrow, 2, sharex='col')
+    f.set_size_inches(fig_width, fig_height)
+    # mean of all non-Langmuir cases
+    gmdata_md = np.nanmean(darr[l_nlt], axis=0)
+    gmobj = GOTMMap(data=gmdata_md, lon=lon, lat=lat, name=name, units=units)
+    im0 = gmobj.plot(axis=axarr[0,0], levels=levels0, add_colorbar=False)
+    axarr[0,0].text(0.02, 0.94, '(a) Mean of NLT', transform=axarr[0,0].transAxes,
+                         fontsize=12, color='white', fontweight='bold', va='top')
+    # plot the differences from the median
+    for i in np.arange(nm):
+        n = icol_2col[i]
+        m = irow_2col[i]
+        gmdata = darr[i,:] - gmdata_md
+        gmobj = GOTMMap(data=gmdata, lon=lon, lat=lat, name=name, units=units)
+        im1 = gmobj.plot(axis=axarr[m,n], levels=levels1, add_colorbar=False, cmap='RdBu_r')
+        axarr[m,n].text(0.02, 0.94, labels_2col[i]+' '+legend_list[i], transform=axarr[m,n].transAxes,
+                         fontsize=12, color='white', fontweight='bold', va='top')
+    # add month
+    axarr[0,1].text(1.07, 0.94, mlabel, transform=axarr[0,1].transAxes,
+                   fontsize=16, color='k', fontweight='bold', va='top',
+                   bbox=dict(boxstyle="square",ec='k',fc='w'))
+    # reduce margin
+    plt.tight_layout()
+    # colorbar
+    plt.subplots_adjust(right=0.95)
+    cax0 = plt.axes([0.85, 0.55, 0.1, 0.4])
+    cax0.set_visible(False)
+    cb0 = plt.colorbar(im0, ax=cax0, ticks=cb_ticks0)
+    cb0.formatter.set_powerlimits((-2, 3))
+    cb0.update_ticks()
+    cax1 = plt.axes([0.85, 0.05, 0.1, 0.4])
+    cax1.set_visible(False)
+    cb1 = plt.colorbar(im1, ax=cax1, ticks=cb_ticks1)
+    cb1.formatter.set_powerlimits((-3, 3))
+    cb1.update_ticks()
+    # save figure
+    figname = fig_root+'/fig_'+var+'.png'
+    plt.savefig(figname, dpi = 300)
+

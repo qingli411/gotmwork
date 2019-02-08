@@ -16,6 +16,9 @@ season="spring"
 # input data root directory
 datadir="${GOTMDATA_ROOT}/OSMOSIS/${season}"
 
+# current path
+curdir=$(pwd)
+
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
@@ -106,8 +109,8 @@ ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 # set turbulence method
 source ${scpt_case_turbmethod}
 
-# calculate Langmuir enhancement factor from Stokes drift
-${cmd_nmlchange} -f kpp.nml -e efactor_method -v 4
+# calculate Langmuir number and enhancement factor from Stokes drift
+${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
 
 # set obs
 ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
@@ -142,11 +145,11 @@ ${cmd_nmlchange} -f osm.nml -e h_i -v ${h_i}
 #######################################################################
 #                              Run GOTM                               #
 #######################################################################
-gotm 2> log.${outname}
+${cmd_gotm} 2> log.${outname}
 
 #######################################################################
 #                           Postprocessing                            #
 #######################################################################
 
 # plot surface forcing and profiles
-source ${scpt_case_postproc}
+source ${curdir}/case_postproc.sh

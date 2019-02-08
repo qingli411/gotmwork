@@ -23,7 +23,7 @@
 
 &model_setup
    title = 'OCSPapa',
-   nlev = 128,
+   nlev = 150,
    dt = 1800,
    cnpar = 1.0,
    buoy_method = 1,
@@ -46,7 +46,7 @@
    name = 'OCSPapa',
    latitude = 50.1,
    longitude = 215.1,
-   depth = 300.0,
+   depth = 150.0,
 /
 
 !-------------------------------------------------------------------------------
@@ -125,7 +125,7 @@
    out_fn = 'gotm_out',
    nfirst = 0,
    nsave = 6,
-   sync_out = 0,
+   sync_out = 1,
    diagnostics = .false.,
    mld_method = 1,
    diff_k = 1e-05,

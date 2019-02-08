@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+# Compress and archive data
+#
+# Qing Li, 20181113
+
+# usage
+function print_usage(){
+    echo "usage: gotm_archive_data [-h] [-c CASENAME] [-s SETUPNAME]"
+    echo ""
+    echo "Compress and archive data."
+    echo ""
+    echo "arguments:"
+    echo "  -h            show this help message and exit"
+    echo "  -c CASENAME   case name"
+    echo "  -s SETUPNAME  setup name"
+    exit 1
+}
+
+# parse input arguments
+casename="none"
+casesetup="none"
+while getopts hc:s: options
+do
+    case ${options} in
+        # help
+        h) print_usage  ;;
+        # case name
+        c) casename=${OPTARG} ;;
+        # case setup
+        s) casesetup=${OPTARG} ;;
+        \?) echo "Unknown option -${OPTARG}"
+            exit 1 ;;
+    esac
+done
+
+# check input arguments
+if [[ ${casename} == "none" ]]; then
+    echo "Missing option -c [case name]"
+    exit 1
+fi
+
+if [[ ${casesetup} == "none" ]]; then
+    echo "Missing option -s [case setup]"
+    exit 1
+fi
+
+# check environment variables
+if [[ -z ${GOTMRUN_ROOT} ]]; then
+    echo "Environment variable GOTMRUN_ROOT not set. Run 'source set_tools.sh' first."
+    exit 1
+fi
+
+if [[ -z ${GOTMARCHIVE_ROOT} ]]; then
+    echo "Environment variable GOTMARCHIVE_ROOT not set. Run 'source set_tools.sh' first."
+    exit 1
+fi
+
+# run directory
+run_dir=${GOTMRUN_ROOT}/${casename}/${casesetup}
+
+# archive directory
+arc_dir=${GOTMARCHIVE_ROOT}/${casename}/${casesetup}
+
+# current directory
+cur_dir=$(pwd)
+
+# archive data
+echo "Archiving data to ..."
+echo "  ${arc_dir}"
+mkdir -p ${arc_dir}
+cd ${run_dir}
+for f in *; do
+    echo "    ${f} ..."
+    tar -zcf ${arc_dir}/${f}.tar.gz ${f}/
+done
+cd ${cur_dir}

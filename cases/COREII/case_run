@@ -1,133 +1,161 @@
 #!/bin/bash
-# Run GOTM using preprocessed data for CORE-II
-# at selected locations
+# Setup and run GOTM for CORE-II
+# Loop over latitude and longitude
 #
-# East equatorial Pacific
-# latitude:  2.0
-# longitude: 234.0
-# depth (m): 200.0
+# This script essentially does the same thing as case_run_multi, but
+# skips the step to preprocess the input data, which is now taken care
+# of my preproc_data
 #
-# Southern Ocean
-# latitude:  -54.0
-# longitude: 254.0
-# depth (m): 500.0
-#
-# Bay of Bangal
-# latitdue:  10.0
-# longitude: 86.0
-# depth (m): 200.0
-#
-# Qing Li, 20180706
+# Qing Li, 20180503
+
+#######################################################################
+#                              Set path                               #
+#######################################################################
 
 # setup paths and tools
 source "../../set_tools.sh"
 
-# current directory
-curdir=$(pwd)
-
-# location
-latlist=(2 -54 10)
-lonlist=(234 254 86)
-
-# depth
-depthlist=(200 500 200)
-
-# starting and ending date - in the format of YYYYMMDD
-startlist=(20080615 20080915 20080615)
-endlist=(20081231 20090915 20081231)
+# data directory for preprocessed input data
+dataroot="${GOTMDATA_ROOT}/gotmdata_core2"
 
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
 
-# set levels and grid zooming at surface
-nlev=128
+# name of the dataset
+title="COREII"
+
+# location
+lat=-46
+lon=226
+
+# set max depth and levels, grid zooming at surface
+maxdepth=500
+nlev=100
 ddu=0
 ddl=0
 
 # run parameters
-dt=1800
-nsave=6
-
-# name of the turbulence model
-# turbmethod="KPP-GOTM"
-turbmethod="KPP-CVMix"
-# turbmethod="KPPLT-EFACTOR"
-# turbmethod="KPPLT-ENTR"
-# turbmethod="KPPLT-RWHGK"
-# turbmethod="OSMOSIS"
-# turbmethod="EPBL"
-# turbmethod="EPBL-LT"
-# turbmethod="SMC"
-# turbmethod="SMCLT"
-# turbmethod="K-EPSILON-SG"
+dt=600
+# set output frequency (3-hourly output)
+let nsave=10800/dt
 
 # output file name
 outname="gotm_out"
 
+# starting and ending date - in the format of YYYYMMDD
+# the starting date should match what are available in the
+# input data directory
+datestart="20080601"
+dateend="20090630"
+
+# name of the turbulence model
+turbmethod="KPP-CVMix"
+# turbmethod="KPPLT-ENTR"
+# turbmethod="OSMOSIS"
+# turbmethod="EPBL"
+# turbmethod="SMCLT"
+# turbmethod="SMC"
+
+# setup
+dz=$((maxdepth/nlev))
+setup="${title}_Local/VR${dz}m_DT${dt}s_${datestart}-${dateend}"
+
 #######################################################################
-#                        Loop over cases                              #
+#                         Loop over locations                         #
 #######################################################################
 
-# season (winter or spring)
-for idx in ${!latlist[@]}; do
-    # location
-    lat=${latlist[idx]}
-    lon=${lonlist[idx]}
+# input data starting and ending date
+inputstart="20080601"
+inputend="20091231"
 
-    # starting and ending date - in the format of YYYYMMDD
-    datestart=${startlist[idx]}
-    dateend=${endlist[idx]}
+# input data folder name
+inputname="${title}_LAT${lat}_LON${lon}_${inputstart}-${inputend}"
 
-    # name of the dataset
-    case="COREII_LAT${lat}_LON${lon}"
-    title="${case}_${datestart}-${dateend}"
+# check if data exists
+if [ -d ${dataroot}/${inputname} ]; then
 
     # case name
-    casename="${title}_${turbmethod}"
+    casename="${title}_LAT${lat}_LON${lon}"
 
-    # directory of base case
-    basecase="${GOTMWORK_ROOT}/data/${case}_20080115-20091231"
+    # print case name
+    echo ${casename}
 
-    # depth
-    depth=${depthlist[idx]}
+    # skip if initial temperature and salinity profiles are not available
+    tprofdata=${dataroot}/${inputname}/tprof_file_${datestart}.dat
+    sprofdata=${dataroot}/${inputname}/sprof_file_${datestart}.dat
+    if [ -s ${tprofdata} -a -s ${sprofdata} ]; then
+        # create run directory
+        rundir="${GOTMRUN_ROOT}/${setup}/${turbmethod}/${casename}"
+        mkdir -p ${rundir}
+        cd ${rundir}
 
-    # initial temperature and salinity profile
-    sprof_file="sprof_file_${datestart}.dat"
-    tprof_file="tprof_file_${datestart}.dat"
+        # set up namelists
+        cp ${nmldir}/*.nml ./
 
-    # create run directory
-    rundir="${GOTMRUN_ROOT}/${casename}"
-    mkdir -p ${rundir}
-    cd ${rundir}
+        # link input data
+        ln -s ${dataroot}/${inputname}/*_file.dat ./
+        tprof_name="tprof_file.dat"
+        sprof_name="sprof_file.dat"
+        ln -s ${tprofdata} ./${tprof_name}
+        ln -s ${sprofdata} ./${sprof_name}
+    else
+        echo "Temperature or salinity profile not found. Skip."
+        exit 1
+    fi
 
-    # input data and namelist
-    cp ${basecase}/* ./
+    xmlfile=${title}.xml
+    cp ${xmldir}/${xmlfile} ./
+    sed -i.bk "s/_TAG_LAT/\"${lat}\"/g" ./${xmlfile}
+    sed -i.bk "s/_TAG_LON/\"${lon}\"/g" ./${xmlfile}
+    sed -i.bk "s/_TAG_MAXDEPTH/\"${maxdepth}\"/g" ./${xmlfile}
 
     # set run parameters
-    start_time="${datestart:0:4}-${datestart:4:2}-${datestart:6:2} 00:00:00"
-    stop_time="${dateend:0:4}-${dateend:4:2}-${dateend:6:2} 00:00:00"
-
-    ${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
-    ${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
-    ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
-    ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
-    ${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
-    ${cmd_nmlchange} -f gotmrun.nml -e name -v ${title}
+    ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} \
+    -ds ${datestart} -de ${dateend} -method nc2dat_latlon -skipdata
+    ${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
     ${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+    ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
     ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+    ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+    ${cmd_nmlchange} -f gotmrun.nml -e eq_state_method -v 4
     ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
     ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
-    ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_file}
-    ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_file}
+
+    ${cmd_nmlchange} -f airsea.nml -e swr_method -v 2
+    ${cmd_nmlchange} -f airsea.nml -e swr_file -v 'swr_file.dat'
+    ${cmd_nmlchange} -f airsea.nml -e swr_factor -v 1
+
+    # use meteo data instead of fluxes
+    ${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .true.
+    ${cmd_nmlchange} -f airsea.nml -e fluxes_method -v 2
+    ${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
+
+    # Stokes drift data
+    ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
+    ${cmd_nmlchange} -f obs.nml -e nfreq -v 3
+    ${cmd_nmlchange} -f obs.nml -e usp_file -v "usp_file.dat"
+
+    # bulk wave parameter
+    ${cmd_nmlchange} -f obs.nml -e wave_method -v 2
+    ${cmd_nmlchange} -f obs.nml -e wave_file -v "wave_file.dat"
+
+    # processing Argo data for initialization
+    ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
+    ${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${tprof_name}
+    ${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
+    ${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${sprof_name}
 
     # set turbulence method
     source ${scpt_case_turbmethod}
 
-    # Run GOTM
+    # turn off bottom boundary layer
+    ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
+    # calculate Langmuir number and enhancement factor from Stokes drift
+    ${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
+
+    # run GOTM
     ${cmd_gotm} 2> log.${outname}
 
-    # plot surface forcing and profiles
-    source ${scpt_case_postproc}
+fi # input exist
 
-done

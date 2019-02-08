@@ -125,7 +125,7 @@
    out_fn = 'gotm_out',
    nfirst = 0,
    nsave = 6,
-   sync_out = 0,
+   sync_out = 1,
    diagnostics = .false.,
    mld_method = 1,
    diff_k = 1e-05,

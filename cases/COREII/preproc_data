@@ -2,38 +2,49 @@
 # This script preprocess CORE-II data for GOTM input
 #
 # Qing Li, 20180503
+#          20181104, named options
+
+#######################################################################
+#                           parse arguments                           #
+#######################################################################
+lon_start=2
+lon_end=360
+
+while getopts l:L: options
+do
+    case $options in
+        # starting longitude
+        l) lon_start=$OPTARG ;;
+        # ending longitude
+        L) lon_end=$OPTARG ;;
+        \?) echo "Unknown option -$OPTARG"
+            exit 1 ;;
+    esac
+done
 
 #######################################################################
 #                              Set path                               #
 #######################################################################
 
-# root directory for gotmwork
-workdir="${HOME}/models/gotm/gotmwork"
-
-# directory to save the data
-scratchdir="${HOME}/scratch/gotmdata_core2"
-
 # setup paths and tools
-source ${workdir}/set_tools.sh
-
-# data directory
-dataroot="${HOME}/data_local"
+source "../../set_tools.sh"
 
 # input data - surface fluxes
-datadir="${dataroot}/COREII_IAF"
+datadir="${GOTMDATA_ROOT}/COREII_IAF"
+swrdata="ncar_rad.nc"
 
 # input data - waves
-uspdir="${dataroot}/WAVEWATCH_COREII"
+uspdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
 uspdata="ww3.2008-2009_usp.nc"
-wavdir="${dataroot}/WAVEWATCH_COREII"
+wavdir="${GOTMDATA_ROOT}/WAVEWATCH_COREII"
 wavdata="ww3.2008-2009.nc"
 
 # input data - Argo profiles for initialization
-argodir="${dataroot}/Argo"
+argodir="${GOTMDATA_ROOT}/Argo"
 argodata="WOD13_PFL_2000.nc"
 
 # mask data
-maskfile="${dataroot}/mask/ww3_mask_1dx1d.nc"
+maskfile="${GOTMDATA_ROOT}/mask/ww3_mask_1dx1d.nc"
 
 #######################################################################
 #                           Set parameters                            #
@@ -44,19 +55,18 @@ title="COREII"
 maxdepth=2000
 
 # starting and ending date - in the format of YYYYMMDD
-datestart="20080115"
-dateend="20091231"
+date_start="20080601"
+date_end="20091231"
 
 # flag for dry run
 l_dry_run="no"
 
+# get date
+yyyymmdd=$(date "+%Y%m%d")
+
 #######################################################################
 #                         Loop over locations                         #
 #######################################################################
-lon_start=$1
-lon_end=$2
-# lon_start=2
-# lon_end=360
 dlon=4
 lat_start=-70
 lat_end=70
@@ -76,11 +86,11 @@ while [ ${lat} -le ${lat_end} ]; do
     if [ ${l_sea} == "yes" ]; then
 
         # case name
-        casename="${title}_LAT${lat}_LON${lon}_${datestart}-${dateend}"
+        casename="${title}_LAT${lat}_LON${lon}_${date_start}-${date_end}"
 
         # dry run first and check the availability of argo profiles
         ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
-            -r 2 -ds ${datestart} -dr 20 -dry
+            -r 2 -d ${date_start} -dr 20 -dry -iy
         nstate=$?
 
         if [ ${l_dry_run} == "no" ]; then
@@ -89,13 +99,13 @@ while [ ${lat} -le ${lat_end} ]; do
 
             # skip if no argo profile is available
             if [ $nstate == 1 ]; then
-                echo "[case_run_multi] No Argo profile available. Skip."
+                echo "[preproc_data] No Argo profile available. Skip."
                 lat=$((${lat}+${dlat}))
                 continue
             fi
 
             # create run directory
-            rundir="${scratchdir}/${casename}"
+            rundir="${GOTMDATA_ROOT}/gotmdata_core2_${yyyymmdd}/${casename}"
             mkdir -p ${rundir}
             cd ${rundir}
 
@@ -104,33 +114,41 @@ while [ ${lat} -le ${lat_end} ]; do
 
             xmlfile=${title}.xml
             cp ${xmldir}/${xmlfile} ./
-            sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
-            sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
-            sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
+            sed -i.bk "s/_TAG_LAT/\"${lat}\"/g" ./${xmlfile}
+            sed -i.bk "s/_TAG_LON/\"${lon}\"/g" ./${xmlfile}
+            sed -i.bk "s/_TAG_MAXDEPTH/\"${maxdepth}\"/g" ./${xmlfile}
 
             # set run parameters
-            ${cmd_case_preproc} -xml ${xmlfile} -root ${workdir} -data ${datadir} \
-                -ds ${datestart} -de ${dateend} -method nc2dat_latlon
+            ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} -data ${datadir} \
+                -ds ${date_start} -de ${date_end} -method nc2dat_latlon
+
+            # processing shortwave radiation
+            ${cmd_nc2dat_core2swr} -i ${datadir}/${swrdata} -o "swr_file.dat" \
+                -lat ${lat} -lon ${lon} -ds ${date_start} -de ${date_end}
 
             # processing Stokes drift data
-            ${cmd_nc2dat_core2ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
-                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} -usp
+            ${cmd_nc2dat_ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
+                -lat ${lat} -lon ${lon} -ds ${date_start} -de ${date_end} -usp
 
             # processing bulk wave parameter
-            ${cmd_nc2dat_core2ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
-                -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} \
+            ${cmd_nc2dat_ww3} -i ${wavdir}/${wavdata} -o "wave_file.dat" \
+                -lat ${lat} -lon ${lon} -ds ${date_start} -de ${date_end} \
                 -v hs fp dir
 
             # processing Argo data for initialization
             # save 12 initialization profiles
             for i in {1..12}; do
                 mm=$(printf '%02d' ${i})
-                argostart="${datestart:0:4}${mm}${datestart:6:2}"
+                if [ ${i} -ge ${date_start:4:2} ]; then
+                    argostart="${date_start:0:4}${mm}${date_start:6:2}"
+                else
+                    argostart="$((${date_start:0:4}+1))${mm}${date_start:6:2}"
+                fi
                 tprof_name="tprof_file_${argostart}.dat"
                 sprof_name="sprof_file_${argostart}.dat"
                 ${cmd_nc2dat_argo} -i ${argodir}/${argodata} -lat ${lat} -lon ${lon} \
                     -r 2 -ot ${tprof_name} -os ${sprof_name} \
-                    -ds ${argostart} -dr 20 -maxd ${maxdepth}
+                    -d ${argostart} -dr 20 -maxd ${maxdepth} -iy
             done
             rm ./*.nml
             rm ./*.xml

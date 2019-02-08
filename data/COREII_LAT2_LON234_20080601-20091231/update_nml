@@ -1,0 +1,66 @@
+#!/bin/bash
+
+source "../../set_tools.sh"
+
+cp ${nmldir}/*.nml ./
+
+#--------------------------------
+# MOMturb.nml
+#--------------------------------
+# airsea.nml
+nml="airsea.nml"
+${cmd_nmlchange} -f ${nml} -e calc_fluxes -v .true.
+${cmd_nmlchange} -f ${nml} -e fluxes_method -v 2
+${cmd_nmlchange} -f ${nml} -e meteo_file -v 'meteo_file.dat'
+${cmd_nmlchange} -f ${nml} -e hum_method -v 4
+${cmd_nmlchange} -f ${nml} -e albedo_method -v 0
+${cmd_nmlchange} -f ${nml} -e swr_method -v 2
+${cmd_nmlchange} -f ${nml} -e swr_file -v 'swr_file.dat'
+${cmd_nmlchange} -f ${nml} -e precip_method -v 2
+${cmd_nmlchange} -f ${nml} -e precip_file -v 'precip_file.dat'
+${cmd_nmlchange} -f ${nml} -e precip_factor -v 1.1574e-8
+#--------------------------------
+# epbl.nml
+#--------------------------------
+# gotmmean.nml
+#--------------------------------
+# gotmrun.nml
+nml="gotmrun.nml"
+${cmd_nmlchange} -f ${nml} -e title -v 'COREII'
+${cmd_nmlchange} -f ${nml} -e nlev -v 200
+${cmd_nmlchange} -f ${nml} -e dt -v 1800
+${cmd_nmlchange} -f ${nml} -e name -v 'COREII'
+${cmd_nmlchange} -f ${nml} -e latitude -v 2
+${cmd_nmlchange} -f ${nml} -e longitude -v 234
+${cmd_nmlchange} -f ${nml} -e depth -v 200
+${cmd_nmlchange} -f ${nml} -e start -v '2008-06-15 00:00:00'
+${cmd_nmlchange} -f ${nml} -e stop -v '2008-12-31 00:00:00'
+${cmd_nmlchange} -f ${nml} -e nsave -v 6
+${cmd_nmlchange} -f ${nml} -e eq_state_method -v 4
+#--------------------------------
+# gotmturb.nml
+#--------------------------------
+# jhl.nml
+#--------------------------------
+# kpp.nml
+#--------------------------------
+# langmuir.nml
+nml="langmuir.nml"
+${cmd_nmlchange} -f ${nml} -e langmuir_number_method -v 4
+#--------------------------------
+# obs.nml
+nml="obs.nml"
+${cmd_nmlchange} -f ${nml} -e s_prof_method -v 2
+${cmd_nmlchange} -f ${nml} -e s_prof_file -v 'sprof_file.dat'
+${cmd_nmlchange} -f ${nml} -e t_prof_method -v 2
+${cmd_nmlchange} -f ${nml} -e t_prof_file -v 'tprof_file.dat'
+${cmd_nmlchange} -f ${nml} -e wave_method -v 2
+${cmd_nmlchange} -f ${nml} -e wave_file -v 'wave_file.dat'
+${cmd_nmlchange} -f ${nml} -e ustokes_method -v 3
+${cmd_nmlchange} -f ${nml} -e nfreq -v 3
+${cmd_nmlchange} -f ${nml} -e usp_file -v 'usp_file.dat'
+#--------------------------------
+# osm.nml
+#--------------------------------
+# seagrass.nml
+#--------------------------------

@@ -1,0 +1,75 @@
+#!/bin/bash
+# This script initializes namelist from the schemas in the GOTM source code
+# The python tool `editscenario` is required, which uses python2
+
+function print_usage() {
+    echo "usage: init_namelist [-h] [-t TURBMETHOD]"
+    echo ""
+    echo "Initialize namelist according to type of turbulence closure."
+    echo ""
+    echo "arguments:"
+    echo "  -h            show this help message and exit"
+    echo "  -t TURBMETHOD type of turbulence closure"
+    echo "             0: convective adjustment"
+    echo "             1: analytical eddy visc. and diff. profiles, not coded yet"
+    echo "             2: turbulence Model calculating TKE and length scale"
+    echo "             3: second-order model"
+    echo "            98: OSMOSIS model"
+    echo "            99: KPP model"
+    echo "           100: MOM turbulence model"
+    exit 1
+}
+
+function python_version() {
+    # Return 2 if in Python 2.x environment, 3 if in Python 3.x environment
+    python -c "import sys; print(sys.version_info[0])"
+}
+
+# argument
+# parse input arguments
+turbmethod=99
+while getopts ht: options
+do
+    case ${options} in
+        # help
+        h) print_usage  ;;
+        # turbulence method
+        t) turbmethod=${OPTARG} ;;
+        \?) echo "Unknown option -${OPTARG}"
+            exit 1 ;;
+    esac
+done
+
+# gotmwork environment file
+gotmwork_env_file="${HOME}/.gotmwork_env.sh"
+if [ -f ${gotmwork_env_file} ]; then
+    source ${gotmwork_env_file}
+else
+    echo "GOTMWORK environment not set. Use setup_gotmwork.sh to set it up."
+    exit 1
+fi
+
+# check python version
+if [[ $(python_version) == 3 ]]; then
+    l_python3=true
+fi
+
+if [[ "${l_python3}" == "true" ]]; then
+    # enter python2 environment (can be set up using Anaconda)
+    echo "Entering Python2 environment..."
+    source activate py27
+fi
+
+if [ -x "$(command -v editscenario)" ]; then
+    # use editscenario to generate the namelist from schemas
+    editscenario --schemadir=${GOTMCODE_ROOT}/schemas --targetversion=gotm-5.0 -e nml . ${GOTMCODE_ROOT}/schemas/gotm-5.0.defaults --skipvalidation --assignments turb_method=${turbmethod}
+else
+    echo "Python tool editscenario not found. Stop."
+    exit 1
+fi
+
+if [[ "${l_python3}" == "true" ]]; then
+    # exit python2 environment
+    echo "Exiting Python2 environment..."
+    source deactivate py27
+fi

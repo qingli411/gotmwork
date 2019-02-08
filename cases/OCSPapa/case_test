@@ -17,6 +17,9 @@ fluxdata="${GOTMDATA_ROOT}/OCS/Papa/Papa_20100616-20150101"
 # input data - waves
 specdata="${GOTMDATA_ROOT}/CDIP/Papa/166p1_historic.nc"
 
+# current path
+curdir=$(pwd)
+
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
@@ -88,8 +91,8 @@ fi
 # set turbulence method
 source ${scpt_case_turbmethod}
 
-# calculate Langmuir enhancement factor from wave spectrum
-${cmd_nmlchange} -f kpp.nml -e efactor_method -v 3
+# calculate Langmuir number and enhancement factor from wave spectrum
+${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 3
 
 #######################################################################
 #                              Run GOTM                               #
@@ -101,4 +104,4 @@ ${cmd_gotm} 2> log.${outname}
 #######################################################################
 
 # plot surface forcing and profiles
-source ${scpt_case_postproc}
+source ${curdir}/case_postproc.sh

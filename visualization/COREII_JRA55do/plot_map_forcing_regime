@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Plot map of forcing regime
+#
+# Qing Li, 20181107
+
+import sys
+import os
+import argparse
+sys.path.append(os.environ['GOTMWORK_ROOT']+'/tools', )
+from gotmanalysis import *
+
+# process the input arguments
+parser = argparse.ArgumentParser(description="""
+        Plot global map of forcing regime.\n
+        Supported diagnostics:
+            BG12
+            LF17 """,
+            formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('-c', '--casename', action='store', dest='cname',
+        metavar='CASENAME', required=True, help='Case name')
+parser.add_argument('-t', '--timetag', action='store', dest='ttag',
+        metavar='TIMETAG', required=True, help='Time tag (yyyymmdd-yyyymmdd)')
+parser.add_argument('-d', '--diagname', action='store', dest='diagname',
+        metavar='DIAGNAME', required=True, help='Diagnostic name')
+parser.add_argument('-m', '--method', action='store', dest='method',
+        metavar='METHOD', help='Turbulence closure method (KPP-CVMix by default)')
+parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_data',
+        help='Update data')
+parser.add_argument('-P', '--plotfigure', action='store_true', dest='l_plot_figure',
+        help='Plot figure')
+parser.add_argument('-M', '--mask', action='store_true', dest='l_apply_mask',
+        help='Plot figure')
+# parsing arguments and save to args
+args=parser.parse_args()
+
+# timetag = '20090101-20090131'
+# casename = 'COREII_Global'
+# forcing_reg_type = 'BG12'
+casename = args.cname
+timetag = args.ttag
+forcing_reg_type = args.diagname
+update_data = args.l_update_data
+plot_figure = args.l_plot_figure
+apply_mask = args.l_apply_mask
+if args.method:
+    tmname = args.basecase
+else:
+    tmname = 'KPP-CVMix'
+
+# check forcing_reg_type
+fr_list = ['BG12', 'LF17']
+if forcing_reg_type not in fr_list:
+    print('Forcing regime {} not supported. Stop.'.format(forcing_reg_type))
+    parser.print_help()
+    sys.exit(1)
+
+# check time tag
+month_labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+timetag_list = ['20090101-20090131',
+                '20090201-20090228',
+                '20090301-20090331',
+                '20090401-20090430',
+                '20090501-20090531',
+                '20080601-20080630',
+                '20080701-20080731',
+                '20080801-20080831',
+                '20080901-20080930',
+                '20081001-20081031',
+                '20081101-20081130',
+                '20081201-20081231']
+try:
+    idx = timetag_list.index(timetag)
+except ValueError:
+    print('Time tag {} not supported. Stop.'.format(timetag))
+
+mlabel = month_labels[idx]
+
+# paths
+s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/VR1m_DT600s_'+timetag
+s2data_root = os.environ['GOTMFIG_ROOT']+'/data/'+casename+'/VR1m_DT600s_'+timetag
+fig_root = os.environ['GOTMFIG_ROOT']+'/'+casename+'/VR1m_DT600s_'+timetag
+os.makedirs(s2data_root, exist_ok=True)
+os.makedirs(fig_root, exist_ok=True)
+
+# get forcing regime
+basepath = s1data_root+'/'+tmname
+s2data_name = s2data_root+'/data_forcing_regime_'+forcing_reg_type+'_'+tmname+'.npz'
+mask_name = s2data_root+'/mask_'+tmname+'.npz'
+if update_data or not os.path.isfile(s2data_name):
+    # update data
+    print('Updating data...')
+    loclist = sorted(os.listdir(basepath))
+    pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
+    godmobj = GOTMOutputDataMap(pathlist)
+    forcing_regime = np.zeros(godmobj.ncase)
+    for i in np.arange(godmobj.ncase):
+        if np.mod(i, 100) == 0:
+            print('{:6.2f} %'.format(i/godmobj.ncase*100.0))
+        tmp = GOTMOutputData(godmobj._paths[i], init_time_location=False)
+        if forcing_reg_type == 'BG12':
+            forcing_regime[i] = tmp.diag_forcing_regime_BG12(cfrac=0.25)
+        elif forcing_reg_type == 'LF17':
+            forcing_regime[i] = tmp.diag_forcing_regime_LF17(cfrac=0.25)
+    gmobj = GOTMMap(data=forcing_regime, lon=godmobj.lon, lat=godmobj.lat, name='forcing_regime')
+    if apply_mask:
+        # read mask
+        gmobj_mask = GOTMMap().load(mask_name)
+        # apply mask
+        gmobj.masked(gmobj_mask)
+    # save data
+    gmobj.save(s2data_name)
+else:
+    # read data
+    gmobj = GOTMMap().load(s2data_name)
+    if apply_mask:
+        # read mask
+        gmobj_mask = GOTMMap().load(mask_name)
+        # apply mask
+        gmobj.masked(gmobj_mask)
+        # update data
+        gmobj.save(s2data_name)
+
+# plot figure
+if plot_figure:
+    # create figure
+    fig = plt.figure()
+    fig.set_size_inches(6, 2.2)
+    # plot
+    plot_forcing_regime_map(gmobj)
+    # label
+    plt.text(40, 55, mlabel, fontsize=14, color='k', fontweight='bold', va='top',
+            bbox=dict(boxstyle="square",ec='k',fc='w'))
+    # reduce margin
+    plt.tight_layout()
+    # save figure
+    figname = fig_root+'/fig_forcing_regime_'+forcing_reg_type+'.png'
+    plt.savefig(figname, dpi = 300)
+

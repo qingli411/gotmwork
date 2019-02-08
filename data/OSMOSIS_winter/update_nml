@@ -2,7 +2,7 @@
 
 source "../../set_tools.sh"
 
-cp ../../namelist/*.nml ./
+cp ${nmldir}/*.nml ./
 
 #--------------------------------
 # MOMturb.nml
@@ -12,14 +12,12 @@ nml="airsea.nml"
 ${cmd_nmlchange} -f ${nml} -e heat_method -v 2
 ${cmd_nmlchange} -f ${nml} -e heatflux_file -v 'heat_flux.dat'
 ${cmd_nmlchange} -f ${nml} -e swr_method -v 2
-${cmd_nmlchange} -f ${nml} -e albedo_method -v 0
 ${cmd_nmlchange} -f ${nml} -e swr_file -v 'swr_file.dat'
+${cmd_nmlchange} -f ${nml} -e albedo_method -v 0
 ${cmd_nmlchange} -f ${nml} -e momentum_method -v 2
-${cmd_nmlchange} -f ${nml} -e const_tx -v 0.1027
 ${cmd_nmlchange} -f ${nml} -e momentumflux_file -v 'tau_file.dat'
 ${cmd_nmlchange} -f ${nml} -e precip_method -v 2
 ${cmd_nmlchange} -f ${nml} -e precip_file -v 'pme_file.dat'
-${cmd_nmlchange} -f ${nml} -e const_u10 -v 10
 #--------------------------------
 # epbl.nml
 #--------------------------------
@@ -28,7 +26,7 @@ ${cmd_nmlchange} -f ${nml} -e const_u10 -v 10
 # gotmrun.nml
 nml="gotmrun.nml"
 ${cmd_nmlchange} -f ${nml} -e title -v 'OSMOSIS_winter'
-${cmd_nmlchange} -f ${nml} -e nlev -v 128
+${cmd_nmlchange} -f ${nml} -e nlev -v 200
 ${cmd_nmlchange} -f ${nml} -e dt -v 1800
 ${cmd_nmlchange} -f ${nml} -e name -v 'OSMOSIS_winter'
 ${cmd_nmlchange} -f ${nml} -e latitude -v 49.0
@@ -39,7 +37,6 @@ ${cmd_nmlchange} -f ${nml} -e start -v '2012-09-22 00:00:00'
 ${cmd_nmlchange} -f ${nml} -e stop -v '2012-12-05 03:00:00'
 ${cmd_nmlchange} -f ${nml} -e out_fn -v 'gotm_out'
 ${cmd_nmlchange} -f ${nml} -e nsave -v 6
-${cmd_nmlchange} -f ${nml} -e sync_out -v 0
 ${cmd_nmlchange} -f ${nml} -e eq_state_method -v 4
 #--------------------------------
 # gotmturb.nml
@@ -63,7 +60,6 @@ ${cmd_nmlchange} -f ${nml} -e A -v 0.57
 ${cmd_nmlchange} -f ${nml} -e g1 -v 0.5
 ${cmd_nmlchange} -f ${nml} -e g2 -v 13.4
 ${cmd_nmlchange} -f ${nml} -e ustokes_method -v 4
-${cmd_nmlchange} -f ${nml} -e nfreq -v 1
 ${cmd_nmlchange} -f ${nml} -e usdelta_file -v 'ustokes_file.dat'
 #--------------------------------
 # osm.nml

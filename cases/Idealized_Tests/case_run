@@ -13,6 +13,9 @@ source "../../set_tools.sh"
 # directory of base case
 basecase="${GOTMWORK_ROOT}/data/Idealized"
 
+# current path
+curdir=$(pwd)
+
 #######################################################################
 #                           Set parameters                            #
 #######################################################################
@@ -70,11 +73,6 @@ cd ${rundir}
 # copy base case
 cp ${basecase}/* ./
 
-# decompress input data
-for f in *.gz; do
-    gunzip -f ${f}
-done
-
 # set run parameters
 start_time="${datestart:0:4}-${datestart:4:2}-${datestart:6:2} 00:00:00"
 stop_time="${dateend:0:4}-${dateend:4:2}-${dateend:6:2} 00:00:00"
@@ -106,4 +104,4 @@ ${cmd_gotm} 2> log.${outname}
 #######################################################################
 
 # plot surface forcing and profiles
-source ${scpt_case_postproc}
+source ${curdir}/case_postproc.sh

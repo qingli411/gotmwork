@@ -19,21 +19,49 @@ if [ ${l_test} == "yes" ]; then
     dtlist=(60)
 else
     # name of the turbulence model
-    turblist=(KPP-CVMix KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG)
+    turblist=(KPP-CVMix KPP-ROMS KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG)
     # vertical resolution
     #  1 m
     #  5 m
+    #  10 m
     #  typical regional models (e.g., ROMS)
     #  typical GCMs (e.g., CESM)
-    vrlist=(1m 5m)
+    vrlist=(1m 5m 10m)
     # time step
     #  1 min
+    #  10 min
     #  30 min
-    dtlist=(60 1800)
+    #  60 min
+    dtlist=(60 600 1800 3600)
 fi
 
 # output file name
 outname="gotm_out"
+
+# damping
+t_dampV="5d"
+
+case ${t_dampV} in
+    "1d")
+        vel_relax_tau=86400
+        cn_suffix="_dampV_1d"
+        ;;
+    "5d")
+        vel_relax_tau=432000
+        cn_suffix="_dampV_5d"
+        ;;
+    "10d")
+        vel_relax_tau=864000
+        cn_suffix="_dampV_10d"
+        ;;
+    "none")
+        vel_relax_tau=1e15
+        cn_suffix=""
+        ;;
+    *)
+        echo "Relaxation time for velocity ${t_dampV} not supported. Stop."
+        exit 1
+esac
 
 # loop over turbulent methods
 for turbmethod in ${turblist[@]}; do
@@ -53,6 +81,12 @@ for vr in ${vrlist[@]}; do
             ddl=0
             let nlev=depth/5
             ;;
+        "10m")
+            grid_method=0
+            ddu=0
+            ddl=0
+            let nlev=depth/10
+            ;;
         *)
             echo "Vertical resolution ${vr} not supported. Stop."
             exit 1
@@ -62,7 +96,7 @@ for vr in ${vrlist[@]}; do
 for dt in ${dtlist[@]}; do
 
     # case name
-    casename="TEST_RES/${title}/${turbmethod}_VR${vr}_DT${dt}s"
+    casename="TEST_RES${cn_suffix}/${title}/${turbmethod}_VR${vr}_DT${dt}s"
     echo ${casename}
 
     # set output frequency (3-hourly output)
@@ -108,6 +142,8 @@ for dt in ${dtlist[@]}; do
     ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
     ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
+    ${cmd_nmlchange} -f obs.nml -e vel_relax_tau -v ${vel_relax_tau}
+
     # set turbulence method
     source ${scpt_case_turbmethod}
 
@@ -116,7 +152,7 @@ for dt in ${dtlist[@]}; do
 
     # plot some figures
     if [ ${l_test} == "yes" ]; then
-        source ${scpt_case_postproc}
+        source ${curdir}/case_postproc.sh
     fi
 
     # clean up input data

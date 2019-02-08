@@ -6,7 +6,7 @@
 # OCS Papa
 # latitude:  50.1
 # longitude: 215.1
-# depth (m): 300.0
+# depth (m): 150.0
 #
 # Qing Li, 20180507
 
@@ -16,16 +16,19 @@ source "../../set_tools.sh"
 # directory of base case
 basecase="${GOTMWORK_ROOT}/data/OCSPapa_20120101-20131204"
 
+# current directory
+curdir=$(pwd)
+
 # starting and ending date - in the format of YYYYMMDD
 # starting from summer solstice
-datestart="20130621"
-dateend="20131201"
+datestart="20120321"
+dateend="20130320"
 
 # name of the dataset
 title="OCSPapa_${datestart}-${dateend}"
 
 # depth
-depth=300
+depth=150
 
 # loop over cases
-source ./case_loop.sh
+source ${curdir}/case_loop.sh

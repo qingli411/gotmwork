@@ -2,7 +2,7 @@
 
 source "../../set_tools.sh"
 
-cp ../../namelist/*.nml ./
+cp ${nmldir}/*.nml ./
 
 #--------------------------------
 # MOMturb.nml
@@ -11,11 +11,10 @@ cp ../../namelist/*.nml ./
 nml="airsea.nml"
 ${cmd_nmlchange} -f ${nml} -e heat_method -v 2
 ${cmd_nmlchange} -f ${nml} -e heatflux_file -v 'heatflux_file.dat'
-${cmd_nmlchange} -f ${nml} -e swr_method -v 2
 ${cmd_nmlchange} -f ${nml} -e albedo_method -v 0
+${cmd_nmlchange} -f ${nml} -e swr_method -v 2
 ${cmd_nmlchange} -f ${nml} -e swr_file -v 'swr_file.dat'
 ${cmd_nmlchange} -f ${nml} -e momentum_method -v 2
-${cmd_nmlchange} -f ${nml} -e const_tx -v 0.1027
 ${cmd_nmlchange} -f ${nml} -e momentumflux_file -v 'tau_file.dat'
 ${cmd_nmlchange} -f ${nml} -e precip_method -v 2
 ${cmd_nmlchange} -f ${nml} -e precip_file -v 'precip_file.dat'
@@ -25,7 +24,6 @@ ${cmd_nmlchange} -f ${nml} -e sst_file -v 'sst_file.dat'
 ${cmd_nmlchange} -f ${nml} -e sss_method -v 2
 ${cmd_nmlchange} -f ${nml} -e sss_file -v 'sss_file.dat'
 ${cmd_nmlchange} -f ${nml} -e u10_method -v 2
-${cmd_nmlchange} -f ${nml} -e const_u10 -v 10
 ${cmd_nmlchange} -f ${nml} -e u10_file -v 'u10_file.dat'
 #--------------------------------
 # epbl.nml
@@ -35,16 +33,15 @@ ${cmd_nmlchange} -f ${nml} -e u10_file -v 'u10_file.dat'
 # gotmrun.nml
 nml="gotmrun.nml"
 ${cmd_nmlchange} -f ${nml} -e title -v 'OCSPapa'
-${cmd_nmlchange} -f ${nml} -e nlev -v 128
+${cmd_nmlchange} -f ${nml} -e nlev -v 150
 ${cmd_nmlchange} -f ${nml} -e dt -v 1800
 ${cmd_nmlchange} -f ${nml} -e name -v 'OCSPapa'
 ${cmd_nmlchange} -f ${nml} -e latitude -v 50.1
 ${cmd_nmlchange} -f ${nml} -e longitude -v 215.1
-${cmd_nmlchange} -f ${nml} -e depth -v 300.0
+${cmd_nmlchange} -f ${nml} -e depth -v 150.0
 ${cmd_nmlchange} -f ${nml} -e start -v '2012-01-01 00:00:00'
 ${cmd_nmlchange} -f ${nml} -e stop -v '2013-12-04 19:00:00'
 ${cmd_nmlchange} -f ${nml} -e nsave -v 6
-${cmd_nmlchange} -f ${nml} -e sync_out -v 0
 ${cmd_nmlchange} -f ${nml} -e eq_state_method -v 4
 #--------------------------------
 # gotmturb.nml
@@ -64,6 +61,7 @@ ${cmd_nmlchange} -f ${nml} -e s_prof_file -v 'sprof_file.dat'
 ${cmd_nmlchange} -f ${nml} -e t_prof_method -v 2
 ${cmd_nmlchange} -f ${nml} -e t_prof_file -v 'tprof_file.dat'
 ${cmd_nmlchange} -f ${nml} -e ustokes_method -v 2
+${cmd_nmlchange} -f ${nml} -e nfreq -v 64
 ${cmd_nmlchange} -f ${nml} -e spec_file -v 'spec_file.dat'
 #--------------------------------
 # osm.nml

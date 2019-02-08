@@ -1,0 +1,34 @@
+#!/bin/bash
+# This script sets up test cases to test the sensitivity of different
+# boundary layer schemes to vertical resolution and time step using
+# forcing data from ocean climate station Papa
+#
+# OCS Papa
+# latitude:  50.1
+# longitude: 215.1
+# depth (m): 150.0
+#
+# Qing Li, 20180507
+
+# setup paths and tools
+source "../../set_tools.sh"
+
+# directory of base case
+basecase="${GOTMWORK_ROOT}/data/OCSPapa_20120101-20131204"
+
+# current path
+curdir=$(pwd)
+
+# starting and ending date - in the format of YYYYMMDD
+# starting from summer solstice
+datestart="20130621"
+dateend="20131201"
+
+# name of the dataset
+title="OCSPapa_${datestart}-${dateend}"
+
+# depth
+depth=150
+
+# loop over cases
+source ${curdir}/case_loop.sh

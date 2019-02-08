@@ -43,6 +43,11 @@ function get_inquire() {
     echo ${val}
 }
 
+function print_hline() {
+    printf -- '-%.0s' {1..36}
+    printf "\n"
+}
+
 # check if in python3 environment
 if [ -x "$(command -v python3)" ]; then
     cmd_if_python_module="if_python3_module"
@@ -73,9 +78,10 @@ gotmwork_env_file="${HOME}/.gotmwork_env.sh"
 if [ ! -f ${gotmwork_env_file} ]; then
 
     # set up the environment file
-    echo "--------------------------------"
-    echo "   Setup GOTMWORK Environment"
-    echo "--------------------------------"
+    print_hline
+    echo "  Setting up GOTMWORK environment file"
+    echo "  ${gotmwork_env_file}"
+    print_hline
 
     # gotmwork root directory
     gotmwork_root=$(pwd)
@@ -88,10 +94,12 @@ if [ ! -f ${gotmwork_env_file} ]; then
     dft_gotmbuild_root="${dft_gotm_root}/build"
     dft_gotmrun_root="${dft_gotm_root}/run"
     dft_gotmdata_root="${dft_gotm_root}/data"
+    dft_gotmfig_root="${dft_gotm_root}/fig"
+    dft_gotmarchive_root="${dft_gotm_root}/archive"
 
     # instruction
     echo -e "Type in the full path of the directories. Leave it"
-    echo -e "empty to use the default values (in parentheses).\n"
+    echo -e "empty to use the default values in parentheses.\n"
 
     # inquire environment variables
     inquire_dir "Root directory of CVMix source code" ${dft_cvmix_root}
@@ -106,12 +114,16 @@ if [ ! -f ${gotmwork_env_file} ]; then
     gotmexe_root=$(get_inquire ${dft_gotmexe_root})
     inquire_dir "Directory to run GOTM" ${dft_gotmrun_root}
     gotmrun_root=$(get_inquire ${dft_gotmrun_root})
+    inquire_dir "Directory for visualizations of the results" ${dft_gotmfig_root}
+    gotmfig_root=$(get_inquire ${dft_gotmfig_root})
+    inquire_dir "Directory to archive GOTM output data" ${dft_gotmarchive_root}
+    gotmarchive_root=$(get_inquire ${dft_gotmarchive_root})
 
     # write to the environment file
-    echo "--------------------------------"
+    print_hline
     echo "  Write environment variables to file:"
     echo "  ${gotmwork_env_file}"
-    echo "--------------------------------"
+    print_hline
     echo ""
 
     cat > ${gotmwork_env_file} << GOTMWORK_ENV
@@ -123,6 +135,8 @@ export GOTMDATA_ROOT=${gotmdata_root}
 export GOTMBUILD_ROOT=${gotmbuild_root}
 export GOTMEXE_ROOT=${gotmexe_root}
 export GOTMRUN_ROOT=${gotmrun_root}
+export GOTMFIG_ROOT=${gotmfig_root}
+export GOTMARCHIVE_ROOT=${gotmarchive_root}
 export CVMIX_ROOT=${cvmix_root}
 
 GOTMWORK_ENV
@@ -130,12 +144,16 @@ GOTMWORK_ENV
     # print out the environment file for confirmation
     cat ${gotmwork_env_file}
 
-    echo "--------------------------------"
-    echo "              Done"
-    echo "--------------------------------"
+    print_hline
+    echo "  Done"
+    print_hline
+    echo ""
 fi
 
 if [[ $? == 0 ]]; then
-    source ${gotmwork_env_file}
+    print_hline
+    echo "Use 'source ${gotmwork_env_file}'"
+    echo "to set up GOTMWORK environment"
+    print_hline
 fi
 

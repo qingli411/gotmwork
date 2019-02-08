@@ -44,7 +44,7 @@ def main():
     dttime = nctime_to_datetime(nctime) # time in datetime format
     # get starting and ending indices
     tidx_start, tidx_end = nctime_indices(nctime, date_start, date_end)
-    tdat = [dttime[i].isoformat(' ', 'seconds')
+    tdat = [dttime[i].strftime('%Y-%m-%d %H:%M:%S')
             for i in range(tidx_start, tidx_end+1)] # truncated to seconds
 
     # band center frequency
