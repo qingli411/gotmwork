@@ -10,7 +10,7 @@ update_data=False
 njob=4
 
 # case name
-cname="JRA55-do_Global_dampV5d"
+cname="COREII_Global_dampV5d"
 
 # indices for time tags
 # - start from 0
@@ -20,7 +20,7 @@ ittag_list=( )
 # indices for diagnostics
 # - start from 0
 # - leave empty if run all diagnostics
-idiag_list=( 0 )
+idiag_list=( )
 
 # list of time tags
 ttag_list=("20080601-20080630" "20080701-20080731" "20080801-20080831" "20080901-20080930" "20081001-20081031" "20081101-20081130" "20081201-20081231" "20090101-20090131" "20090201-20090228" "20090301-20090331" "20090401-20090430" "20090501-20090531")
@@ -96,11 +96,11 @@ for ((m=0; m<njob; m++)); do
             jj=${j_list[ii]}
             kk=${k_list[ii]}
             # step 1
-            # ./plot_map_diagnostics -c ${cname} -t ${ttag_list[kk]} -d ${diag_list[jj]} ${s1_flag} > logs1.${ii};
+            ./plot_map_diagnostics -c ${cname} -t ${ttag_list[kk]} -d ${diag_list[jj]} ${s1_flag} > logs1.${ii};
             # step 2
             ./gen_map_mask -c ${cname} -t ${ttag_list[kk]} -d ${diag_list[jj]} > logs2.${ii};
             # step 3
-            # ./plot_map_diagnostics -c ${cname} -t ${ttag_list[kk]} -d ${diag_list[jj]} -M -P > logs3.${ii};
+            ./plot_map_diagnostics -c ${cname} -t ${ttag_list[kk]} -d ${diag_list[jj]} -M -P > logs3.${ii};
         fi
     done
     } &
