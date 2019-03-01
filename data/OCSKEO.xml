@@ -9,7 +9,7 @@
         <outname>tau_file.dat</outname>
     </var>
     <var name="u10">
-        <longname>Momentum flux (N/m2)</longname>
+        <longname>10-meter wind (m/s)</longname>
         <filename>wind_10meter_32n145e_hr.cdf</filename>
         <vartype>vector</vartype>
         <varnamex>UZS_2422</varnamex>
