@@ -225,6 +225,48 @@ class GOTMMap(object):
         self.name = name
         self.units = units
 
+    def __sub__(self, other):
+        """Return the difference betweeen two GOTMMap objects
+
+        :other: (GOTMMap object) GOTMMap object to be subtracted
+
+        """
+        assert type(other) == type(GOTMMap()), "Only GOTMMap object can be subtracted from a GOTMMap object"
+        assert self.name == other.name, "GOTMMap object to be subtracted has a different name."
+        assert self.units == other.units, "GOTMMap object to be subtracted has a different unit."
+        data = np.zeros(self.data.size)
+        loc_self = list(zip(self.lon, self.lat))
+        loc_other = list(zip(other.lon, other.lat))
+        for idx, val in enumerate(loc_self):
+            if val in loc_other:
+                idx_other = loc_other.index(val)
+                data[idx] = self.data[idx] - other.data[idx_other]
+            else:
+                data[idx] = np.nan
+        out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        return out
+
+    def __truediv__(self, other):
+        """Return the ratio of two GOTMMap objects
+
+        :other: (GOTMMap object) GOTMMap object to divide self
+
+        """
+        assert type(other) == type(GOTMMap()), "Only GOTMMap object can divide a GOTMMap object"
+        assert self.name == other.name, "GOTMMap object has a different name."
+        assert self.units == other.units, "GOTMMap object has a different unit."
+        data = np.zeros(self.data.size)
+        loc_self = list(zip(self.lon, self.lat))
+        loc_other = list(zip(other.lon, other.lat))
+        for idx, val in enumerate(loc_self):
+            if val in loc_other:
+                idx_other = loc_other.index(val)
+                data[idx] = self.data[idx] / other.data[idx_other]
+            else:
+                data[idx] = np.nan
+        out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        return out
+
     def save(self, path):
         """Save GOTMMap object
 
