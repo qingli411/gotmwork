@@ -2,7 +2,7 @@
 
 A work directory of [GOTM](http://gotm.net), which contains a set of scripts and tools to preprocess the input data, set up runs, and analyze and visualize the output data.
 
-__Latest version__: lt_v1.5, compatible with [GOTM version lt_v1.5.x](https://gitlab.com/fox-kemper_lab/gotm) and [CVMix version lt_v1.3](https://gitlab.com/fox-kemper_lab/CVMix-src).
+__Latest version__: lt_v1.5.1, compatible with [GOTM version lt_v1.5.x](https://gitlab.com/fox-kemper_lab/gotm) and [CVMix version lt_v1.3](https://gitlab.com/fox-kemper_lab/CVMix-src).
 
 ---
 ## Quick Start
