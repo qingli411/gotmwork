@@ -134,7 +134,7 @@ legend_list = ['KPP-CVMix',
                'ePBL-LT',
                'SMC-KC94',
                'SMCLT-H15',
-               'k-epsilon',
+               '$k$-$\epsilon$-SG95',
                'OSMOSIS']
 nm = len(turbmethod_list)
 irow_2col = [1, 2, 0, 1, 2, 3, 3, 4, 4, 5, 5]

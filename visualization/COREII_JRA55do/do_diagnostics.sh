@@ -10,7 +10,7 @@ update_data=False
 njob=4
 
 # case name
-cname="COREII_Global_dampV5d"
+cname="JRA55-do_Global_dampV5d"
 
 # indices for time tags
 # - start from 0

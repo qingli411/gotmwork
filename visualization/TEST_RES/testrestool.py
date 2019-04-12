@@ -64,7 +64,7 @@ legend_list = ['KPP-CVMix',
                'ePBL-LT',
                'SMC-KC94',
                'SMCLT-H15',
-               'k-epsilon',
+               '$k$-$\epsilon$-SG95',
                'OSMOSIS']
 tm_color = ['black',
             'blue',
