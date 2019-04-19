@@ -1402,10 +1402,10 @@ def plot_regime_diagram_background_BG12(axis=None):
             zz3[i,j] = 0.3*xx[i]**(-2)*yy[j]
     zz = zz1 + zz2 + zz3
     axis.contourf(xx, yy, np.transpose(np.log10(zz)),
-                  levels=[-0.1, 0, 0.1, 0.25, 0.5, 1, 2, 3],
+                  levels=[-0.1, 0, 0.1, 0.25, 0.5, 1, 2, 3, 4],
                   cmap='summer', extend='both')
     axis.contour(xx, yy, np.transpose(np.log10(zz)),
-                  levels=[-0.1, 0, 0.1, 0.25, 0.5, 1, 2, 3],
+                  levels=[-0.1, 0, 0.1, 0.25, 0.5, 1, 2, 3, 4],
                   colors='darkgray')
     axis.contour(xx, yy, np.transpose(zz1/zz), levels=0.9, colors='k',
                 linestyles='-', linewidths=2)
@@ -1420,6 +1420,14 @@ def plot_regime_diagram_background_BG12(axis=None):
     axis.set_xlabel('La$_t$')
     axis.set_ylabel('$h/L_L$')
     axis.set_aspect(aspect=1/3)
+    axis.text(0.85, 3e-3, '0', color='k', fontsize=8, rotation=-90)
+    axis.text(1.6, 1e-2, '0.1', color='k', fontsize=8, rotation=-90)
+    axis.text(3.8, 1e-1, '0.25', color='k', fontsize=8, rotation=-90)
+    axis.text(4, 1e2, '0.5', color='k', fontsize=8, rotation=33)
+    axis.text(3.2, 3e2, '1', color='k', fontsize=8, rotation=36)
+    axis.text(0.53, 1e2, '2', color='k', fontsize=8, rotation=38)
+    axis.text(0.3, 3.1e2, '3', color='k', fontsize=8, rotation=39)
+    axis.text(0.12, 5e2, '4', color='k', fontsize=8, rotation=40)
     axis.text(0.11, 4e-3, 'Langmuir', bbox=dict(boxstyle="square",ec='k',fc='w'))
     axis.text(3, 4e-3, 'Wind', bbox=dict(boxstyle="square",ec='k',fc='w'))
     axis.text(0.13, 1e2, 'Convection', bbox=dict(boxstyle="square",ec='k',fc='w'))
