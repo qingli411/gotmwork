@@ -85,8 +85,9 @@ def main():
     maxdepth = root.attrib['maxdepth']
     dt_format = '%Y%m%d'
     dt_format_l = '%Y-%m-%d %H:%M:%S'
+    dt_format_l2 = '%Y%m%d %H:%M:%S'
     dstart_str = datetime.datetime.strptime(datestart, dt_format).strftime(dt_format_l)
-    dtend = datetime.datetime.strptime(dateend, dt_format)
+    dtend = datetime.datetime.strptime(dateend+' 23:59:59', dt_format_l2)
 
     # set 'gotmrun.nml'
     nml = 'gotmrun.nml'
