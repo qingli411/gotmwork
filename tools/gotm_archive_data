@@ -6,7 +6,7 @@
 
 # usage
 function print_usage(){
-    echo "usage: gotm_archive_data [-h] [-c CASENAME] [-s SETUPNAME]"
+    echo "usage: gotm_archive_data [-h] [-c CASENAME] [-s SETUPNAME] [-m TURBMETHOD]"
     echo ""
     echo "Compress and archive data."
     echo ""
@@ -14,13 +14,15 @@ function print_usage(){
     echo "  -h            show this help message and exit"
     echo "  -c CASENAME   case name"
     echo "  -s SETUPNAME  setup name"
+    echo "  -m TURBMETHOD turbulence method"
     exit 1
 }
 
 # parse input arguments
 casename="none"
 casesetup="none"
-while getopts hc:s: options
+turbmethod="none"
+while getopts hc:s:m: options
 do
     case ${options} in
         # help
@@ -29,6 +31,8 @@ do
         c) casename=${OPTARG} ;;
         # case setup
         s) casesetup=${OPTARG} ;;
+        # turbulence method
+        m) turbmethod=${OPTARG} ;;
         \?) echo "Unknown option -${OPTARG}"
             exit 1 ;;
     esac
@@ -70,8 +74,13 @@ echo "Archiving data to ..."
 echo "  ${arc_dir}"
 mkdir -p ${arc_dir}
 cd ${run_dir}
-for f in *; do
-    echo "    ${f} ..."
-    tar -zcf ${arc_dir}/${f}.tar.gz ${f}/
-done
+if [[ ${turbmethod} == "none" ]]; then
+    for f in *; do
+        echo "    ${f} ..."
+        tar -zcf ${arc_dir}/${f}.tar.gz ${f}/
+    done
+else
+    echo "    ${turbmethod} ..."
+    tar -zcf ${arc_dir}/${turbmethod}.tar.gz ${turbmethod}/
+fi
 cd ${cur_dir}
