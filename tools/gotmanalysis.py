@@ -851,7 +851,7 @@ class GOTMOutputData(object):
         la = np.sqrt(ustar/np.sqrt(ussl**2.+vssl**2.))
         return la
 
-    def _get_bflux(self, tidx_start=None, tidx_end=None):
+    def _get_bflux(self, tidx_start=None, tidx_end=None, radiative_heating=False):
         """Find the surface buoyancy flux
 
         :tidx_start: (int, optional) starting index
@@ -859,22 +859,28 @@ class GOTMOutputData(object):
         :returns: (numpy array) surface buoyancy flux
 
         """
-        # get boundary layer depth
-        hbl   = self._get_derived_timeseries['bld_nuh'][tidx_start:tidx_end,0,0]
         # surface temperature and salinity
         temp0 = self.dataset.variables['temp'][tidx_start:tidx_end,-1,0,0]
         salt0 = self.dataset.variables['salt'][tidx_start:tidx_end,-1,0,0]
+        # surface heat flux
+        hflux = self.dataset.variables['heat'][tidx_start:tidx_end,0,0]
+        # correction for penetrative solar radiation if requested,
+        # otherwise use the total solar radiation
+        if radiative_heating:
+            rad   = self.dataset.variables['rad'][tidx_start:tidx_end,:,0,0]
+            # get boundary layer depth
+            hbl   = self._get_derived_timeseries('bld_nuh')(tidx_start=tidx_start, tidx_end=tidx_end)
+            z     = self.dataset.variables['z'][tidx_start:tidx_end,:,0,0]
+            nt    = temp0.shape[0]
+            rflux = np.zeros(nt)
+            for i in np.arange(nt):
+                ihbl = np.argmin(np.abs(z[i,:]+hbl[i]))
+                rflux[i] = rad[i,-1]-rad[i,ihbl]
+        else:
+            # total solar radiation
+            rflux = self.dataset.variables['I_0'][tidx_start:tidx_end,0,0]
         # surface temperature flux
-        tflux = self.dataset.variables['heat'][tidx_start:tidx_end,0,0]/cp/rho_0
-        # correction for solar radiation
-        rad   = self.dataset.variables['rad'][tidx_start:tidx_end,:,0,0]
-        z     = self.dataset.variables['z'][tidx_start:tidx_end,:,0,0]
-        nt    = temp0.shape[0]
-        rflux = np.zeros(nt)
-        for i in np.arange(nt):
-            ihbl = np.argmin(np.abs(z[i,:]+hbl[i]))
-            rflux[i] = rad[i,-1]-rad[i,ihbl]
-        tflux = tflux+rflux/cp/rho_0
+        tflux = (hflux+rflux)/cp/rho_0
         # surface salinity flux
         sflux = -(self.dataset.variables['precip'][tidx_start:tidx_end,0,0]
                 + self.dataset.variables['evap'][tidx_start:tidx_end,0,0])*salt0
