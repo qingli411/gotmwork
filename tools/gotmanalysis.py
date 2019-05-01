@@ -529,7 +529,7 @@ class GOTMOutputData(object):
                 ignore_time=True).data[1:]
         ts_ustar = self.read_timeseries('u_taus', tidx_start=tidx_start, tidx_end=tidx_end,
                 ignore_time=True).data[1:]
-        ts_hbl = self.read_timeseries('mld_deltaR', tidx_start=tidx_start, tidx_end=tidx_end,
+        ts_hbl = self.read_timeseries('bld_nuh', tidx_start=tidx_start, tidx_end=tidx_end,
                 ignore_time=True).data[1:]
         ts_obj = self.read_timeseries('bflux', tidx_start=tidx_start, tidx_end=tidx_end,
                 ignore_time=True)
@@ -597,7 +597,7 @@ class GOTMOutputData(object):
                 ignore_time=True).data[1:]
         ts_ustar = self.read_timeseries('u_taus', tidx_start=tidx_start, tidx_end=tidx_end,
                 ignore_time=True).data[1:]
-        ts_hbl = self.read_timeseries('mld_deltaR', tidx_start=tidx_start, tidx_end=tidx_end,
+        ts_hbl = self.read_timeseries('bld_nuh', tidx_start=tidx_start, tidx_end=tidx_end,
                 ignore_time=True).data[1:]
         ts_obj = self.read_timeseries('bflux', tidx_start=tidx_start, tidx_end=tidx_end,
                 ignore_time=True)
@@ -781,6 +781,9 @@ class GOTMOutputData(object):
                 'mld_maxNsqr': self._get_mld_maxNsqr,
                 'mld_deltaT': self._get_mld_deltaT,
                 'mld_deltaR': self._get_mld_deltaR,
+                'bld_nuh': self._get_bld_nuh,
+                'bld_tke': self._get_bld_tke,
+                'bld_kpp': self._get_bld_kpp,
                 'Nsqr_mld': self._get_Nsqr_mld,
                 'PE': self._get_pez
                 }
@@ -828,7 +831,7 @@ class GOTMOutputData(object):
         zi = self.dataset.variables['zi'][tidx_start:tidx_end,:,0,0]
         h = self.dataset.variables['h'][tidx_start:tidx_end,:,0,0]
         # boundary layer depth
-        hbl = self._get_derived_timeseries('mld_deltaR')(tidx_start=tidx_start, tidx_end=tidx_end)
+        hbl = self._get_derived_timeseries('bld_nuh')(tidx_start=tidx_start, tidx_end=tidx_end)
         # surface layer: upper 20% of the boundary layer
         hsl = -0.2*hbl
         # loop over time to calculate the surface layer averaged Stokes drift
@@ -857,7 +860,7 @@ class GOTMOutputData(object):
 
         """
         # get boundary layer depth
-        hbl   = self._get_derived_timeseries('mld_deltaR')(tidx_start=tidx_start, tidx_end=tidx_end)
+        hbl   = self._get_derived_timeseries['bld_nuh'][tidx_start:tidx_end,0,0]
         # surface temperature and salinity
         temp0 = self.dataset.variables['temp'][tidx_start:tidx_end,-1,0,0]
         salt0 = self.dataset.variables['salt'][tidx_start:tidx_end,-1,0,0]
@@ -890,7 +893,7 @@ class GOTMOutputData(object):
 
         """
         # get boundary layer depth
-        hbl   = self._get_derived_timeseries('mld_deltaR')(tidx_start=tidx_start, tidx_end=tidx_end)
+        hbl   = self._get_derived_timeseries('bld_nuh')(tidx_start=tidx_start, tidx_end=tidx_end)
         # get surface buoyancy flux
         bflux = self._get_bflux(tidx_start=tidx_start, tidx_end=tidx_end)
         # friction velocity
@@ -1029,6 +1032,76 @@ class GOTMOutputData(object):
                 mld[i] = np.min(z[i,:])
         return np.abs(mld)
 
+    def _get_bld_nuh(self, tidx_start=None, tidx_end=None, nuh_bg=1e-5):
+        """Find the boundary layer depth defined as the depth where
+           the turbulent diffusivity first drops to a background value
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :nuh_bg: (float, optional) background diffusivity
+        :returns: (numpy array) mixed layer depth
+
+        """
+        nuh = self.dataset.variables['nuh'][tidx_start:tidx_end,:,0,0]
+        z = self.dataset.variables['zi'][tidx_start:tidx_end,:,0,0]
+        nt = nuh.shape[0]
+        nz = nuh.shape[1]
+        bld = np.zeros(nt)
+        for i in np.arange(nt):
+            idxlist = np.where(nuh[i,:]<nuh_bg)[0]
+            idxlist = idxlist[idxlist<nz-1]
+            if idxlist.size==0:
+                bld[i] = z[i,0]
+            elif np.max(idxlist)<nz-2:
+                idx1 = np.max(idxlist)
+                idx0 = idx1+1
+                bld[i] = z[i,idx0] - (z[i,idx0]-z[i,idx1]) * \
+                         (nuh[i,idx0]-nuh_bg) / (nuh[i,idx0]-nuh[i,idx1])
+            else:
+                bld[i] = z[i,-1]
+        return np.abs(bld)
+
+    def _get_bld_tke(self, tidx_start=None, tidx_end=None, tke_crit=1e-7):
+        """Find the boundary layer depth defined as the depth where
+           the turbulent kinetic energy approaches zero (equals a small
+           critical value.
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :tke_crit: (float, optional) critial TKE in m^2/s^2
+        :returns: (numpy array) mixed layer depth
+
+        """
+        tke = self.dataset.variables['tke'][tidx_start:tidx_end,:,0,0]
+        z = self.dataset.variables['zi'][tidx_start:tidx_end,:,0,0]
+        nt = tke.shape[0]
+        nz = tke.shape[1]
+        bld = np.zeros(nt)
+        for i in np.arange(nt):
+            idxlist = np.where(tke[i,:]<tke_crit)[0]
+            idxlist = idxlist[idxlist<nz-1]
+            if idxlist.size==0:
+                bld[i] = z[i,0]
+            elif np.max(idxlist)<nz-2:
+                idx1 = np.max(idxlist)
+                idx0 = idx1+1
+                bld[i] = z[i,idx0] - (z[i,idx0]-z[i,idx1]) * \
+                         (tke[i,idx0]-tke_crit) / (tke[i,idx0]-tke[i,idx1])
+            else:
+                bld[i] = z[i,-1]
+        return np.abs(bld)
+
+    def _get_bld_kpp(self, tidx_start=None, tidx_end=None):
+        """Return the boundary layer depth in KPP in the output
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (numpy array) mixed layer depth
+
+        """
+        bld = self.dataset.variables['KPP_OSBL'][tidx_start:tidx_end,0,0]
+        return np.abs(bld)
+
     def _get_Nsqr_mld(self, tidx_start=None, tidx_end=None):
         """Find the stratification N^2 at the base of the
            mixed layer (density criterion)
@@ -1038,16 +1111,16 @@ class GOTMOutputData(object):
         :returns: (numpy array) N^2
 
         """
-        # get boundary layer depth
-        hbl   = self._get_derived_timeseries('mld_deltaR')(tidx_start=tidx_start, tidx_end=tidx_end)
+        # get mixed layer depth
+        hml = self._get_derived_timeseries('mld_deltaR')(tidx_start=tidx_start, tidx_end=tidx_end)
         # read N^2
         Nsqr = self.dataset.variables['NN'][tidx_start:tidx_end,:,0,0]
         z = self.dataset.variables['z'][tidx_start:tidx_end,:,0,0]
         nt = Nsqr.shape[0]
         Nsqr_mld = np.zeros(nt)
         for i in np.arange(nt):
-            ihbl = np.argmin(np.abs(z[i,:]+hbl[i]))
-            Nsqr_mld[i] = Nsqr[i, ihbl]
+            ihml = np.argmin(np.abs(z[i,:]+hml[i]))
+            Nsqr_mld[i] = Nsqr[i, ihml]
         return Nsqr_mld
 
     def _get_pez(self, tidx_start=None, tidx_end=None, depth=None):
