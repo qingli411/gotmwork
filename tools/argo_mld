@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import argparse
+import numpy as np
+sys.path.append(os.environ['GOTMWORK_ROOT']+'/tools')
+from gotmtool import unesco_eos_rho
+
+
+def main():
+    parser = argparse.ArgumentParser(description="""
+            Read temperature and salinity profile in GOTM input data format
+            and return mixed layer depth based on density threshold.""")
+    parser.add_argument('-tprof', '--tprof_file', action='store', dest='tprof_file',
+            metavar='TPROFFILE', required=True, help='temperature profile file name')
+    parser.add_argument('-sprof', '--sprof_file', action='store', dest='sprof_file',
+            metavar='SPROFFILE', required=True, help='salinity profile file name')
+    parser.add_argument('-drho', '--density_threshold', action='store', dest='drho_crit',
+            metavar='DTHRESHOLD', help='density threshold in kg/m^3, default 0.03')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parsing arguments and save to args
+    args=parser.parse_args()
+
+    tprof_file = args.tprof_file
+    sprof_file = args.sprof_file
+    if args.drho_crit is None:
+        drho_crit = 0.03
+    else:
+        drho_crit = args.drho_crit
+
+    z_t, temp = read_pfl(tprof_file)
+    z_s, salt = read_pfl(sprof_file)
+    rho = unesco_eos_rho(salt, temp, 0)
+    mld = get_mld_deltaR(rho, z_t, deltaR=drho_crit)
+    print('{:4.1f}'.format(mld))
+
+def read_pfl(filename):
+    """Read profile data in GOTM input data format.
+
+    :filename: (str) file name
+    """
+    with open(filename, 'r') as fin:
+        header = fin.readline()
+        date, time, nz_str, iorder_str = header.split()
+        nz = int(nz_str)
+        z = np.zeros(nz)
+        val = np.zeros(nz)
+        for i in np.arange(nz):
+            tmp = fin.readline()
+            z_str, val_str = tmp.split()
+            z[i] = float(z_str)
+            val[i] = float(val_str)
+    return z, val
+
+def get_mld_deltaR(rho, z, deltaR=0.03, zRef=-10):
+    """Find the mixed layer depth defined as the depth where
+       the potential density difference from the reference level first exceed
+       a threshold value
+
+    :rho: (numpy array) potential density
+    :z: (numpy array) depth
+    :deltaR: (float, optional) potential density threshold in kg/m^3
+    :zRef: (float, optional) depth of the reference level
+    :returns: (numpy array) mixed layer depth
+
+    """
+
+    # index of reference level
+    idx_zref = np.argmin(np.abs(z-zRef))
+    # density difference
+    drho = rho-rho[idx_zref]
+    # ignore the points above the reference level
+    drho[0:idx_zref] = -99.
+    # ignore nan
+    drho[np.isnan(drho)] = -99.
+    # find the minimum index (closest to the surface) where the density
+    # difference is greater than the threshold value
+    idxlist = np.where(drho>=deltaR)[0]
+    if idxlist.size>0:
+        idx0 = np.min(idxlist)
+        idx1 = idx0+1
+        mld = z[idx0]-(z[idx0]-z[idx1])*(drho[idx0]-deltaR)/(drho[idx0]-drho[idx1])
+    else:
+        mld = zRef
+    return np.abs(mld)
+
+if __name__ == "__main__":
+    main()
