@@ -1296,6 +1296,8 @@ class GOTMOutputDataMap(object):
                 'SST_mean': self.mean_state_timeseries(var='sst', **kwargs),
                 'SSS_mean': self.mean_state_timeseries(var='sss', **kwargs),
                 'Nsqr_mld_mean': self.mean_state_timeseries(var='Nsqr_mld', **kwargs),
+                'forcing_regime_BG12': self.forcing_regime_map(forcing_reg_type='BG12', **kwargs),
+                'forcing_regime_LF17': self.forcing_regime_map(forcing_reg_type='LF17', **kwargs),
                 }
         if list_keys:
             return list(switcher.keys())
@@ -1364,6 +1366,29 @@ class GOTMOutputDataMap(object):
             mdat[i] = ts.data[-1] - ts.data[0]
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
+        return out
+
+    def forcing_regime_map(self, forcing_reg_type='BG12', fillvalue=None, **kwargs):
+        """Return indices for the forcing regime defined in diag_forcing_regime_*.
+
+        :forcing_reg_type: (str) type of forcing regime: BG12 or LF17
+        :fillvalue: (float) invalid value, not for now
+        :returns: (GOTMMap object) forcing regime
+
+        """
+        forcing_regime = np.zeros(self.ncase)
+        if forcing_reg_type == 'BG12':
+            for i in np.arange(self.ncase):
+                tmp = GOTMOutputData(self._paths[i], init_time_location=False)
+                forcing_regime[i] = tmp.diag_forcing_regime_BG12(**kwargs)
+        elif forcing_reg_type == 'LF17':
+            for i in np.arange(self.ncase):
+                tmp = GOTMOutputData(self._paths[i], init_time_location=False)
+                forcing_regime[i] = tmp.diag_forcing_regime_LF17(**kwargs)
+        else:
+            raise ValueError('forcing regime name \'{}\' not supported.')
+        # create GOTMMap object
+        out = GOTMMap(data=forcing_regime, lon=self.lon, lat=self.lat, name='forcing_regime_'+forcing_reg_type)
         return out
 
 #--------------------------------

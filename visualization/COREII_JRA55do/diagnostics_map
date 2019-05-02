@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#
+# Generate diagnostics for GOTMMap
+#
+# Qing Li, 20181107
+
+import sys
+import os
+import numpy as np
+import argparse
+sys.path.append(os.environ['GOTMWORK_ROOT']+'/tools', )
+from gotmanalysis import GOTMMap, GOTMOutputDataMap
+from core2jra55do import list_turbmethod, list_setup
+
+# process the input arguments
+parser = argparse.ArgumentParser(description="""
+        Generate global map of diagnostics.\n
+        Supported diagnostics:
+            mld_deltaR_mean
+            PE_delta
+            SST_mean
+            SSS_mean
+            Nsqr_mld_mean""",
+            formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('-c', '--casename', action='store', dest='casename',
+        metavar='CASENAME', required=True, help='case name')
+parser.add_argument('-s', '--setupname', action='store', dest='setupname',
+        metavar='SETUPNAME', required=True, help='name of the setup')
+parser.add_argument('-m', '--turbmethod', action='store', dest='turbmethod',
+        metavar='TURBMETHOD', required=True, help='name of turbulence closure method')
+parser.add_argument('-d', '--diagname', action='store', dest='diagname',
+        metavar='DIAGNAME', required=True, help='name of diagnostics')
+parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_data',
+        help='update data')
+parser.add_argument('-M', '--mask', action='store_true', dest='l_gen_mask',
+        help='generate mask')
+# parsing arguments and save to args
+args=parser.parse_args()
+casename = args.casename
+setupname = args.setupname
+turbmethod = args.turbmethod
+diagname = args.diagname
+update_data = args.l_update_data
+gen_mask = args.l_gen_mask
+
+# check for input arguments
+if setupname not in list_setup:
+    raise ValueError('Simulation setup \'{}\' not supported.'.format(setupname))
+
+if turbmethod not in list_turbmethod:
+    raise ValueError('Turbulence closure method \'{}\' not supported.'.format(turbmethod))
+
+if diagname == 'mld_deltaR_mean':
+    fill_value = 499.5
+elif diagname == 'mld_deltaRp1_mean':
+    fill_value = 499.5
+elif diagname == 'PE_delta':
+    fill_value = None
+elif diagname == 'SST_mean':
+    fill_value = None
+elif diagname == 'SSS_mean':
+    fill_value = None
+elif diagname == 'Nsqr_mld_mean':
+    fill_value = None
+elif diagname == 'forcing_regime_BG12':
+    fill_value = None
+elif diagname == 'forcing_regime_LF17':
+    fill_value = None
+else:
+    raise ValueError('Diagnostics \'{}\' not supported.'.format(diagname))
+
+# paths
+s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/'+setupname
+s2data_root = os.environ['GOTMFIG_ROOT']+'/data/'+casename+'/'+setupname
+os.makedirs(s2data_root, exist_ok=True)
+
+# get diagnostics
+basepath = s1data_root+'/'+turbmethod
+s2data_name = s2data_root+'/data_map_'+diagname+'_'+turbmethod+'.npz'
+mask_name = s2data_root+'/mask_'+turbmethod+'.npz'
+if update_data or not os.path.isfile(s2data_name):
+    # update data
+    print('Updating data for {} {} {}...'.format(casename, setupname, turbmethod))
+    loclist = sorted(os.listdir(basepath))
+    pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
+    godmobj = GOTMOutputDataMap(pathlist)
+    gmobj = godmobj.diagnostics(diagname, fillvalue=fill_value)
+    if gen_mask:
+        # generate and apply mask
+        lon = gmobj.lon
+        lat = gmobj.lat
+        name = 'mask'
+        units = '1:valid,0:invalid'
+        dmask = np.where(np.isnan(gmobj.data), 0, 1)
+        gmobj_mask = GOTMMap(data=dmask, lon=lon, lat=lat, name=name, units=units)
+        gmobj_mask.save(mask_name)
+        gmobj.masked(gmobj_mask)
+    else:
+        # read mask
+        gmobj_mask = GOTMMap().load(mask_name)
+        # apply mask
+        gmobj.masked(gmobj_mask)
+    # save data
+    gmobj.save(s2data_name)
+
+
