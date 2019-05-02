@@ -16,6 +16,8 @@ def main():
             metavar='TPROFFILE', required=True, help='temperature profile file name')
     parser.add_argument('-sprof', '--sprof_file', action='store', dest='sprof_file',
             metavar='SPROFFILE', required=True, help='salinity profile file name')
+    parser.add_argument('-max', '--max_mld', action='store', dest='max_mld',
+            metavar='MAXMLD', help='maxmimum mixed layer depth (m), default none')
     parser.add_argument('-drho', '--density_threshold', action='store', dest='drho_crit',
             metavar='DTHRESHOLD', help='density threshold in kg/m^3, default 0.03')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
@@ -24,27 +26,32 @@ def main():
 
     tprof_file = args.tprof_file
     sprof_file = args.sprof_file
+    if args.max_mld is None:
+        max_mld = 5000.0
+    else:
+        max_mld = float(args.max_mld)
     if args.drho_crit is None:
         drho_crit = 0.03
     else:
-        drho_crit = args.drho_crit
+        drho_crit = float(args.drho_crit)
 
     z_t, temp = read_pfl(tprof_file)
     z_s, salt = read_pfl(sprof_file)
     ntemp = z_t.size
     nsalt = z_s.size
     if ntemp == nsalt:
-        rho = unesco_eos_rho(salt, temp, 0)
+        rho = unesco_eos_rho(salt, temp, 0.)
         z = z_t
     elif ntemp > nsalt:
         salt_int = np.interp(z_t, z_s, salt)
-        rho = unesco_eos_rho(salt_int, temp, 0)
+        rho = unesco_eos_rho(salt_int, temp, 0.)
         z = z_t
     else:
         temp_int = np.interp(z_s, z_t, temp)
-        rho = unesco_eos_rho(salt, temp_int, 0)
+        rho = unesco_eos_rho(salt, temp_int, 0.)
         z = z_s
     mld = get_mld_deltaR(rho, z, deltaR=drho_crit)
+    mld = np.minimum(mld, max_mld)
     print('{:4.1f}'.format(mld))
 
 def read_pfl(filename):
@@ -65,7 +72,7 @@ def read_pfl(filename):
             val[i] = float(val_str)
     return z, val
 
-def get_mld_deltaR(rho, z, deltaR=0.03, zRef=-10):
+def get_mld_deltaR(rho, z, deltaR=0.03, zRef=-10.):
     """Find the mixed layer depth defined as the depth where
        the potential density difference from the reference level first exceed
        a threshold value
@@ -92,7 +99,7 @@ def get_mld_deltaR(rho, z, deltaR=0.03, zRef=-10):
     if idxlist.size>0:
         idx0 = np.min(idxlist)
         idx1 = idx0+1
-        mld = z[idx0]-(z[idx0]-z[idx1])*(drho[idx0]-deltaR)/(drho[idx0]-drho[idx1])
+        mld = z[idx0]-(z[idx0]-z[idx1])*(drho[idx0]-deltaR)/(drho[idx0]-drho[idx1]+1e-10)
     else:
         mld = zRef
     return np.abs(mld)

@@ -186,7 +186,7 @@ while [[ ${lat} -le ${lat_end} ]]; do
 
         # set initial mixed layer for OSMOSIS
         if [[ ${turbmethod} == "OSMOSIS" ]]; then
-            mld=$(${cmd_argo_mld} -tprof ${tprof_name} -sprof ${sprof_name})
+            mld=$(${cmd_argo_mld} -tprof ${tprof_name} -sprof ${sprof_name} -max 500.0)
             ${cmd_nmlchange} -f osm.nml -e h_i -v ${mld}
         fi
 
