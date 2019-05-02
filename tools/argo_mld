@@ -31,8 +31,20 @@ def main():
 
     z_t, temp = read_pfl(tprof_file)
     z_s, salt = read_pfl(sprof_file)
-    rho = unesco_eos_rho(salt, temp, 0)
-    mld = get_mld_deltaR(rho, z_t, deltaR=drho_crit)
+    ntemp = z_t.size
+    nsalt = z_s.size
+    if ntemp == nsalt:
+        rho = unesco_eos_rho(salt, temp, 0)
+        z = z_t
+    elif ntemp > nsalt:
+        salt_int = np.interp(z_t, z_s, salt)
+        rho = unesco_eos_rho(salt_int, temp, 0)
+        z = z_t
+    else:
+        temp_int = np.interp(z_s, z_t, temp)
+        rho = unesco_eos_rho(salt, temp_int, 0)
+        z = z_s
+    mld = get_mld_deltaR(rho, z, deltaR=drho_crit)
     print('{:4.1f}'.format(mld))
 
 def read_pfl(filename):

@@ -1,10 +1,5 @@
 #!/bin/bash
 # Setup and run GOTM for CORE-II
-# Loop over latitude and longitude
-#
-# This script essentially does the same thing as case_run_multi, but
-# skips the step to preprocess the input data, which is now taken care
-# of by preproc_data
 #
 # Qing Li, 20180503
 #          20181104, named options
@@ -87,7 +82,7 @@ outname="gotm_out"
 
 # setup
 dz=$((maxdepth/nlev))
-setup="${title}_Global/VR${dz}m_DT${dt}s_${date_start}-${date_end}"
+setup="${title}_Global_dampV5d/VR${dz}m_DT${dt}s_${date_start}-${date_end}"
 
 #######################################################################
 #                         Loop over locations                         #
@@ -146,9 +141,9 @@ while [[ ${lat} -le ${lat_end} ]]; do
 
         xmlfile=${title}.xml
         cp ${xmldir}/${xmlfile} ./
-        sed -i.bk "s/_TAG_LAT/\"${lat}\"/g" ./${xmlfile}
-        sed -i.bk "s/_TAG_LON/\"${lon}\"/g" ./${xmlfile}
-        sed -i.bk "s/_TAG_MAXDEPTH/\"${maxdepth}\"/g" ./${xmlfile}
+        sed -i.bk "s#_TAG_LAT#\"${lat}\"#g" ./${xmlfile}
+        sed -i.bk "s#_TAG_LON#\"${lon}\"#g" ./${xmlfile}
+        sed -i.bk "s#_TAG_MAXDEPTH#\"${maxdepth}\"#g" ./${xmlfile}
 
         # set run parameters
         ${cmd_case_preproc} -xml ${xmlfile} -root ${GOTMWORK_ROOT} \
@@ -189,10 +184,19 @@ while [[ ${lat} -le ${lat_end} ]]; do
         # set turbulence method
         source ${scpt_case_turbmethod}
 
+        # set initial mixed layer for OSMOSIS
+        if [[ ${turbmethod} == "OSMOSIS" ]]; then
+            mld=$(${cmd_argo_mld} -tprof ${tprof_name} -sprof ${sprof_name})
+            ${cmd_nmlchange} -f osm.nml -e h_i -v ${mld}
+        fi
+
         # turn off bottom boundary layer
         ${cmd_nmlchange} -f kpp.nml -e kpp_bbl -v .false.
         # calculate Langmuir number and enhancement factor from Stokes drift
         ${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
+
+        # relax velocity to zero with time scale of 5 days
+        ${cmd_nmlchange} -f obs.nml -e vel_relax_tau -v 432000
 
         # run GOTM
         ${cmd_gotm} 2> log.${outname}
