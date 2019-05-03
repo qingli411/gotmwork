@@ -1332,20 +1332,20 @@ class GOTMOutputDataMap(object):
         """
         tmp = GOTMOutputData(self._paths[0], init_time_location=False)
         prfl_dat = tmp.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs).data[:,zidx_start:zidx_end]
-        nt = data.shape[0]
-        nz = data.shape[1]
+        nt = prfl_dat.shape[0]
+        nz = prfl_dat.shape[1]
         dat = np.zeros([self.ncase, nt, nz])
         dat[0,:,:] = prfl_dat
         npcount = np.floor(self.ncase/20)
         for i in np.arange(self.ncase-1)+1:
             if np.mod(i, npcount) == 0:
-                print('{:4.1f} %'.format(i/self.ncase*100.0))
+                print('{:6.1f} %'.format(i/self.ncase*100.0))
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
             dat[i,:,:] = tmp.read_profile(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs).data[:,zidx_start:zidx_end]
         mdat = np.mean(dat, axis=(1,2))
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
-        print('{:4.1f} %'.format(100.0))
+        print('{:6.1f} %'.format(100.0))
         return out
 
     def mean_state_timeseries(self, var, fillvalue=None, tidx_start=None, tidx_end=None, **kwargs):
@@ -1366,7 +1366,7 @@ class GOTMOutputDataMap(object):
         npcount = np.floor(self.ncase/20)
         for i in np.arange(self.ncase-1)+1:
             if np.mod(i, npcount) == 0:
-                print('{:4.1f} %'.format(i/self.ncase*100.0))
+                print('{:6.1f} %'.format(i/self.ncase*100.0))
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
             dat[i,:] = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs).data
         if fillvalue is not None:
@@ -1374,7 +1374,7 @@ class GOTMOutputDataMap(object):
         mdat = dat.mean(axis=1)
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
-        print('{:4.1f} %'.format(100.0))
+        print('{:6.1f} %'.format(100.0))
         return out
 
     def delta_timeseries(self, var, fillvalue=None, tidx_start=None, tidx_end=None, **kwargs):
@@ -1394,7 +1394,7 @@ class GOTMOutputDataMap(object):
         npcount = np.floor(self.ncase/20)
         for i in np.arange(self.ncase-1)+1:
             if np.mod(i, npcount) == 0:
-                print('{:4.1f} %'.format(i/self.ncase*100.0))
+                print('{:6.1f} %'.format(i/self.ncase*100.0))
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
             dat[i,:] = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs).data
         if fillvalue is not None:
@@ -1402,7 +1402,7 @@ class GOTMOutputDataMap(object):
         mdat = dat[:,-1] - dat[:,0]
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
-        print('{:4.1f} %'.format(100.0))
+        print('{:6.1f} %'.format(100.0))
         return out
 
     def forcing_regime_map(self, forcing_reg_type='BG12', fillvalue=None, **kwargs):
@@ -1414,18 +1414,24 @@ class GOTMOutputDataMap(object):
 
         """
         forcing_regime = np.zeros(self.ncase)
+        npcount = np.floor(self.ncase/20)
         if forcing_reg_type == 'BG12':
             for i in np.arange(self.ncase):
+                if np.mod(i, npcount) == 0:
+                    print('{:6.1f} %'.format(i/self.ncase*100.0))
                 tmp = GOTMOutputData(self._paths[i], init_time_location=False)
                 forcing_regime[i] = tmp.diag_forcing_regime_BG12(**kwargs)
         elif forcing_reg_type == 'LF17':
             for i in np.arange(self.ncase):
+                if np.mod(i, npcount) == 0:
+                    print('{:6.1f} %'.format(i/self.ncase*100.0))
                 tmp = GOTMOutputData(self._paths[i], init_time_location=False)
                 forcing_regime[i] = tmp.diag_forcing_regime_LF17(**kwargs)
         else:
             raise ValueError('forcing regime name \'{}\' not supported.')
         # create GOTMMap object
         out = GOTMMap(data=forcing_regime, lon=self.lon, lat=self.lat, name='forcing_regime_'+forcing_reg_type)
+        print('{:6.1f} %'.format(100.0))
         return out
 
 #--------------------------------
