@@ -42,7 +42,7 @@ basepath = s1data_root+'/'+turbmethod
 s2data_name = s2data_root+'/data_mapts_surface_forcing_'+turbmethod+'.npz'
 # update data
 if update_data or not os.path.isfile(s2data_name):
-    print('Updating data for {} ...'.format(timetag))
+    print('Updating data for {} {} {}...'.format(casename, setupname, turbmethod))
     loclist = sorted(os.listdir(basepath))
     pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
     godmobj = GOTMOutputDataMap(pathlist)
