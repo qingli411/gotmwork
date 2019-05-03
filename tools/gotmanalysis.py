@@ -784,6 +784,7 @@ class GOTMOutputData(object):
                 'bld_nuh': self._get_bld_nuh,
                 'bld_tke': self._get_bld_tke,
                 'bld_kpp': self._get_bld_kpp,
+                'bld_epbl': self._get_bld_epbl,
                 'Nsqr_mld': self._get_Nsqr_mld,
                 'PE': self._get_pez
                 }
@@ -1108,6 +1109,17 @@ class GOTMOutputData(object):
         bld = self.dataset.variables['KPP_OSBL'][tidx_start:tidx_end,0,0]
         return np.abs(bld)
 
+    def _get_bld_epbl(self, tidx_start=None, tidx_end=None):
+        """Return the boundary layer depth in EPBL in the output
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (numpy array) mixed layer depth
+
+        """
+        bld = self.dataset.variables['ePBL_OSBL'][tidx_start:tidx_end,0,0]
+        return np.abs(bld)
+
     def _get_Nsqr_mld(self, tidx_start=None, tidx_end=None):
         """Find the stratification N^2 at the base of the
            mixed layer (density criterion)
@@ -1341,10 +1353,9 @@ class GOTMOutputDataMap(object):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
             ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs)
             if fillvalue is not None:
-                ts.data = np.where(ts.data == fillvalue, np.nan, ts.data)
+                ts.data[ts.data==fillvalue] = np.nan
             mdat[i] = ts.data.mean()
         # create GOTMMap object
-        mdat = np.where(mdat == fillvalue, np.nan, mdat)
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
         return out
 
@@ -1362,7 +1373,7 @@ class GOTMOutputDataMap(object):
             tmp = GOTMOutputData(self._paths[i], init_time_location=False)
             ts = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs)
             if fillvalue is not None:
-                ts.data = np.where(ts.data == fillvalue, np.nan, ts.data)
+                ts.data[ts.data==fillvalue] = np.nan
             mdat[i] = ts.data[-1] - ts.data[0]
         # create GOTMMap object
         out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)

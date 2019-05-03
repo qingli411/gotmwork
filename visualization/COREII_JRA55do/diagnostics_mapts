@@ -52,6 +52,7 @@ if update_data or not os.path.isfile(s2data_name):
     ustar = np.zeros([godmobj.ncase, godmobj.ntime-1])
     hbl = np.zeros([godmobj.ncase, godmobj.ntime-1])
     hbl_kpp = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    hbl_epbl = np.zeros([godmobj.ncase, godmobj.ntime-1])
     hml = np.zeros([godmobj.ncase, godmobj.ntime-1])
     lat = godmobj.lat
     lon = godmobj.lon
@@ -70,7 +71,11 @@ if update_data or not os.path.isfile(s2data_name):
             hbl_kpp[i,:] = tmp.read_timeseries('bld_kpp', ignore_time=True).data[1:]
         except:
             pass
+        try:
+            hbl_epbl[i,:] = tmp.read_timeseries('bld_epbl', ignore_time=True).data[1:]
+        except:
+            pass
     # save data
     np.savez(s2data_name, laturb=laturb, bflux=bflux, bflux_rad=bflux_rad, ustar=ustar, hbl=hbl,
-             hbl_kpp=hbl_kpp, hml=hml, lon=lon, lat=lat, time=time)
+             hml=hml, hbl_kpp=hbl_kpp, hbl_epbl=hbl_epbl, lon=lon, lat=lat, time=time)
 
