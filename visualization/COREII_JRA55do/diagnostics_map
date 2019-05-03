@@ -31,6 +31,8 @@ parser.add_argument('-m', '--turbmethod', action='store', dest='turbmethod',
         metavar='TURBMETHOD', required=True, help='name of turbulence closure method')
 parser.add_argument('-d', '--diagname', action='store', dest='diagname',
         metavar='DIAGNAME', required=True, help='name of diagnostics')
+parser.add_argument('-ref', '--refturbmethod', action='store', dest='reftm',
+        metavar='REFTURBMETHOD', help='reference turbmethod for mask')
 parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_data',
         help='update data')
 parser.add_argument('-M', '--mask', action='store_true', dest='l_gen_mask',
@@ -43,6 +45,10 @@ turbmethod = args.turbmethod
 diagname = args.diagname
 update_data = args.l_update_data
 gen_mask = args.l_gen_mask
+if not gen_mask and args.reftm is not None:
+    reftm = args.reftm
+else:
+    reftm = turbmethod
 
 # check for input arguments
 if setupname not in list_setup:
@@ -78,7 +84,7 @@ os.makedirs(s2data_root, exist_ok=True)
 # get diagnostics
 basepath = s1data_root+'/'+turbmethod
 s2data_name = s2data_root+'/data_map_'+diagname+'_'+turbmethod+'.npz'
-mask_name = s2data_root+'/mask_'+turbmethod+'.npz'
+mask_name = s2data_root+'/mask_'+reftm+'.npz'
 if update_data or not os.path.isfile(s2data_name):
     # update data
     print('Updating data for {} {} {}...'.format(casename, setupname, turbmethod))
