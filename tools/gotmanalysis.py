@@ -50,7 +50,7 @@ class GOTMProfile(object):
         self.name = name
         try:
             self.data_mean = np.mean(data, axis=0)
-        except TypeError:
+        except:
             self.data_mean = None
 
     def plot(self, axis=None, xlim=None, ylim=None,

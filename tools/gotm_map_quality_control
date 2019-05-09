@@ -18,6 +18,8 @@ parser.add_argument('-c', '--casename', action='store', dest='cname',
         metavar='CASENAME', required=True, help='Case name')
 parser.add_argument('-t', '--timetag', action='store', dest='ttag',
         metavar='TIMETAG', required=True, help='Time tag (yyyymmdd-yyyymmdd)')
+parser.add_argument('-m', '--basemethod', action='store', dest='bmethod',
+        metavar='BASEMETHOD', help='Base method')
 # parsing arguments and save to args
 args=parser.parse_args()
 
@@ -27,7 +29,11 @@ casename = args.cname
 timetag = args.ttag
 s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/VR1m_DT600s_'+timetag
 
-tmname = 'KPP-CVMix'
+if args.bmethod is None:
+    tmname = 'KPP-CVMix'
+else:
+    tmname = args.bmethod
+
 basepath = s1data_root+'/'+tmname
 loclist = sorted(os.listdir(basepath))
 pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]

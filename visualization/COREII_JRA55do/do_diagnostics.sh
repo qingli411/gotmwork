@@ -80,7 +80,7 @@ fi
 if [[ ${gen_mask} == "True" ]]; then
     s2_flag="-M"
 else
-    s2_flag=""
+    s2_flag="-ref KPP-CVMix"
 fi
 # print a summary
 echo "--------"
