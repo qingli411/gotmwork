@@ -2,7 +2,7 @@
 
 A work directory of [GOTM](http://gotm.net), which contains a set of scripts and tools to preprocess the input data, set up runs, and analyze and visualize the output data.
 
-__Latest version__: lt_v1.5.1, compatible with [GOTM version lt_v1.5.x](https://gitlab.com/fox-kemper_lab/gotm) and [CVMix version lt_v1.3](https://gitlab.com/fox-kemper_lab/CVMix-src).
+__Latest version__: lt_v1.5.2, compatible with [GOTM version lt_v1.5.x](https://github.com/qingli411/gotm) and CVMix versions [lt_v1.3](https://github.com/qingli411/CVMix-src/tree/lt_v1.3) or [v0.94b-beta](https://github.com/CVMix/CVMix-src/tree/v0.94b-beta).
 
 ---
 ## Quick Start
@@ -11,18 +11,24 @@ __Latest version__: lt_v1.5.1, compatible with [GOTM version lt_v1.5.x](https://
 Use `setup_gotmwork.sh` to check Python version (3.x) and required Python module, and set up the necessary environment variables. It only needs to be used once. It will generate a file `.gotmwork_env.sh` in the HOME directory which saves all the necessary environment variables.
 You may optionally add `source $HOME/.gotmwork_env.sh` in the file `$HOME/.bashrc` (bash shell) to automatically set up these environment variables when opening a new terminal.
 
-### How to build
-CVMix has to be built before building GOTM.See [CVMix Homepage](http://cvmix.github.io) for more information on how to build CVMix.
+### How to build 
+CVMix has to be built before building GOTM. See [CVMix Homepage](http://cvmix.github.io) for more information on how to build CVMix.
 Use `build_src.sh -build` or simply `build_src.sh` to compile GOTM.
 Use `build_src.sh -clean` to clean the old build.
 Use `build_src.sh -clean -build` to do a clean build.
 
 ### Preprocess data
+`./tools/` and `./scripts/` contain some [tools](#A-List-of-Tools) and [scripts](#A-List-of-Scripts) to preprocess data for GOTM.
+`./tools/gotmtool.py` provides functions (e.g., `write_ts()`, `write_pfl()` and `write_spec()`) to write data to file in the format that GOTM5 requires.
 
 ### Run a case
 Change directory to a test case (see [Test Cases](#Test-Cases) for more detail) and run `case_run`.
 
 ### Analysis & Visualization
+`./tools/gotmanalysis.py` provides classes and functions for data analysis and visualization. Some examples to use these classes and functions are in `./visualization/examples`. Some scripts for analysis and visualization depend on certain version of Python3 modules. A working [conda](https://docs.conda.io/en/latest/) environment can be created from `./gotm_env.yml`.
+```
+conda env create -f ./gotm_env.yml
+```
 
 ---
 ## Test Cases
@@ -33,16 +39,16 @@ Test cases. In each case, `case_test` sets up the namelist, preprocess the input
 Run one set of simulations in each 4 by 4 degree box to cover the global ocean, foced by CORE-II.
   - `case_test_multi` sets up multiple runs under CORE-II forcing.
   - `case_run_multi` is similar to `case_test_multi`, but uses preprocessed CORE-II data and is therefore significantly faster.
-  - `do_parallel` automatically submit parallel jobs to multiple cores.
+  - `do_parallel` automatically submit parallel jobs to multiple cores. 
   - `kill_all` kills all the jobs.
-  - `preproc_data` preprocesses the CORE-II data.
+  - `preproc_data` preprocesses the CORE-II data. 
 
 - __JRA55do__
 Run one set of simulations in each 4 by 4 degree box to cover the global ocean, foced by JRA55-do.
   - `case_run_multi` sets up multiple runs under JRA55-do forcing using preprocessed data.
-  - `do_parallel` automatically submit parallel jobs to multiple cores.
+  - `do_parallel` automatically submit parallel jobs to multiple cores. 
   - `kill_all` kills all the jobs.
-  - `preproc_data` preprocesses the JRA55-do data.
+  - `preproc_data` preprocesses the JRA55-do data. 
 
 - __OCSKEO__
 
@@ -57,9 +63,15 @@ Sensitivity test of different boundary layer schemes to different vertical resol
    - `OCSPapa` runs test case using OCS Papa data
    - `OSMOSIS` runs test case using OSMOSIS data
    - `COREII` runs test case using selected COREII data
-
 - __Idealized_Tests__
+Set up cases with constant surface forcing and idealzied initial conditions.
 - __Idealized_Hurricane__
+Set up the idealized hurricane cases of [Reichl et al., 2016](https://doi.org/10.1175/MWR-D-16-0074.1).
+- __Idealized_Tests_LF17__
+Set up idealized cases using the initial conditions and surface forcing conditions of Case S-L1 and Case S-B in [Li and Fox-Kemper, 2017](https://doi.org/10.1175/JPO-D-17-0085.1) (see their Table~1).
+- __Idealized_Tests_MSM97__
+Set up idealized cases using the initial conditions and surface forcing conditions of [McWilliams et al., 1997](https://doi.org/10.1017/S0022112096004375).
+
 
 ### Preprocessed Data
 
@@ -73,6 +85,8 @@ The preprocessed input data and namelists for [Test Cases](#Test-Cases) are in t
 - COREII_LAT2_LON234_20080601-20091231
 - Idealized
 - Idealized_Hurricane
+- Idealized_Tests_LF17
+- Idealized_Tests_MSM97
 
 In each directory the tool `update_nml` can be used to update the namelist from `./data/namelist/` in the case where new entries are added.
 
@@ -80,22 +94,22 @@ Also included in this directory are the data description files in XML format, wh
 
 ### Namelist
 
-All namelists are in the directory `./data/namelist/`. Use `init_namelist` to generate namelist from schemas in the source code.
+All namelists are in the directory `./data/namelist/`. Use `init_namelist` to generate namelist from schemas in the source code according to the type of turbulence closure. It require Python2 environment and the tool `editscenario`, which can be installed using the script `./scripts/install_python_tools.sh`.
 
 ---
 ## A List of Tools
 
 A list of tools in the directory `./tools/`.
-Most of the tools listed below are written in Python3, some in Bash script. The file `gotmtool.py` contains some shared Python3 functions used by many of the tools. Option `-h` can be used with all tools to get the usage.
+Most of the tools listed below are written in Python3, some in Bash script. The file `gotmtool.py` contains some shared Python3 functions used by many of the tools. Option `-h` can be used with all tools to get the usage. 
 
 | Tool name                  | Description |
 | -------------------------- |:----------- |
+| `argo_mld`                 | Read Argo temperature and salinity profiles in GOTM input data format and return mixed layer depth based on density threshold|
 | `case_preproc`             | Preprocess the input data for GOTM and modify the namelist according to the input xml file. |
 | `gotm_archive_data`        | Compress and archive GOTM output data. |
 | `gotm_extract_data`        | Extract data from archive generated by `gotm_archive_data`. |
 | `gotm_map_quality_control` | Remove runs with NaNs in the output data. |
 | `is_sea`                   | Check if the point given by latitude and longitude is a sea point. |
-| `init_namelist`            | Initialize namelist from schemas according to the type of turbulence closure. Require Python tool `editscenario`, which can be installed using the script `install_python_tools.sh`. |
 | `nc2dat`                   | Convert observational data (OCS etc.) in netCDF format to formatted text file for GOTM input. |
 | `nc2dat_argo`              | Convert Argo profile data in netCDF format to formatted text file for GOTM input. |
 | `nc2dat_cdip_spec`         | Convert CDIP wave spectrum data in netCDF format to formatted text file for GOTM input. |
@@ -115,7 +129,7 @@ Most of the tools listed below are written in Python3, some in Bash script. The 
 ---
 ## A List of Scripts
 
-A list of scripts in the directory `./scripts/`.
+A list of scripts in the directory `./scripts/`. 
 Bash scripts to setup the tools and runs, and Matlab and NCL scripts to preprocess the input data.
 
 | Script name                | Description |
@@ -128,7 +142,7 @@ Bash scripts to setup the tools and runs, and Matlab and NCL scripts to preproce
 | `core2_prep_meteo.ncl`     | NCL script to prepare meteorology data from CORE-II. |
 | `install_python_tools.sh`  | Bash script to download and install Python tools for GOTM from Github, including `editscenario`, `xmlstore`, `xmlplot` and `gotmgui`. |
 | `jar55do_prep_meteo.ncl`   | NCL script to prepare meteorology data from JRA55-do. |
-| `ocs_heatflux.ncl`         | NCL script to prepare the net heat flux (excluding shortwave) data from longwave, sensible and latent heat fluxes for GOTM.
+| `ocs_heatflux.ncl`         | NCL script to prepare the net heat flux (excluding shortwave) data from longwave, sensible and latent heat fluxes for GOTM. 
 | `roms_dz.m`                | Matlab script to generate ROMS style stretching vertical grid. |
 
 ### Other Scripts
