@@ -98,6 +98,30 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f gotmmean.nml -e lagrangian_mixing -v .false.
         ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .false.
         ;;
+    "EPBL-RH18")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100
+        ${cmd_nmlchange} -f MOMturb.nml -e mode -v 0
+        ${cmd_nmlchange} -f epbl.nml -e vstar_mode -v 1
+        ${cmd_nmlchange} -f epbl.nml -e vstar_surf_fac -v 1.8258
+        ${cmd_nmlchange} -f epbl.nml -e rh18_cn3 -v -6.0
+        ${cmd_nmlchange} -f epbl.nml -e vstar_scale_fac -v 0.5477
+        ${cmd_nmlchange} -f epbl.nml -e wstar_ustar_coef -v 15.
+        ${cmd_nmlchange} -f gotmmean.nml -e lagrangian_mixing -v .false.
+        ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .false.
+	;;
+    "EPBL-RL19")
+        ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 100
+        ${cmd_nmlchange} -f MOMturb.nml -e mode -v 0
+        ${cmd_nmlchange} -f epbl.nml -e vstar_mode -v 1
+        ${cmd_nmlchange} -f epbl.nml -e vstar_surf_fac -v 1.8258
+        ${cmd_nmlchange} -f epbl.nml -e rh18_cn3 -v -6.0
+        ${cmd_nmlchange} -f epbl.nml -e vstar_scale_fac -v 0.5477
+        ${cmd_nmlchange} -f epbl.nml -e wstar_ustar_coef -v 15.
+        ${cmd_nmlchange} -f gotmmean.nml -e lagrangian_mixing -v .false.
+        ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .false.
+        ${cmd_nmlchange} -f epbl.nml -e lt_enhance_form -v 3
+        ${cmd_nmlchange} -f epbl.nml -e lt_enhance_coef -v 0.1056
+        ;;
     *)
         echo "Turbulence method ${turbmethod} not supported. Stop."
         exit 1
