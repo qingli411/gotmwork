@@ -19,7 +19,7 @@ if [ ${l_test} == "yes" ]; then
     dtlist=(60)
 else
     # name of the turbulence model
-    turblist=(KPP-CVMix KPP-ROMS KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG)
+    turblist=(KPP-CVMix KPP-ROMS KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG EPBL-RH18 EPBL-RL19 )
     # vertical resolution
     #  1 m
     #  5 m

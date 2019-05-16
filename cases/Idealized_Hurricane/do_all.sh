@@ -7,7 +7,7 @@
 imodel_list=( )
 
 # list of turbulence models
-model_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK" "SMC" "SMCLT" "EPBL" "EPBL-LT" "OSMOSIS" "K-EPSILON-SG" )
+model_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK" "SMC" "SMCLT" "EPBL" "EPBL-LT" "OSMOSIS" "K-EPSILON-SG" "EPBL-RH18" "EPBL-RL19" )
 
 # run all the models if $imodel_list is empty
 if [[ ${#imodel_list[@]} -eq 0 ]]; then
