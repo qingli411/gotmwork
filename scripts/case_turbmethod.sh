@@ -106,6 +106,8 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f epbl.nml -e rh18_cn3 -v -6.0
         ${cmd_nmlchange} -f epbl.nml -e vstar_scale_fac -v 0.5477
         ${cmd_nmlchange} -f epbl.nml -e wstar_ustar_coef -v 15.
+        ${cmd_nmlchange} -f epbl.nml -e mstar_mode -v 3
+        ${cmd_nmlchange} -f epbl.nml -e nstar -v 0.06
         ${cmd_nmlchange} -f gotmmean.nml -e lagrangian_mixing -v .false.
         ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .false.
 	;;
@@ -117,6 +119,8 @@ case ${turbmethod} in
         ${cmd_nmlchange} -f epbl.nml -e rh18_cn3 -v -6.0
         ${cmd_nmlchange} -f epbl.nml -e vstar_scale_fac -v 0.5477
         ${cmd_nmlchange} -f epbl.nml -e wstar_ustar_coef -v 15.
+        ${cmd_nmlchange} -f epbl.nml -e mstar_mode -v 3
+        ${cmd_nmlchange} -f epbl.nml -e nstar -v 0.06
         ${cmd_nmlchange} -f gotmmean.nml -e lagrangian_mixing -v .false.
         ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .false.
         ${cmd_nmlchange} -f epbl.nml -e lt_enhance_form -v 3
