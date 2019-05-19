@@ -109,7 +109,7 @@ do
             title="${casename}_${sf_label}_${turbmethod}"
 
             # create run directory
-            rundir="${GOTMRUN_ROOT}/${casename}/${turbmethod}/${sf_label}"
+            rundir="${GOTMRUN_ROOT}/Idealized_Tests/${casename}/${turbmethod}/${sf_label}"
             mkdir -p ${rundir}
             cd ${rundir}
 

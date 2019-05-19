@@ -66,7 +66,7 @@ casename="${title}_${turbmethod}_${datestart}-${dateend}"
 #######################################################################
 
 # create run directory
-rundir="${GOTMRUN_ROOT}/${casename}"
+rundir="${GOTMRUN_ROOT}/Idealized_Tests/${casename}"
 mkdir -p ${rundir}
 cd ${rundir}
 

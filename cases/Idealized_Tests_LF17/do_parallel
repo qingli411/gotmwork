@@ -5,7 +5,7 @@
 # Qing Li, 20190109
 
 # number of parallel jobs
-njob=3
+njob=4
 
 # indices for turbulence models
 # - start from 0

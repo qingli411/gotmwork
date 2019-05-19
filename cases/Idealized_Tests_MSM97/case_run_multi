@@ -90,7 +90,7 @@ do
     title="${casename}_${wv_label}_${turbmethod}"
 
     # create run directory
-    rundir="${GOTMRUN_ROOT}/${casename}/${turbmethod}/${wv_label}"
+    rundir="${GOTMRUN_ROOT}/Idealized_Tests/${casename}/${turbmethod}/${wv_label}"
     mkdir -p ${rundir}
     cd ${rundir}
 

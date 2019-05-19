@@ -68,7 +68,7 @@ outname="gotm_out"
 #######################################################################
 
 # create run directory
-rundir="${GOTMRUN_ROOT}/${title}/${turbmethod}"
+rundir="${GOTMRUN_ROOT}/Idealized_Tests/${title}/${turbmethod}"
 mkdir -p ${rundir}/STORAGE
 cd ${rundir}
 
