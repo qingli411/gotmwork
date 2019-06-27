@@ -137,6 +137,7 @@ for dt in ${dtlist[@]}; do
     ${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
     ${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
     ${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+    ${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
     ${cmd_nmlchange} -f gotmrun.nml -e eq_state_method -v 4
     ${cmd_nmlchange} -f gotmmean.nml -e grid_method -v ${grid_method}
     ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
