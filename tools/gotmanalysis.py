@@ -1684,7 +1684,8 @@ def plot_forcing_regime_map(f_regime, axis=None, add_colorbar=True, **kwargs):
     # shift longitude
     lon_s = np.where(lon_s < 20., lon_s+360., lon_s)
     x_s, y_s = m(lon_s, lat_s)
-    fig_s = m.scatter(x_s, y_s, marker='*', s=6, c='black', linewidth=0.1, **kwargs)
+    # fig_s = m.scatter(x_s, y_s, marker='*', s=6, c='black', linewidth=0.1, **kwargs)
+    fig_s = m.scatter(x_s, y_s, marker='x', s=7, c='black', linewidth=0.4, **kwargs)
     # add colorbar
     if add_colorbar:
         cb = m.colorbar(fig, ax=axis, ticks=cb_ticks)
