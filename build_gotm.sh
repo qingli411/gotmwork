@@ -14,10 +14,10 @@ function usage() {
 # set paths
 # gotmwork environment file
 gotmwork_env_file="${HOME}/.gotmwork_env.sh"
-if [ -f ${gotmwork_env_file} ]; then
+if [[ -f ${gotmwork_env_file} ]]; then
     source ${gotmwork_env_file}
 else
-    echo "GOTMWORK environment not set. Use setup_gotmwork.sh to set it up."
+    echo "GOTMWORK environment not set. Use set_gotmwork_env.sh to set it up."
     exit 1
 fi
 
