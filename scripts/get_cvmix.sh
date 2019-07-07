@@ -16,7 +16,7 @@ gotmwork_env_file="${HOME}/.gotmwork_env.sh"
 if [[ -f ${gotmwork_env_file} ]]; then
     source ${gotmwork_env_file}
 else
-    echo "GOTMWORK environment not set. Use set_gotmwork_env.sh to set it up."
+    echo "** GOTMWORK environment not set. Use set_gotmwork_env.sh to set it up."
     exit 1
 fi
 
@@ -26,7 +26,7 @@ repo_root=${CVMIX_ROOT}
 # check if git exist
 git_exe=`which git`
 if [[ "${git_exe}" = "" ]]; then
-    echo -e "Git not found. Stop.\n"
+    echo -e "** Git not found. Stop.\n"
     exit 1
 fi
 

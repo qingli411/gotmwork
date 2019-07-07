@@ -20,7 +20,7 @@ gotmwork_env_file="${HOME}/.gotmwork_env.sh"
 if [[ -f ${gotmwork_env_file} ]]; then
     source ${gotmwork_env_file}
 else
-    echo "GOTMWORK environment not set. Use set_gotmwork_env.sh to set it up."
+    echo "** GOTMWORK environment not set. Use set_gotmwork_env.sh to set it up."
     exit 1
 fi
 
@@ -54,7 +54,7 @@ fi
 
 # clean build
 if [[ "${l_clean}" == "true" ]]; then
-    echo "Cleanning old CVMix build..."
+    echo "** Cleanning old CVMix build..."
     cd ${srcdir}
     make allclean
     cd - &> /dev/null
@@ -62,7 +62,7 @@ fi
 
 # build
 if [[ "${l_build}" == "true" ]]; then
-    echo "Building CVMix..."
+    echo "** Building CVMix..."
     cd ${srcdir}
     make
     cd - &> /dev/null

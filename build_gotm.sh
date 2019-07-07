@@ -19,7 +19,7 @@ gotmwork_env_file="${HOME}/.gotmwork_env.sh"
 if [[ -f ${gotmwork_env_file} ]]; then
     source ${gotmwork_env_file}
 else
-    echo "GOTMWORK environment not set. Use set_gotmwork_env.sh to set it up."
+    echo "** GOTMWORK environment not set. Use set_gotmwork_env.sh to set it up."
     exit 1
 fi
 
@@ -58,13 +58,13 @@ else
 fi
 
 if [[ "${l_clean}" == "true" ]]; then
-    echo "Cleanning old GOTM build..."
+    echo "** Cleanning old GOTM build..."
     # clean the build directory
     rm -rf ${blddir}
 fi
 
 if [[ "${l_build}" == "true" ]]; then
-    echo "Building GOTM..."
+    echo "** Building GOTM..."
     # create directory for build
     mkdir -p ${blddir}
     cd ${blddir}
