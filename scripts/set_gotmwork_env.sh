@@ -108,4 +108,5 @@ else
 fi
 
 # print out the environment file for confirmation
+echo -e "** Current environment variables:\n"
 cat ${gotmwork_env_file}

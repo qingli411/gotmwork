@@ -1,10 +1,11 @@
 #!/bin/bash
-# This script builds and installs GOTM code
+# This script builds CVMix code
+# Python2 is required to build CVMix. Starting from v0.95-beta, Python3 is supported.
 #
 # Qing Li, 20190706
 
 function usage() {
-    echo -e "\nBuild GOTM source code\n"
+    echo -e "\nBuild CVMix source code\n"
     echo -e "Usage:\n$0 [arguments]\n"
     echo -e "Build the source code without cleaning the old build"
     echo -e "if no arguments are used\n"
@@ -23,13 +24,7 @@ else
     exit 1
 fi
 
-blddir="${GOTMBUILD_ROOT}"
-srcdir="${GOTMCODE_ROOT}/src"
-exedir="${GOTMEXE_ROOT}"
-cvmixdir="${CVMIX_ROOT}"
-
-# flags to build GOTM with CVMix
-l_cvmix=true
+srcdir="${CVMIX_ROOT}/src"
 
 # flags to build and clean build
 l_build=false
@@ -57,32 +52,20 @@ else
     done
 fi
 
+# clean build
 if [[ "${l_clean}" == "true" ]]; then
-    echo "Cleanning old GOTM build..."
-    # clean the build directory
-    rm -rf ${blddir}
+    echo "Cleanning old CVMix build..."
+    cd ${srcdir}
+    make allclean
+    cd - &> /dev/null
 fi
 
+# build
 if [[ "${l_build}" == "true" ]]; then
-    echo "Building GOTM..."
-    # create directory for build
-    mkdir -p ${blddir}
-    cd ${blddir}
-    # create directory for exe
-    mkdir -p ${exedir}
+    echo "Building CVMix..."
+    cd ${srcdir}
+    make
+    cd - &> /dev/null
 
-    # build
-    if [[ "${l_cvmix}" == "true" ]]; then
-        cmake ${srcdir} -DGOTM_USE_FABM=false \
-            -DCMAKE_INSTALL_PREFIX:PATH=${exedir} \
-            -DGOTM_USE_CVMix=true
-    else
-        cmake ${srcdir} -DGOTM_USE_FABM=false \
-            -DCMAKE_INSTALL_PREFIX:PATH=${exedir} \
-            -DGOTM_USE_CVMix=false
-    fi
-
-    # install
-    make install
 fi
 

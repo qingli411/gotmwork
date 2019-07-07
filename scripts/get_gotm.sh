@@ -1,5 +1,7 @@
 #!/bin/bash
 # get GOTM from Github
+#
+# Qing Li, 20190706
 
 # GOTM tag for build
 repo_tag=lt_v1.7.0

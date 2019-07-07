@@ -1,7 +1,10 @@
 #!/bin/bash
 # get CVMix from Github
+#
+# Qing Li, 20190706
 
 # CVMix tag for build
+# v0.94b-beta or later is required for Langmuir options.
 repo_tag=v0.95-beta
 
 # address for acquiring CVMix source code
