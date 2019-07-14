@@ -142,7 +142,7 @@ echo -e "   the required Python packages. Therefore, it is recommended to create
 echo -e "   a conda environment for GOTM from ./gotm_env.yml to ensure compatibility."
 echo -e "   However, it may not be necessary if you already have these packages"
 echo -e "   installed. Check ./gotm_env.yml for required Python packages.\n"
-inquire_yes_no "Proceed to create a conda environment namded \"gotm\" and activate it?" "no"
+inquire_yes_no "Proceed to create a conda environment namded 'gotm' and activate it?" "no"
 set_conda=$(get_inquire "no")
 if [[ ${set_conda} == "yes" ]]; then
     ./set_conda_env.sh
