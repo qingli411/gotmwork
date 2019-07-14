@@ -2,33 +2,69 @@
 
 A work directory of [GOTM](http://gotm.net), which contains a set of scripts and tools to preprocess the input data, set up runs, and analyze and visualize the output data.
 
-__Latest version__: lt_v1.5.2, compatible with [GOTM version lt_v1.5.x](https://github.com/qingli411/gotm) and CVMix versions [lt_v1.3](https://github.com/qingli411/CVMix-src/tree/lt_v1.3) or [v0.94b-beta](https://github.com/CVMix/CVMix-src/tree/v0.94b-beta).
-
 ---
 ## Quick Start
 
-### Setup
-Use `setup_gotmwork.sh` to check Python version (3.x) and required Python module, and set up the necessary environment variables. It only needs to be used once. It will generate a file `.gotmwork_env.sh` in the HOME directory which saves all the necessary environment variables.
-You may optionally add `source $HOME/.gotmwork_env.sh` in the file `$HOME/.bashrc` (bash shell) to automatically set up these environment variables when opening a new terminal.
+### Installation
 
-### How to build 
-CVMix has to be built before building GOTM. See [CVMix Homepage](http://cvmix.github.io) for more information on how to build CVMix.
-Use `build_src.sh -build` or simply `build_src.sh` to compile GOTM.
-Use `build_src.sh -clean` to clean the old build.
-Use `build_src.sh -clean -build` to do a clean build.
+Create a local copy of `gotmwork` by
+
+```
+git clone https://github.com/qingli411/gotmwork
+```
+
+### Setup
+
+The script `setup_gotmwork.sh` provides a step-by-step guide to set up the work environment for GOTM. These steps include:
+
+1. Set up environment variables.
+2. Download source code of [CVMix](http://cvmix.github.io).
+3. Download source code of [GOTM](https://github.com/qingli411/gotm).
+4. Compile CVMix.
+5. Compile GOTM.
+6. Set up Python environment for GOTM via Conda.
+
+To use it, chanage directory to `gotmwork`, type in
+```
+./setup_gotmwork.sh
+```
+and follow the instructions.
+
+Here is a brief description of each step:
+
+- Step 1 generates a file `.gotmwork_env.sh` in the HOME directory which saves all the necessary environment variables. You may optionally add `source $HOME/.gotmwork_env.sh` in the file `$HOME/.bashrc` (bash shell) to automatically set up these environment variables when opening a new terminal.
+- Step 2 downloads the source code of CVMix from Github and checkout the required tag. See `scripts/get_cvmix.sh`.
+- Step 3 downloads the source code of GOTM from Github and checkout the required tag. See `scripts/get_gotm.sh`.
+- Step 4 compiles CVMix library using `build_cvmix.sh`. You will be asked to input a Fortran compiler (e.g., gfortran) and the path of netCDF when running it for the first time. See [CVMix Homepage](http://cvmix.github.io) for more information on how to build CVMix.
+- Step 5 compiles GOTM using `build_gotm.sh`. CVMix has to be built before building GOTM.
+- Step 6 sets up Python environment for [preprocess data ](#Preprocess-data) and [analysis & visualization](#Analysis-and-Visualization) using [Conda](https://docs.conda.io/en/latest/). It will create a new conda environment `gotm` from `gotm_env_*.yml` and activate it using `set_conda_env.sh`.
+
+
+### Comple CVMix and GOTM
+
+In cases of compiling steps are skipped when [setting up](#Setup) the gotmwork environment or source code of CVMix and GOTM are changes, CVMix and GOTM can be compiled by
+```
+./build_cvmix.sh [-clean] [-build]
+```
+and
+```
+./build_gotm.sh [-clean] [-build]
+```
+Use optional arguments `-build` to build, `-clean` to clean the old build, and `-clean -build` to do a clean build.
 
 ### Preprocess data
-`./tools/` and `./scripts/` contain some [tools](#A-List-of-Tools) and [scripts](#A-List-of-Scripts) to preprocess data for GOTM.
-`./tools/gotmtool.py` provides functions (e.g., `write_ts()`, `write_pfl()` and `write_spec()`) to write data to file in the format that GOTM5 requires.
+`tools/` and `scripts/` contain some [tools](#A-List-of-Tools) and [scripts](#A-List-of-Scripts) to preprocess data for GOTM.
+`tools/gotmtool.py` provides functions (e.g., `write_ts()`, `write_pfl()` and `write_spec()`) to write data to file in the format that GOTM5 requires.
 
 ### Run a case
-Change directory to a test case (see [Test Cases](#Test-Cases) for more detail) and run `case_run`.
+Change directory to a test case (see [Test Cases](#Test-Cases) for more detail) and run
+```
+./case_run
+```
 
-### Analysis & Visualization
-`./tools/gotmanalysis.py` provides classes and functions for data analysis and visualization. Some examples to use these classes and functions are in `./visualization/examples`. Some scripts for analysis and visualization depend on certain version of Python3 modules. A working [conda](https://docs.conda.io/en/latest/) environment can be created from `./gotm_env.yml`.
-```
-conda env create -f ./gotm_env.yml
-```
+### Analysis and Visualization
+`tools/gotmanalysis.py` provides classes and functions for data analysis and visualization. Some examples using these classes and functions are in `visualization/examples`.
+
 
 ---
 ## Test Cases
@@ -39,16 +75,16 @@ Test cases. In each case, `case_test` sets up the namelist, preprocess the input
 Run one set of simulations in each 4 by 4 degree box to cover the global ocean, foced by CORE-II.
   - `case_test_multi` sets up multiple runs under CORE-II forcing.
   - `case_run_multi` is similar to `case_test_multi`, but uses preprocessed CORE-II data and is therefore significantly faster.
-  - `do_parallel` automatically submit parallel jobs to multiple cores. 
+  - `do_parallel` automatically submit parallel jobs to multiple cores.
   - `kill_all` kills all the jobs.
-  - `preproc_data` preprocesses the CORE-II data. 
+  - `preproc_data` preprocesses the CORE-II data.
 
 - __JRA55do__
 Run one set of simulations in each 4 by 4 degree box to cover the global ocean, foced by JRA55-do.
   - `case_run_multi` sets up multiple runs under JRA55-do forcing using preprocessed data.
-  - `do_parallel` automatically submit parallel jobs to multiple cores. 
+  - `do_parallel` automatically submit parallel jobs to multiple cores.
   - `kill_all` kills all the jobs.
-  - `preproc_data` preprocesses the JRA55-do data. 
+  - `preproc_data` preprocesses the JRA55-do data.
 
 - __OCSKEO__
 
@@ -75,7 +111,7 @@ Set up idealized cases using the initial conditions and surface forcing conditio
 
 ### Preprocessed Data
 
-The preprocessed input data and namelists for [Test Cases](#Test-Cases) are in the directrory `./data/`:
+The preprocessed input data and namelists for [Test Cases](#Test-Cases) are in the directrory `data/`:
 
 - OCSPapa_20120101-20131204
 - OSMOSIS_winter
@@ -88,19 +124,19 @@ The preprocessed input data and namelists for [Test Cases](#Test-Cases) are in t
 - Idealized_Tests_LF17
 - Idealized_Tests_MSM97
 
-In each directory the tool `update_nml` can be used to update the namelist from `./data/namelist/` in the case where new entries are added.
+In each directory the tool `update_nml` can be used to update the namelist from `data/namelist/` in the case where new entries are added.
 
 Also included in this directory are the data description files in XML format, which are used by `case_preproc` to preprocess the input data.
 
 ### Namelist
 
-All namelists are in the directory `./data/namelist/`. Use `init_namelist` to generate namelist from schemas in the source code according to the type of turbulence closure. It require Python2 environment and the tool `editscenario`, which can be installed using the script `./scripts/install_python_tools.sh`.
+All namelists are in the directory `data/namelist/`. Use `init_namelist` to generate namelist from schemas in the source code according to the type of turbulence closure. It requires Python2 environment and the tool `editscenario`, which can be installed using the script `scripts/install_python_tools.sh`.
 
 ---
 ## A List of Tools
 
-A list of tools in the directory `./tools/`.
-Most of the tools listed below are written in Python3, some in Bash script. The file `gotmtool.py` contains some shared Python3 functions used by many of the tools. Option `-h` can be used with all tools to get the usage. 
+A list of tools in the directory `tools/`.
+Most of the tools listed below are written in Python3, some in Bash script. The file `gotmtool.py` contains some shared Python3 functions used by many of the tools. Option `-h` can be used with all tools to get the usage.
 
 | Tool name                  | Description |
 | -------------------------- |:----------- |
@@ -129,7 +165,7 @@ Most of the tools listed below are written in Python3, some in Bash script. The 
 ---
 ## A List of Scripts
 
-A list of scripts in the directory `./scripts/`. 
+A list of scripts in the directory `scripts/`.
 Bash scripts to setup the tools and runs, and Matlab and NCL scripts to preprocess the input data.
 
 | Script name                | Description |
@@ -140,18 +176,22 @@ Bash scripts to setup the tools and runs, and Matlab and NCL scripts to preproce
 | `cesm_prep_profiles.ncl`   | NCL script to prepare the temperature and salinity profiles from CESM output. |
 | `cesm_ww3a_to_gx1v6.ncl`   | NCL script to interpolate the WW3 output data onto POP grid gx1v6. |
 | `core2_prep_meteo.ncl`     | NCL script to prepare meteorology data from CORE-II. |
+| `get_cvmix.sh`             | Bash script to download CVMix source code from Github. |
+| `get_gotm.sh`              | Bash script to download GOTM source code from Github. |
 | `install_python_tools.sh`  | Bash script to download and install Python tools for GOTM from Github, including `editscenario`, `xmlstore`, `xmlplot` and `gotmgui`. |
 | `jar55do_prep_meteo.ncl`   | NCL script to prepare meteorology data from JRA55-do. |
-| `ocs_heatflux.ncl`         | NCL script to prepare the net heat flux (excluding shortwave) data from longwave, sensible and latent heat fluxes for GOTM. 
+| `ocs_heatflux.ncl`         | NCL script to prepare the net heat flux (excluding shortwave) data from longwave, sensible and latent heat fluxes for GOTM.
 | `roms_dz.m`                | Matlab script to generate ROMS style stretching vertical grid. |
+| `set_gotmwork_env.sh`      | Bash script to set up environment variables for GOTM. |
 
 ### Other Scripts
 
 Scripts in the root directory:
 
-- `build_src.sh` is a Bash script to build GOTM.
+- `build_cvmix.sh` is a Bash script to build GOTM.
+- `build_gotm.sh` is a Bash script to build GOTM.
 - `set_tools.sh` is a Bash script to set up paths and tools, used by `case_run`.
-- `setup_gotmwork.sh` is a Bash script to check Python version (3.x) and required Python module, and set up the necessary environment variables.
+- `setup_gotmwork.sh` is a Bash script to set up work environment for GOTM.
 
 
 
