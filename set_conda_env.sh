@@ -30,7 +30,7 @@ else
     echo -e "** Creating conda environment from ${GOTMWORK_ROOT}/gotm_env.yml..."
     conda env create -f ./gotm_env.yml
     # activate gotm environment
-    if [[ $? ==0 ]]; then
+    if [[ $? == 0 ]]; then
         echo -e "** Activating conda environment \"gotm\"..."
         conda activate gotm
     fi
