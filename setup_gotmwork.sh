@@ -117,10 +117,8 @@ if [[ ${bld_cvmix} == "yes" ]]; then
     ./build_cvmix.sh -clean -build
     check_error $? "build_cvmix.sh"
 else
-    echo -e "** Skip compiling CVMix. You may use"
-    echo -e "   ${GOTMWORK_ROOT}/build_cvmix.sh"
-    echo -e "   to compile CVMix. Note that CVMix needs"
-    echo -e "   to be compiled prior to compiling GOTM."
+    echo -e "** Skip compiling CVMix. You may use ./build_cvmix.sh to compile CVMix."
+    echo -e "   Note that CVMix needs to be compiled prior to compiling GOTM."
 fi
 
 # build GOTM
@@ -131,21 +129,19 @@ if [[ ${bld_gotm} == "yes" ]]; then
     ./build_gotm.sh -clean -build
     check_error $? "build_gotm.sh"
 else
-    echo -e "** Skip compiling GOTM. You may use"
-    echo -e "   ${GOTMWORK_ROOT}/build_gotm.sh"
-    echo -e "   to compile GOTM."
+    echo -e "** Skip compiling GOTM. You may use ./build_gotm.sh to compile GOTM."
 fi
 
 # check Python environment
 print_hline
-echo -e "** Python 3 is needed by many tools in ${GOTMWORK_ROOT}/tools"
-echo -e "   to preprocess input data for GOTM, and by the scripts and Jupyter notebooks in"
-echo -e "   ${GOTMWORK_ROOT}/visualization to postprocess and visualize the"
-echo -e "   results. Some tools and scripts may have dependencies on specific versions of the"
-echo -e "   required Python packages. Therefore, it is recommended to create a conda environment"
-echo -e "   for GOTM from ${GOTMWORK_ROOT}/gotm_env.yml to ensure compatibility."
-echo -e "   However, it may not be necessary if you already have these packages installed."
-echo -e "   Check ${GOTMWORK_ROOT}/gotm_env.yml for required Python packages.\n"
+echo -e "** Python 3 is needed by many tools in ./tools/ to preprocess input"
+echo -e "   data for GOTM, and by the scripts and Jupyter notebooks in"
+echo -e "   ./visualization/ to postprocess and visualize the results. Some"
+echo -e "   tools and scripts may have dependencies on specific versions of"
+echo -e "   the required Python packages. Therefore, it is recommended to create"
+echo -e "   a conda environment for GOTM from ./gotm_env.yml to ensure compatibility."
+echo -e "   However, it may not be necessary if you already have these packages"
+echo -e "   installed. Check ./gotm_env.yml for required Python packages.\n"
 inquire_yes_no "Proceed to create a conda environment namded \"gotm\" and activate it?" "no"
 set_conda=$(get_inquire "no")
 if [[ ${set_conda} == "yes" ]]; then
