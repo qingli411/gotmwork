@@ -24,6 +24,9 @@ if [[ -z ${conda_exe} ]]; then
     exit 1
 fi
 
+# check os
+os=$(uname)
+
 # check if conda environment "gotm" exists.
 # if not, create it.
 conda_envs=$(conda env list | awk '{print $1}')
@@ -33,7 +36,7 @@ if [[ ${conda_envs} =~ "gotm" ]]; then
     exit 0
 else
     echo -e "** Creating conda environment from ${GOTMWORK_ROOT}/gotm_env.yml..."
-    conda env create -f ./gotm_env.yml
+    conda env create -f ./gotm_env_${os}.yml
     # activate gotm environment
     if [[ $? == 0 ]]; then
         echo -e "** Activating conda environment \"gotm\"..."
