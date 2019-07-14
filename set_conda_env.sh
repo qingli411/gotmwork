@@ -16,6 +16,11 @@ fi
 conda_exe=$(which conda)
 if [[ -z ${conda_exe} ]]; then
     echo -e "** Conda not found. Stop.\n"
+    echo -e "** Follow instructions on"
+    echo -e "   https://docs.conda.io/en/latest/miniconda.html"
+    echo -e "   or"
+    echo -e "   https://www.anaconda.com/distribution/"
+    echo -e "   to install conda."
     exit 1
 fi
 

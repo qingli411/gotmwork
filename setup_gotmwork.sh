@@ -40,6 +40,48 @@ function get_inquire() {
     echo ${val}
 }
 
+# help information
+print_hline
+echo -e "** This script guides you through all the following steps to set up work"
+echo -e "   environment for GOTM."
+echo -e "     1. set up environment variables."
+echo -e "     2. download source code of CVMix."
+echo -e "     3. download source code of GOTM."
+echo -e "     4. compile CVMix."
+echo -e "     5. compile GOTM."
+echo -e "     6. set up Python environment for GOTM via Conda."
+echo -e "   Please follow the instructions and type in 'yes' or 'no' at each step.\n"
+echo -e "** Note:"
+echo -e "   A working fortran compiler (e.g., gfortran) and netCDF C and"
+echo -e "   Fortran libraries are required for compiling CVMix and GOTM."
+echo -e "   'nc-config' and 'nf-config' are used to determine the paths of"
+echo -e "   netCDF libraries. Open another terminal and type in the following"
+echo -e "   commands to check if they are installed:\n"
+echo -e "   > which gfortran"
+echo -e "   > which nc-config"
+echo -e "   > which nf-config\n"
+
+# a note for Mac user
+os=$(uname)
+if [[ ${os} == "Darwin" ]]; then
+    echo -e "** A note for Mac users:"
+    echo -e "   If netCDF libraries are installed using Homebrew,"
+    echo -e "   'nf-config' may not work correctly and give an error"
+    echo -e "   'nf-config not yet implemented for cmake builds'."
+    echo -e "   MacPort version seems fine. A workaround is to use your"
+    echo -e "   own 'nf-config' instead of the Homebrew version. An"
+    echo -e "   example (NetCDF v4.5.0 installed in '/usr/local' with"
+    echo -e "   Fortran compiler 'gfortran') is given in"
+    echo -e "   https://github.com/qingli411/gotm/blob/master/scripts/nf-config\n"
+fi
+
+# continue
+inquire_yes_no "Continue?" "yes"
+run_setup=$(get_inquire "yes")
+if [[ ${run_setup} == "no" ]]; then
+    echo -e "** Stop setting up work environment for GOTM."
+    exit 0
+fi
 
 # set up gotmwork environment variables
 print_hline
