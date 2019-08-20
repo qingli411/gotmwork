@@ -563,7 +563,8 @@
 !-------------------------------------------------------------------------------
 
 &stokes_drift
-   ustokes_method = 0,
+   us_prof_method = 0,
+   us_prof_file = '',
    nfreq = 64,
    spec_file = '',
    usp_file = '',

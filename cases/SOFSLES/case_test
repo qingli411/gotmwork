@@ -1,0 +1,137 @@
+#!/bin/bash
+# Setup and run GOTM for SOFSLES cases
+#
+# Qing Li, 20190820
+
+#######################################################################
+#                              Set paths                              #
+#######################################################################
+
+# setup paths and tools
+source "../../set_tools.sh"
+
+# input data directory
+inputdir="${GOTMDATA_ROOT}/SOFS/LES"
+
+# current path
+curdir=$(pwd)
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+# name of the dataset
+title="SOFSLES"
+cname="JunS"
+lat=-47.0
+lon=141.9
+
+# set levels, grid zooming at surface
+nlev=200
+ddu=0
+ddl=0
+
+# run parameters
+dt=600
+nsave=6
+
+# output file name
+outname="gotm_out"
+
+if [[ ${cname} == "AprN" ]]; then
+    start_time="2010-04-29 00:00:00"
+    stop_time="2010-05-01 01:00:00"
+    inputdata="${inputdir}/les-april_2010.no_stokes.nc"
+    depth=350
+elif [[ ${cname} == "AprS" ]]; then
+    start_time="2010-04-29 00:00:00"
+    stop_time="2010-05-01 04:00:00"
+    inputdata="${inputdir}/les-april_2010.with_stokes.nc"
+    depth=350
+elif [[ ${cname} == "JunN" ]]; then
+    start_time="2010-06-07 06:45:00"
+    stop_time="2010-06-08 21:15:00"
+    inputdata="${inputdir}/les-june_2010.no_stokes.nc"
+    depth=500
+elif [[ ${cname} == "JunS" ]]; then
+    start_time="2010-06-07 06:45:00"
+    stop_time="2010-06-08 23:45:00"
+    inputdata="${inputdir}/les-june_2010.with_stokes.nc"
+    depth=500
+fi
+
+# name of the turbulence model
+# turbmethod="KPPLT-EFACTOR"
+# turbmethod="KPPLT-ENTR"
+# turbmethod="KPP-CVMix"
+# turbmethod="SMCLT"
+turbmethod="SMC"
+# turbmethod="K-EPSILON-SG"
+
+# case name
+casename="${title}_${turbmethod}_${cname}"
+
+#######################################################################
+#                        Preprocess input data                        #
+#######################################################################
+
+# create run directory
+rundir="${GOTMRUN_ROOT}/${casename}"
+mkdir -p ${rundir}
+cd ${rundir}
+
+# preprocess input data
+${cmd_nc2dat_sofsles} -i ${inputdata} -c ${cname} -v TEMP -o tprof_file.dat -p
+${cmd_nc2dat_sofsles} -i ${inputdata} -c ${cname} -v UVEL VVEL -o vel_prof_file.dat -p
+${cmd_nc2dat_sofsles} -i ${inputdata} -c ${cname} -v USTKS VSTKS -o us_prof_file.dat -p
+${cmd_nc2dat_sofsles} -i ${inputdata} -c ${cname} -v wbsfc -o heatflux_file.dat
+${cmd_nc2dat_sofsles} -i ${inputdata} -c ${cname} -v tau_x tau_y -o tau_file.dat
+${cmd_nc2dat_sofsles} -i ${inputdata} -c ${cname} -v u10 v10 -o u10_file.dat
+
+# set up namelists
+cp ${nmldir}/*.nml ./
+
+${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
+${cmd_nmlchange} -f gotmrun.nml -e latitude -v ${lat}
+${cmd_nmlchange} -f gotmrun.nml -e longitude -v ${lon}
+${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
+${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
+${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
+${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
+
+
+# set obs
+${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
+${cmd_nmlchange} -f obs.nml -e t_prof_file -v "tprof_file.dat"
+${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
+${cmd_nmlchange} -f obs.nml -e s_prof_file -v "sprof_file.dat"
+${cmd_nmlchange} -f obs.nml -e vel_prof_method -v 2
+${cmd_nmlchange} -f obs.nml -e vel_prof_file -v "vel_prof_file.dat"
+${cmd_nmlchange} -f obs.nml -e us_prof_method -v 2
+${cmd_nmlchange} -f obs.nml -e us_prof_file -v "us_prof_file.dat"
+
+# set airsea
+${cmd_nmlchange} -f airsea.nml -e calc_fluxes -v .false.
+${cmd_nmlchange} -f airsea.nml -e calc_evaporation -v .false.
+${cmd_nmlchange} -f airsea.nml -e heat_method -v 2
+${cmd_nmlchange} -f airsea.nml -e heatflux_file -v "heatflux_file.dat"
+${cmd_nmlchange} -f airsea.nml -e momentum_method -v 2
+${cmd_nmlchange} -f airsea.nml -e momentumflux_file -v "tau_file.dat"
+${cmd_nmlchange} -f airsea.nml -e swr_method -v 0
+${cmd_nmlchange} -f airsea.nml -e precip_method -v 0
+${cmd_nmlchange} -f airsea.nml -e sst_method -v 0
+${cmd_nmlchange} -f airsea.nml -e sss_method -v 0
+
+# set turbulence method
+source ${scpt_case_turbmethod}
+
+#######################################################################
+#                              Run GOTM                               #
+#######################################################################
+${cmd_gotm} 2> log.${outname}
+

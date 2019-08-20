@@ -1,0 +1,163 @@
+#!/usr/bin/env python3
+"""
+Qing Li, 20171103
+"""
+import sys
+import argparse
+import numpy as np
+from netCDF4 import Dataset, num2date
+from gotmtool import nctime_to_datetime, nctime_indices, write_ts, write_pfl
+
+def main():
+    # process the input arguments
+    parser = argparse.ArgumentParser(description="""
+            Read a netCDF file and output variables in a text file in the GOTM
+            input file format. Currently support time series of surface fluxes
+            and time series of vertical profiles.""")
+    parser.add_argument('-i', '--input', action='store', dest='fname_in',
+            metavar='NCFILENAME', required=True, help='Input netCDF filename')
+    parser.add_argument('-c', '--casename', action='store', dest='cname_in',
+            metavar='CASENAME', required=True,
+            help='Case name, April or June')
+    parser.add_argument('-v', '--variable', action='store', dest='vname_in',
+            metavar='VARNAME', required=True, nargs='+',
+            help='Variable name in netCDF file, support multiple variables')
+    parser.add_argument('-o', '--output', action='store', dest='fname_out',
+            metavar='DATFILENAME', required=True, help='Output filename')
+    parser.add_argument('-p', '--profile', action='store_true', dest='lpfl',
+            help='Read profile')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
+    # parsing arguments and save to args
+    args=parser.parse_args()
+
+    # print out some message
+    print('Converting {} to {}...'.format(args.fname_in, args.fname_out))
+
+    # read netCDF file
+    infile = Dataset(args.fname_in, 'r')
+    varlist = infile.variables.keys()
+    attlist = infile.ncattrs()
+    casename = args.cname_in
+    isprofile = args.lpfl
+
+    # read time dimension
+    if 'time' in varlist:
+        nctime = infile.variables['time']
+    elif 'TIME' in varlist:
+        nctime = infile.variables['TIME']
+    else:
+        print('Time dimension is required and should have the name \"time\" or \"TIME\"')
+        sys.exit(1)
+
+    dttime = sofsles_nctime_to_datetime(nctime, case=casename) # time in datetime format
+
+    # get starting and ending indices
+    ntime = len(dttime)
+    tidx_start, tidx_end = 0, ntime-1
+    tdat = [dttime[i].strftime('%Y-%m-%d %H:%M:%S')
+            for i in range(tidx_start, tidx_end+1)] # truncated to seconds
+
+    if isprofile:
+        # get depth
+        if 'depth' in varlist:
+            ddat = infile.variables['depth'][:]
+        elif 'DEPTH' in varlist:
+            ddat = infile.variables['DEPTH'][:]
+        elif 'zu' in varlist:
+            ddat = infile.variables['zu'][:]
+        else:
+            ddat = 0.0
+
+        ddat = -abs(ddat)/100.
+        nd = ddat.size
+    else:
+        ddat = 0.0
+        nd = 1
+
+    # get global missing value
+    if 'missing_value' in attlist:
+        gmvalue = infile.missing_value
+    elif '_FillValue' in attlist:
+        gmvalue = infile._FillValue
+    else:
+        # turn off auto mask, handled in write_pfl()
+        infile.set_auto_mask(False)
+        gmvalue = np.nan
+
+    # read variables
+    vdat = []    # a list of arrays, an array for each variable
+    for vname in args.vname_in:
+        vdat.append(ncread(infile, vname,
+            tidxstart=tidx_start, tidxend=tidx_end+1))
+
+    # write to output file
+    if nd == 1:
+        # write time series
+        write_ts(args.fname_out, tdat, vdat, mask=gmvalue)
+    else:
+        # write profiles
+        write_pfl(args.fname_out, tdat, ddat, vdat, mask=gmvalue)
+
+def ncread(infile, *argv, tidxstart=None, tidxend=None):
+    """Read variables from a netCDF file.
+
+    :infile: (netCDF4 Dateset) input netCDF file
+    :*argv: (str) name of variables to read
+    :tidxstart: (int) start time index
+    :tidxend: (int) end time index
+    :returns: (list) value or netCDF object of requested variable
+
+    """
+    rdat = []
+    for vname in argv:
+        dat = infile.variables[vname]
+        if 'cm' in dat.units:
+            factor = 0.01
+        else:
+            factor = 1.0
+        if vname == 'wbsfc':
+            factor *= -1.
+
+        nsize = dat.ndim
+        if tidxstart is not None and tidxend is not None:
+            if nsize == 4:
+                odat = dat[tidxstart:tidxend, :, :, :]
+            elif nsize == 2:
+                odat = dat[tidxstart:tidxend, :]
+            elif nsize == 1:
+                odat = dat[tidxstart:tidxend]
+            else:
+                print('The variable {} has {} dimension, not supported'
+                        .format(vname, nsize))
+                sys.exit(1)
+        else:
+            odat = dat[:]
+        # append to var list
+        rdat.append(np.squeeze(odat*factor))
+
+    # return a list of arrays if more than one variable are requested
+    if len(rdat) == 1:
+        return rdat[0]
+    else:
+        return rdat
+
+def sofsles_nctime_to_datetime(nctime, case='AprN'):
+    ref_year = 2010
+    if 'Apr' in case:
+        ref_month = 4
+        ref_day = 29
+        ref_hour = 0
+        ref_minute = 0
+    elif 'Jun' in case:
+        ref_month = 6
+        ref_day = 7
+        ref_hour = 6
+        ref_minute = 45
+
+    units = 'seconds since {:04d}-{:02d}-{:02d} {:02d}:{:02d}:00'.format(ref_year, ref_month, ref_day, ref_hour, ref_minute)
+    cal = 'standard'
+    dttime = num2date(nctime[:], units=units, calendar=cal)
+    return dttime
+
+if __name__ == "__main__":
+    main()
