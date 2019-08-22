@@ -21,31 +21,20 @@ curdir=$(pwd)
 #######################################################################
 
 # name of the dataset
-title="SOFSLES"
-cname="JunS"
+cname=$1
+# cname="AprS"
+title="SOFSLES_${cname}"
 lat=-47.0
 lon=141.9
 
-# set levels, grid zooming at surface
-nlev=200
-ddu=0
-ddl=0
-
-# run parameters
-dt=600
-nsave=6
-
-# output file name
-outname="gotm_out"
-
 if [[ ${cname} == "AprN" ]]; then
     start_time="2010-04-29 00:00:00"
-    stop_time="2010-05-01 01:00:00"
+    stop_time="2010-05-01 02:00:00"
     inputdata="${inputdir}/les-april_2010.no_stokes.nc"
     depth=350
 elif [[ ${cname} == "AprS" ]]; then
     start_time="2010-04-29 00:00:00"
-    stop_time="2010-05-01 04:00:00"
+    stop_time="2010-05-01 04:30:00"
     inputdata="${inputdir}/les-april_2010.with_stokes.nc"
     depth=350
 elif [[ ${cname} == "JunN" ]]; then
@@ -60,16 +49,32 @@ elif [[ ${cname} == "JunS" ]]; then
     depth=500
 fi
 
+# set levels, grid zooming at surface
+nlev=${depth}
+ddu=0
+ddl=0
+
+# run parameters
+dt=600
+nsave=3
+
+# output file name
+outname="gotm_out"
+
+
 # name of the turbulence model
+turbmethod=$2
 # turbmethod="KPPLT-EFACTOR"
 # turbmethod="KPPLT-ENTR"
 # turbmethod="KPP-CVMix"
+# turbmethod="KPP-GOTM"
+# turbmethod="KPP-ROMS"
 # turbmethod="SMCLT"
-turbmethod="SMC"
+# turbmethod="SMC"
 # turbmethod="K-EPSILON-SG"
 
 # case name
-casename="${title}_${turbmethod}_${cname}"
+casename="${title}_${turbmethod}"
 
 #######################################################################
 #                        Preprocess input data                        #
@@ -88,6 +93,13 @@ ${cmd_nc2dat_sofsles} -i ${inputdata} -c ${cname} -v wbsfc -o heatflux_file.dat
 ${cmd_nc2dat_sofsles} -i ${inputdata} -c ${cname} -v tau_x tau_y -o tau_file.dat
 ${cmd_nc2dat_sofsles} -i ${inputdata} -c ${cname} -v u10 v10 -o u10_file.dat
 
+# set salinity to be constant
+cat > sprof_file.dat << SPROF
+${start_time}  2  2
+    0.0   35.0
+ -500.0   35.0
+SPROF
+
 # set up namelists
 cp ${nmldir}/*.nml ./
 
@@ -101,9 +113,18 @@ ${cmd_nmlchange} -f gotmrun.nml -e latitude -v ${lat}
 ${cmd_nmlchange} -f gotmrun.nml -e longitude -v ${lon}
 ${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
 ${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
+${cmd_nmlchange} -f gotmrun.nml -e eq_state_method -v 4
+${cmd_nmlchange} -f gotmrun.nml -e T0 -v 12.0
+${cmd_nmlchange} -f gotmrun.nml -e S0 -v 35.0
+${cmd_nmlchange} -f gotmrun.nml -e p0 -v 0.0
+${cmd_nmlchange} -f gotmrun.nml -e dtr0 -v -0.195
+${cmd_nmlchange} -f gotmrun.nml -e dsr0 -v 0.8
+${cmd_nmlchange} -f gotmmean.nml -e rho_0 -v 1026.6
 ${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
 ${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
 
+# calculate Langmuir number and enhancement factor from Stokes drift
+${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
 
 # set obs
 ${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
