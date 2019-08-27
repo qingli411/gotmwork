@@ -13,11 +13,20 @@ case ${turbmethod} in
     "SMC-C01A")
         ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 3
         ${cmd_nmlchange} -f gotmturb.nml -e tke_method -v 2
-        ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 8
-        ${cmd_nmlchange} -f gotmturb.nml -e scnd_method -v 1
+        ${cmd_nmlchange} -f gotmturb.nml -e len_scale_method -v 10
+        ${cmd_nmlchange} -f gotmturb.nml -e scnd_method -v 2
         ${cmd_nmlchange} -f gotmturb.nml -e scnd_coeff -v 5
         ${cmd_nmlchange} -f gotmturb.nml -e length_lim -v .false.
         ${cmd_nmlchange} -f gotmturb.nml -e compute_c3 -v .false.
+        ${cmd_nmlchange} -f gotmturb.nml -e gen_m -v 1.5
+        ${cmd_nmlchange} -f gotmturb.nml -e gen_n -v -1.0
+        ${cmd_nmlchange} -f gotmturb.nml -e gen_p -v 3.0
+        ${cmd_nmlchange} -f gotmturb.nml -e cpsi1 -v 1.44
+        ${cmd_nmlchange} -f gotmturb.nml -e cpsi2 -v 1.92
+        ${cmd_nmlchange} -f gotmturb.nml -e cpsi3minus -v -0.63
+        ${cmd_nmlchange} -f gotmturb.nml -e cpsi3plus -v 1.0
+        ${cmd_nmlchange} -f gotmturb.nml -e sig_kpsi -v 1.0
+        ${cmd_nmlchange} -f gotmturb.nml -e sig_psi -v 1.3
         ${cmd_nmlchange} -f gotmmean.nml -e lagrangian_mixing -v .false.
         ${cmd_nmlchange} -f gotmmean.nml -e stokes_coriolis -v .false.
         ;;
