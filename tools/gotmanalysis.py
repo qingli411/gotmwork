@@ -662,7 +662,9 @@ class GOTMOutputData(object):
                 'buoy': self._get_buoyancy,
                 'spice': self._get_spice,
                 'wt': self._get_wt,
-                'ws': self._get_ws
+                'ws': self._get_ws,
+                'wu': self._get_wu,
+                'wv': self._get_wv
                 }
         if list_keys:
             return list(switcher.keys())
@@ -761,6 +763,58 @@ class GOTMOutputData(object):
         ws[:,-1] = ws0
         ws[:,0:-1] = -2.0*nus[:,1:-1]*(salt[:,1:]-salt[:,0:-1])/(h[:,1:]+h[:,0:-1]) + gams[:,1:-1]
         return ws, zi
+
+    def _get_wu(self, tidx_start=None, tidx_end=None):
+        """Find the vertical momentum flux x-component (m^2/s^2)
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (numpy array) surface buoyancy flux
+
+        """
+        # u velocity profiles
+        uvel = self.dataset.variables['u'][tidx_start:tidx_end,:,0,0]
+        # turbulent viscosity
+        num  = self.dataset.variables['num'][tidx_start:tidx_end,:,0,0]
+        # nonlocal flux of momentum, x-component
+        gamu = self.dataset.variables['gamu'][tidx_start:tidx_end,:,0,0]
+        # layer thickness
+        h    = self.dataset.variables['h'][tidx_start:tidx_end,:,0,0]
+        # depth
+        zi   = self.dataset.variables['zi'][0,1:,0,0]
+        # surface momentum flux
+        wu0  = -self.dataset.variables['tx'][tidx_start:tidx_end,0,0]
+        # vertical momentum flux
+        wu = np.zeros(uvel.shape)
+        wu[:,-1] = wu0
+        wu[:,0:-1] = -2.0*num[:,1:-1]*(uvel[:,1:]-uvel[:,0:-1])/(h[:,1:]+h[:,0:-1]) + gamu[:,1:-1]
+        return wu, zi
+
+    def _get_wv(self, tidx_start=None, tidx_end=None):
+        """Find the vertical momentum flux y-component (m^2/s^2)
+
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (numpy array) surface buoyancy flux
+
+        """
+        # v velocity profiles
+        vvel = self.dataset.variables['v'][tidx_start:tidx_end,:,0,0]
+        # turbulent viscosity
+        num  = self.dataset.variables['num'][tidx_start:tidx_end,:,0,0]
+        # nonlocal flux of momentum, y-component
+        gamv = self.dataset.variables['gamv'][tidx_start:tidx_end,:,0,0]
+        # layer thickness
+        h    = self.dataset.variables['h'][tidx_start:tidx_end,:,0,0]
+        # depth
+        zi   = self.dataset.variables['zi'][0,1:,0,0]
+        # surface momentum flux
+        wv0  = -self.dataset.variables['ty'][tidx_start:tidx_end,0,0]
+        # vertical momentum flux
+        wv = np.zeros(vvel.shape)
+        wv[:,-1] = wv0
+        wv[:,0:-1] = -2.0*num[:,1:-1]*(vvel[:,1:]-vvel[:,0:-1])/(h[:,1:]+h[:,0:-1]) + gamv[:,1:-1]
+        return wv, zi
 
     def _get_derived_timeseries(self, name=None, list_keys=False):
         """Find the derived variable
