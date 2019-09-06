@@ -1576,7 +1576,7 @@ def plot_regime_diagram_background_BG12(axis=None):
     axis.text(0.3, 3.1e2, '3', color='k', fontsize=8, rotation=39)
     axis.text(0.12, 5e2, '4', color='k', fontsize=8, rotation=40)
     axis.text(0.11, 4e-3, 'Langmuir', bbox=dict(boxstyle="square",ec='k',fc='w'))
-    axis.text(3, 4e-3, 'Wind', bbox=dict(boxstyle="square",ec='k',fc='w'))
+    axis.text(3, 4e-3, 'Shear', bbox=dict(boxstyle="square",ec='k',fc='w'))
     axis.text(0.13, 1e2, 'Convection', bbox=dict(boxstyle="square",ec='k',fc='w'))
 
 
@@ -1635,7 +1635,7 @@ def plot_regime_diagram_background_L19(axis=None):
     axis.set_ylabel('$h/L_L$')
     axis.set_aspect(aspect=1/3)
     axis.text(0.11, 4e-3, 'Langmuir', bbox=dict(boxstyle="square",ec='k',fc='w'))
-    axis.text(3, 4e-3, 'Wind', bbox=dict(boxstyle="square",ec='k',fc='w'))
+    axis.text(3, 4e-3, 'Shear', bbox=dict(boxstyle="square",ec='k',fc='w'))
     axis.text(0.13, 1e2, 'Convection', bbox=dict(boxstyle="square",ec='k',fc='w'))
 
 
