@@ -11,6 +11,7 @@ list_turbmethod = ['KPP-CVMix',
                    'SMC',
                    'SMCLT',
                    'K-EPSILON-SG',
+                   'SMC-C01A',
                    'OSMOSIS']
 
 # list of name of the turbulence closure methods (for display)
@@ -24,6 +25,7 @@ list_tmname = ['KPP-CVMix',
                'SMC-KC94',
                'SMCLT-H15',
                '$k$-$\epsilon$-SG95',
+               'SMC-C01A',
                'OSMOSIS']
 
 # list of simulation setup

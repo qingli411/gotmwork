@@ -4,10 +4,10 @@
 source ../../set_tools.sh
 
 # flag for updating data
-update_data=False
+update_data=True
 
 # generate mask
-gen_mask=True
+gen_mask=False
 
 # number of parallel jobs
 njob=4
@@ -45,7 +45,7 @@ setup_list=( \
           )
 
 # list of turbulence models
-model_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK" "SMC" "SMCLT" "EPBL" "EPBL-LT" "OSMOSIS" "K-EPSILON-SG" )
+model_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK" "SMC" "SMCLT" "EPBL" "EPBL-LT" "OSMOSIS" "K-EPSILON-SG" "EPBL-RH18" "EPBL-RL19" "SMC-C01A" )
 
 # run all the dates if $isetup_list is empty
 if [[ ${#isetup_list[@]} -eq 0 ]]; then

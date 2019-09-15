@@ -74,7 +74,7 @@ ddl=0
 
 # run parameters
 dt=600
-# set output frequency (6-hourly output)
+# set output frequency (3-hourly output)
 let nsave=10800/dt
 
 # output file name
@@ -82,7 +82,7 @@ outname="gotm_out"
 
 # setup
 dz=$((maxdepth/nlev))
-setup="${title}_Global_dampV5d/VR${dz}m_DT${dt}s_${date_start}-${date_end}"
+setup="${title}_Global_dampV5d_3h/VR${dz}m_DT${dt}s_${date_start}-${date_end}"
 
 #######################################################################
 #                         Loop over locations                         #

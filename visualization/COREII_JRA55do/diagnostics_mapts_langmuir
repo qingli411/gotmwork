@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import numpy as np
+import argparse
+sys.path.append(os.environ['GOTMWORK_ROOT']+'/tools')
+from gotmanalysis import GOTMOutputData, GOTMOutputDataMap
+from core2jra55do import list_turbmethod, list_setup
+
+# process the input arguments
+parser = argparse.ArgumentParser(description="""
+        Compute timeseries of diagnostics for Langmuir and save in data.\n""",
+            formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('-c', '--casename', action='store', dest='casename',
+        metavar='CASENAME', required=True, help='case name')
+parser.add_argument('-s', '--setupname', action='store', dest='setupname',
+        metavar='SETUPNAME', required=True, help='name of the setup')
+parser.add_argument('-m', '--turbmethod', action='store', dest='turbmethod',
+        metavar='TURBMETHOD', required=True, help='name of turbulence closure method')
+parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_data',
+        help='Update data')
+# parsing arguments and save to args
+args=parser.parse_args()
+casename = args.casename
+setupname = args.setupname
+turbmethod = args.turbmethod
+update_data = args.l_update_data
+
+# check for input arguments
+if setupname not in list_setup:
+    raise ValueError('Simulation setup \'{}\' not supported.'.format(setupname))
+
+if turbmethod not in list_turbmethod:
+    raise ValueError('Turbulence closure method \'{}\' not supported.'.format(turbmethod))
+
+# generate surface forcing data
+s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/'+setupname
+s2data_root = os.environ['GOTMFIG_ROOT']+'/data/'+casename+'/'+setupname
+os.makedirs(s2data_root, exist_ok=True)
+basepath = s1data_root+'/'+turbmethod
+s2data_name = s2data_root+'/data_mapts_Langmuir_'+turbmethod+'.npz'
+# update data
+if update_data or not os.path.isfile(s2data_name):
+    print('Updating data for {} {} {}...'.format(casename, setupname, turbmethod))
+    loclist = sorted(os.listdir(basepath))
+    pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
+    godmobj = GOTMOutputDataMap(pathlist)
+    laturb = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    lasl = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    laslp1 = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    laslp2 = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    theta_wl = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    theta_ww = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    bflux = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    ustar = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    hml = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    hbl = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    lat = godmobj.lat
+    lon = godmobj.lon
+    time = godmobj.time[1:]
+    for i in np.arange(godmobj.ncase):
+        if np.mod(i, 100) == 0:
+            print('{:6.2f} %'.format(i/godmobj.ncase*100.0))
+        tmp = GOTMOutputData(godmobj._paths[i], init_time_location=False)
+        laturb[i,:] = tmp.read_timeseries('La_Turb', ignore_time=True).data[1:]
+        lasl[i,:] = tmp.read_timeseries('La_SL', ignore_time=True).data[1:]
+        laslp1[i,:] = tmp.read_timeseries('La_SLP1', ignore_time=True).data[1:]
+        laslp2[i,:] = tmp.read_timeseries('La_SLP2', ignore_time=True).data[1:]
+        theta_wl[i,:] = tmp.read_timeseries('theta_WL', ignore_time=True).data[1:]
+        theta_ww[i,:] = tmp.read_timeseries('theta_WW', ignore_time=True).data[1:]
+        bflux[i,:] = tmp.read_timeseries('bflux', ignore_time=True).data[1:]
+        ustar[i,:] = tmp.read_timeseries('u_taus', ignore_time=True).data[1:]
+        hml[i,:] = tmp.read_timeseries('mld_deltaR', ignore_time=True).data[1:]
+        hbl[i,:] = tmp.read_timeseries('bld_nuh', ignore_time=True).data[1:]
+    # save data
+    np.savez(s2data_name, laturb=laturb, lasl=lasl, laslp1=laslp1, laslp2=laslp2,
+             theta_wl=theta_wl, theta_ww=theta_ww,
+             bflux=bflux, ustar=ustar, hml=hml, hbl=hbl,
+             lon=lon, lat=lat, time=time)
+
