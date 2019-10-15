@@ -1,6 +1,6 @@
 #!/bin/bash
 # This script initializes namelist from the schemas in the GOTM source code
-# The python tool `editscenario` is required, which uses python2
+# The python tool `editscenario` (https://github.com/BoldingBruggeman/editscenario) is required
 
 function print_usage() {
     echo "usage: init_namelist [-h] [-t TURBMETHOD]"
@@ -18,11 +18,6 @@ function print_usage() {
     echo "            99: KPP model"
     echo "           100: MOM turbulence model"
     exit 1
-}
-
-function python_version() {
-    # Return 2 if in Python 2.x environment, 3 if in Python 3.x environment
-    python -c "import sys; print(sys.version_info[0])"
 }
 
 # argument
@@ -49,17 +44,6 @@ else
     exit 1
 fi
 
-# check python version
-if [[ $(python_version) == 3 ]]; then
-    l_python3=true
-fi
-
-if [[ "${l_python3}" == "true" ]]; then
-    # enter python2 environment (can be set up using Anaconda)
-    echo "Entering Python2 environment..."
-    source activate py27
-fi
-
 if [ -x "$(command -v editscenario)" ]; then
     # use editscenario to generate the namelist from schemas
     editscenario --schemadir=${GOTMCODE_ROOT}/schemas --targetversion=gotm-5.0 -e nml . ${GOTMCODE_ROOT}/schemas/gotm-5.0.defaults --skipvalidation --assignments turb_method=${turbmethod}
@@ -68,8 +52,3 @@ else
     exit 1
 fi
 
-if [[ "${l_python3}" == "true" ]]; then
-    # exit python2 environment
-    echo "Exiting Python2 environment..."
-    source deactivate py27
-fi
