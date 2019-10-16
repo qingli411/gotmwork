@@ -1,0 +1,66 @@
+#!/bin/bash
+
+source "../../../set_tools.sh"
+
+cp ${nmldir}/*.nml ./
+
+#--------------------------------
+# MOMturb.nml
+#--------------------------------
+# airsea.nml
+nml="airsea.nml"
+${cmd_nmlchange} -f ${nml} -e heat_method -v 2
+${cmd_nmlchange} -f ${nml} -e heatflux_file -v 'heatflux_file.dat'
+${cmd_nmlchange} -f ${nml} -e swr_method -v 0
+${cmd_nmlchange} -f ${nml} -e momentum_method -v 2
+${cmd_nmlchange} -f ${nml} -e momentumflux_file -v 'tau_file.dat'
+#--------------------------------
+# epbl.nml
+#--------------------------------
+# gotmmean.nml
+nml="gotmmean.nml"
+${cmd_nmlchange} -f ${nml} -e rho_0 -v 1026.6
+#--------------------------------
+# gotmrun.nml
+nml="gotmrun.nml"
+${cmd_nmlchange} -f ${nml} -e title -v 'SOFSLES_AprN'
+${cmd_nmlchange} -f ${nml} -e nlev -v 350
+${cmd_nmlchange} -f ${nml} -e dt -v 600
+${cmd_nmlchange} -f ${nml} -e name -v 'SOFSLES'
+${cmd_nmlchange} -f ${nml} -e latitude -v -47.0
+${cmd_nmlchange} -f ${nml} -e longitude -v 141.9
+${cmd_nmlchange} -f ${nml} -e depth -v 350.0
+${cmd_nmlchange} -f ${nml} -e start -v '2010-04-29 00:00:00'
+${cmd_nmlchange} -f ${nml} -e stop -v '2010-05-01 02:00:00'
+${cmd_nmlchange} -f ${nml} -e out_fn -v 'gotm_out'
+${cmd_nmlchange} -f ${nml} -e nsave -v 3
+${cmd_nmlchange} -f ${nml} -e eq_state_method -v 4
+${cmd_nmlchange} -f ${nml} -e T0 -v 12.0
+${cmd_nmlchange} -f ${nml} -e dtr0 -v -0.195
+${cmd_nmlchange} -f ${nml} -e dsr0 -v 0.8
+#--------------------------------
+# gotmturb.nml
+#--------------------------------
+# jhl.nml
+#--------------------------------
+# kpp.nml
+#--------------------------------
+# langmuir.nml
+nml="langmuir.nml"
+${cmd_nmlchange} -f ${nml} -e langmuir_number_method -v 4
+#--------------------------------
+# obs.nml
+nml="obs.nml"
+${cmd_nmlchange} -f ${nml} -e s_prof_method -v 2
+${cmd_nmlchange} -f ${nml} -e s_prof_file -v 'sprof_file.dat'
+${cmd_nmlchange} -f ${nml} -e t_prof_method -v 2
+${cmd_nmlchange} -f ${nml} -e t_prof_file -v 'tprof_file.dat'
+${cmd_nmlchange} -f ${nml} -e vel_prof_method -v 2
+${cmd_nmlchange} -f ${nml} -e vel_prof_file -v 'vel_prof_file.dat'
+${cmd_nmlchange} -f ${nml} -e us_prof_method -v 2
+${cmd_nmlchange} -f ${nml} -e us_prof_file -v 'us_prof_file.dat'
+#--------------------------------
+# osm.nml
+#--------------------------------
+# seagrass.nml
+#--------------------------------

@@ -1,0 +1,74 @@
+!-------------------------------------------------------------------------------
+! KPP turbulence model
+!-------------------------------------------------------------------------------
+! kpp_sbl         [bool]
+!                   .true. for active surface boundary layer module
+! kpp_bbl         [bool]
+!                   .true. for active bottom boundary layer module
+! kpp_interior    [bool]
+!                   .true. for active interior mixing
+! clip_mld        [bool]
+!                   .true. for clipping of MLD at MO or Ekman scale
+! Ric             [float]
+!                   critical value of bulk Richardson number
+! kpp_opt         [integer]
+!                   KPP options
+!                   0: Default formulation in GOTM
+!                   1: CVMix
+!                   2: ROMS-UCLA
+! lnoDGat1        [bool]
+!                   .true. for setting G'(0) = 0
+!                   This variable is only used if kpp_opt = 1
+! interp_type     [string]
+!                   interpolation method used to interpolate bulk Richardson
+!                     number
+!                   linear: Linear interpolation
+!                   quadratic: Quadratic interpolation (default if not set)
+!                   cubic: Cubic spline interpolation
+!                   This variable is only used if kpp_opt = 1
+! interp_type2    [string]
+!                   interpolation method used to interpolate diff and visc at
+!                     OBL depth
+!                   linear: Linear interpolation
+!                   quadratic: Quadratic interpolation
+!                   cubic: Cubic spline interpolation
+!                   cubic: Following LMD94 (default if not set)
+!                   This variable is only used if kpp_opt = 1
+! MatchTechnique  [string]
+!                   interpolation method used to interpolate diff and visc at
+!                     OBL depth
+!                   SimpleShapes: Shape functions for both the gradient and
+!                     nonlocal terms vanish at interface (default if not set)
+!                   MatchGradient: Shape function for nonlocal term vanishes at
+!                     interface, but gradient term matches interior values
+!                   MatchBoth: Shape functions for both the gradient and
+!                     nonlocal term match interior values at interface
+!                   ParabolicNonLocal: Shape function for the nonlocal term is
+!                     (1-sigma)^2, gradient term is sigma*(1-sigma)^2
+!                   This variable is only used if kpp_opt = 1
+! langmuir_method [integer]
+!                   method to include Langmuir turbulence
+!                   0: none
+!                   1: Langmuir mixing from an enhancement factor (Li et al.,
+!                     2016)
+!                   2: Langmuir mixing + Langmuir enhanced entrainment (Li and
+!                     Fox-Kemper, 2017)
+!                   3: Langmuir mixing + Langmuir enhanced Vt2 (Reichl et al.,
+!                     2016)
+!                   This variable is only used if kpp_opt = 1
+!-------------------------------------------------------------------------------
+
+&kpp
+   kpp_sbl = .true.,
+   kpp_bbl = .false.,
+   kpp_interior = .true.,
+   clip_mld = .false.,
+   Ric = 0.3,
+   kpp_opt = 0,
+   lnoDGat1 = .true.,
+   interp_type = 'quadratic',
+   interp_type2 = 'LMD94',
+   MatchTechnique = 'SimpleShapes',
+   langmuir_method = 0,
+/
+

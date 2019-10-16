@@ -1,0 +1,23 @@
+!-------------------------------------------------------------------------------
+! Langmuir turbulence parameters
+!-------------------------------------------------------------------------------
+! langmuir_number_method [integer]
+!                          method to compute enhancement factor
+!                          0: No Langmuir number is computed
+!                          1: approximated by a simple model based on empirical
+!                            wave spectrum (Li et al., 2017)
+!                          2: read from file langmuir_number_file
+!                          3: compute from input wave spectrum
+!                          4: compute from Stokes drift
+!                          5: read from hurricane data
+! langmuir_number_file   [file path]
+!                          file with Langmuir number
+!                          This variable is only used if langmuir_number_method
+!                            = 2
+!-------------------------------------------------------------------------------
+
+&langmuir
+   langmuir_number_method = 4,
+   langmuir_number_file = '',
+/
+

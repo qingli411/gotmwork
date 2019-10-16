@@ -1,0 +1,80 @@
+#!/bin/bash
+# Run GOTM using preprocessed data for SOFSLES cases
+# Require a base case which contains the preprocessed input data
+# and namelist, e.g., as a result of case_test
+#
+# Qing Li, 20191015
+
+#######################################################################
+#                              Set paths                              #
+#######################################################################
+
+# setup paths and tools
+source "../../set_tools.sh"
+
+# case name (AprN, AprS, JunN, JunS)
+cname="AprS"
+
+# directory of base case
+basecase="${GOTMWORK_ROOT}/data/SOFSLES/${cname}"
+
+# current path
+curdir=$(pwd)
+
+#######################################################################
+#                           Set parameters                            #
+#######################################################################
+
+title="SOFSLES_${cname}"
+
+# set levels, grid zooming at surface
+ddu=0
+ddl=0
+
+# run parameters
+dt=600
+nsave=3
+
+# output file name
+outname="gotm_out"
+
+# name of the turbulence model
+# turbmethod="KPPLT-EFACTOR"
+# turbmethod="KPPLT-ENTR"
+turbmethod="KPP-CVMix"
+# turbmethod="KPP-GOTM"
+# turbmethod="KPP-ROMS"
+# turbmethod="SMCLT"
+# turbmethod="SMC"
+# turbmethod="K-EPSILON-SG"
+
+# case name
+casename="${title}_${turbmethod}"
+
+#######################################################################
+#                        Preprocess input data                        #
+#######################################################################
+
+# create run directory
+rundir="${GOTMRUN_ROOT}/SOFSLES/${casename}"
+mkdir -p ${rundir}
+cd ${rundir}
+
+# input data and namelist
+cp ${basecase}/* ./
+
+${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+${cmd_nmlchange} -f gotmmean.nml -e ddu -v ${ddu}
+${cmd_nmlchange} -f gotmmean.nml -e ddl -v ${ddl}
+
+# set turbulence method
+source ${scpt_case_turbmethod}
+
+#######################################################################
+#                              Run GOTM                               #
+#######################################################################
+${cmd_gotm} 2> log.${outname}
+
