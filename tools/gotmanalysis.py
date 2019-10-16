@@ -19,14 +19,6 @@ cp = 3985.0
 kappa = 0.4
 # reference density of seawater (kg/m^3)
 rho_0 = 1027.0
-# reference salinity (psu)
-S_0 = 35.0
-# reference temperature (degC)
-T_0 = 10.0
-# constant thermal expansion coefficient (1/degC)
-alpha_0 = 1.65531e-4
-# constant saline contraction coefficient (1/psu)
-beta_0 = 7.59494e-4
 
 #--------------------------------
 # GOTMProfile
@@ -673,12 +665,18 @@ class GOTMOutputData(object):
         else:
             raise ValueError('Variable \'{}\' not found.'.format(name))
 
-    def _get_buoyancy(self, tidx_start=None, tidx_end=None):
+    def _get_buoyancy(self, tidx_start=None, tidx_end=None, \
+                      T_0=10.0, S_0=35.0, \
+                      alpha_0=1.65531e-4, beta_0=7.59494e-4):
         """Calculate the buoyancy from temperature and salinity
         assuming linear equation of state
 
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
+        :T_0: (float, optional) reference temperature (degC)
+        :S_0: (float, optional) reference salinity (psu)
+        :alpha_0: (float, optional) constant thermal expansion coefficient (1/degC)
+        :beta_0: (float, optional) constant saline contraction coefficient (1/psu)
         :returns: (numpy array) buoyancy
 
         """
@@ -691,12 +689,18 @@ class GOTMOutputData(object):
         z     = self.dataset.variables['z'][0,:,0,0]
         return buoy, z
 
-    def _get_spice(self, tidx_start=None, tidx_end=None):
+    def _get_spice(self, tidx_start=None, tidx_end=None, \
+                      T_0=10.0, S_0=35.0, \
+                      alpha_0=1.65531e-4, beta_0=7.59494e-4):
         """Calculate the spice from temperature and salinity
         assuming linear equation of state
 
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
+        :T_0: (float, optional) reference temperature (degC)
+        :S_0: (float, optional) reference salinity (psu)
+        :alpha_0: (float, optional) constant thermal expansion coefficient (1/degC)
+        :beta_0: (float, optional) constant saline contraction coefficient (1/psu)
         :returns: (numpy array) spice
 
         """
