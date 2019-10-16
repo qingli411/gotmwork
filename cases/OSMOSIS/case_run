@@ -16,7 +16,7 @@ source "../../set_tools.sh"
 season="winter"
 
 # directory of base case
-basecase="${GOTMWORK_ROOT}/data/OSMOSIS_${season}"
+basecase="${GOTMWORK_ROOT}/data/OSMOSIS/${season}"
 
 # current path
 curdir=$(pwd)
@@ -81,9 +81,3 @@ source ${scpt_case_turbmethod}
 #######################################################################
 ${cmd_gotm} 2> log.${outname}
 
-#######################################################################
-#                           Postprocessing                            #
-#######################################################################
-
-# plot surface forcing and profiles
-source ${curdir}/case_postproc.sh
