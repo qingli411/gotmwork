@@ -1,5 +1,5 @@
 #!/bin/bash
-# Setup and run GOTM for CORE-II
+# Setup and run GOTM for CESM forcing
 #
 # Qing Li, 20180307
 
@@ -79,7 +79,7 @@ ${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
 ${cmd_nmlchange} -f gotmturb.nml -e turb_method -v 99
 
 # turn on CVMix
-${cmd_nmlchange} -f kpp.nml -e lcvmix -v .true.
+${cmd_nmlchange} -f kpp.nml -e kpp_opt -v 1
 
 #######################################################################
 #                              Run GOTM                               #
