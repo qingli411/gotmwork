@@ -105,11 +105,6 @@ for vrelax in ${vrelaxlist[@]}; do
     # run
     ${cmd_gotm} 2> log.${outname}
 
-    # plot some figures
-    if [ ${l_test} == "yes" ]; then
-        source ${curdir}/case_postproc.sh
-    fi
-
     # clean up input data
     if [ $? == 0 ]; then
         rm -f *.dat
