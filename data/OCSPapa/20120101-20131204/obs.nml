@@ -66,9 +66,9 @@
    s_2 = 15.0,
    s_obs_NN = 0.000256,
    s_prof_file = 'sprof_file.dat',
-   SRelaxTauM = 1e+15,
-   SRelaxTauB = 1e+15,
-   SRelaxTauS = 1e+15,
+   SRelaxTauM = 1000000000000000.0,
+   SRelaxTauB = 1000000000000000.0,
+   SRelaxTauS = 1000000000000000.0,
    SRelaxBott = 0.0,
    SRelaxSurf = 0.0,
 /
@@ -142,9 +142,9 @@
    t_2 = 15.0,
    t_obs_NN = 0.000256,
    t_prof_file = 'tprof_file.dat',
-   TRelaxTauM = 1e+15,
-   TRelaxTauB = 1e+15,
-   TRelaxTauS = 1e+15,
+   TRelaxTauM = 1000000000000000.0,
+   TRelaxTauB = 1000000000000000.0,
+   TRelaxTauS = 1000000000000000.0,
    TRelaxBott = 0.0,
    TRelaxSurf = 0.0,
 /
@@ -456,8 +456,8 @@
 &velprofile
    vel_prof_method = 0,
    vel_prof_file = '',
-   vel_relax_tau = 1e+15,
-   vel_relax_ramp = 1e+15,
+   vel_relax_tau = 1000000000000000.0,
+   vel_relax_ramp = 1000000000000000.0,
 /
 
 !-------------------------------------------------------------------------------
@@ -541,7 +541,7 @@
 !                    spectrum
 !                  4: calculated from the partitioned surface Stokes drift
 !                  5: calculated from the surface Stokes drift and penetration
-!                    depth assumingexponential profile
+!                    depth assuming exponential profile
 !                  6: calculated from the theory wave approach of Li et al.,
 !                    2017
 !                  7: calculated from the hurricane spectrum

@@ -58,14 +58,14 @@
 !-------------------------------------------------------------------------------
 
 &sprofile
-   s_prof_method = 0,
+   s_prof_method = 2,
    s_analyt_method = 1,
    z_s1 = 30.0,
    s_1 = 20.0,
    z_s2 = 40.0,
    s_2 = 15.0,
    s_obs_NN = 0.000256,
-   s_prof_file = '',
+   s_prof_file = 'sprof_file.dat',
    SRelaxTauM = 1000000000000000.0,
    SRelaxTauB = 1000000000000000.0,
    SRelaxTauS = 1000000000000000.0,
@@ -134,14 +134,14 @@
 !-------------------------------------------------------------------------------
 
 &tprofile
-   t_prof_method = 0,
+   t_prof_method = 2,
    t_analyt_method = 1,
    z_t1 = 30.0,
    t_1 = 20.0,
    z_t2 = 40.0,
    t_2 = 15.0,
    t_obs_NN = 0.000256,
-   t_prof_file = '',
+   t_prof_file = 'tprof_file.dat',
    TRelaxTauM = 1000000000000000.0,
    TRelaxTauB = 1000000000000000.0,
    TRelaxTauS = 1000000000000000.0,
@@ -569,8 +569,8 @@
 !-------------------------------------------------------------------------------
 
 &stokes_drift
-   us_prof_method = 0,
-   us_prof_file = '',
+   us_prof_method = 8,
+   us_prof_file = 'sprof_file.dat',
    nfreq = 64,
    spec_file = '',
    usp_file = '',
