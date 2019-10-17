@@ -29,7 +29,7 @@ for idx in ${!seasonlist[@]}; do
     season=${seasonlist[idx]}
 
     # directory of base case
-    basecase="${GOTMWORK_ROOT}/data/OSMOSIS_${season}"
+    basecase="${GOTMWORK_ROOT}/data/OSMOSIS/${season}"
 
     # name of the dataset
     title="OSMOSIS_${season}"

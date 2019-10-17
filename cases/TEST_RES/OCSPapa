@@ -14,7 +14,7 @@
 source "../../set_tools.sh"
 
 # directory of base case
-basecase="${GOTMWORK_ROOT}/data/OCSPapa_20120101-20131204"
+basecase="${GOTMWORK_ROOT}/data/OCSPapa/20120101-20131204"
 
 # current directory
 curdir=$(pwd)
