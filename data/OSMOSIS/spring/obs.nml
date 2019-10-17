@@ -569,7 +569,7 @@
 !-------------------------------------------------------------------------------
 
 &stokes_drift
-   us_prof_method = 2,
+   us_prof_method = 5,
    us_prof_file = 'sprof_file.dat',
    nfreq = 64,
    spec_file = '',

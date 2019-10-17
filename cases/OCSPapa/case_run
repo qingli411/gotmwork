@@ -13,7 +13,7 @@
 source "../../set_tools.sh"
 
 # directory of base case
-basecase="${GOTMWORK_ROOT}/data/OCSPapa_20120101-20131204"
+basecase="${GOTMWORK_ROOT}/data/OCSPapa/20120101-20131204"
 
 # current path
 curdir=$(pwd)
@@ -92,9 +92,3 @@ source ${scpt_case_turbmethod}
 #######################################################################
 ${cmd_gotm} 2> log.${outname}
 
-#######################################################################
-#                           Postprocessing                            #
-#######################################################################
-
-# plot surface forcing and profiles
-source ${curdir}/case_postproc.sh

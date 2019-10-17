@@ -99,9 +99,3 @@ ${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 3
 #######################################################################
 ${cmd_gotm} 2> log.${outname}
 
-#######################################################################
-#                           Postprocessing                            #
-#######################################################################
-
-# plot surface forcing and profiles
-source ${curdir}/case_postproc.sh

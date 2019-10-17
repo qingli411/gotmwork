@@ -57,7 +57,7 @@ ${cmd_nmlchange} -f ${nml} -e extinct_method -v 7
 ${cmd_nmlchange} -f ${nml} -e A -v 0.57
 ${cmd_nmlchange} -f ${nml} -e g1 -v 0.55
 ${cmd_nmlchange} -f ${nml} -e g2 -v 17.0
-${cmd_nmlchange} -f ${nml} -e ustokes_method -v 4
+${cmd_nmlchange} -f ${nml} -e us_prof_method -v 5
 ${cmd_nmlchange} -f ${nml} -e usdelta_file -v 'ustokes_file.dat'
 #--------------------------------
 # osm.nml
