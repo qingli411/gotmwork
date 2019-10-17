@@ -132,7 +132,7 @@ if [ -d ${dataroot}/${inputname} ]; then
     ${cmd_nmlchange} -f airsea.nml -e back_radiation_method -v 1
 
     # Stokes drift data
-    ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
+    ${cmd_nmlchange} -f obs.nml -e us_prof_method -v 4
     ${cmd_nmlchange} -f obs.nml -e nfreq -v 3
     ${cmd_nmlchange} -f obs.nml -e usp_file -v "usp_file.dat"
 

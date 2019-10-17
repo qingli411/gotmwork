@@ -144,7 +144,7 @@ while [ ${lat} -le ${lat_end} ]; do
             # processing Stokes drift data
             ${cmd_nc2dat_ww3} -i ${uspdir}/${uspdata} -o "usp_file.dat" \
                 -lat ${lat} -lon ${lon} -ds ${datestart} -de ${dateend} -usp
-            ${cmd_nmlchange} -f obs.nml -e ustokes_method -v 3
+            ${cmd_nmlchange} -f obs.nml -e us_prof_method -v 4
             ${cmd_nmlchange} -f obs.nml -e nfreq -v 3
             ${cmd_nmlchange} -f obs.nml -e usp_file -v "usp_file.dat"
 
