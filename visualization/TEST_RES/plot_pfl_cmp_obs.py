@@ -14,12 +14,12 @@ def main():
     case_list = ['OCSPapa_20130621-20131201']
     var_list = ['temp', 'salt']
     turbmethod_list = ['KPP-CVMix',
-                       'KPPLT-EFACTOR',
-                       'KPPLT-ENTR',
+                       'KPPLT-VR12',
+                       'KPPLT-LF17',
                        'OSMOSIS',
-                       'EPBL',
-                       'SMC',
-                       'SMCLT']
+                       'EPBL-RH18',
+                       'SMC-KC94',
+                       'SMCLT-H15']
     cmax_list = np.array([[18],
                           [33.8]])
     cmin_list = np.array([[4],

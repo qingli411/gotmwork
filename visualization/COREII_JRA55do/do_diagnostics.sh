@@ -45,7 +45,7 @@ setup_list=( \
           )
 
 # list of turbulence models
-model_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-EFACTOR" "KPPLT-ENTR" "KPPLT-RWHGK" "SMC" "SMCLT" "EPBL" "EPBL-LT" "OSMOSIS" "K-EPSILON-SG" "EPBL-RH18" "EPBL-RL19" "SMC-C01A" )
+model_list=( "KPP-CVMix" "KPP-ROMS" "KPPLT-VR12" "KPPLT-LF17" "KPPLT-R16" "SMC-KC94" "SMCLT-H15" "OSMOSIS" "K-EPSILON-SG95" "EPBL-RH18" "EPBL-RL19" "SMC-C01A" )
 
 # run all the dates if $isetup_list is empty
 if [[ ${#isetup_list[@]} -eq 0 ]]; then

@@ -24,41 +24,37 @@ dir_out = os.environ['GOTMFIG_ROOT']+'/TEST_IO/'
 case_list = ['OSMOSIS_winter',
              'OSMOSIS_spring',
              'OCSPapa_20130621-20131201',
-             'COREII_LAT2_LON234_20080601-20081231',
-             'COREII_LAT10_LON86_20080601-20081231',
-             'COREII_LAT-54_LON254_20090101-20090731']
+            ]
 # list of titles
 title_list = ['OSMOSIS Winter',
               'OSMOSIS Spring',
               'OCSPapa',
-              'COREII LAT2 LON234',
-              'COREII LAT10 LON86',
-              'COREII LAT-54 LON254']
+             ]
 # list of depths
 depth_list = np.array([-200, -480, -100, -150, -120, -400])
 # list of turbulent methods
 turbmethod_list = ['KPP-CVMix',
                    'KPP-ROMS',
-                   'KPPLT-EFACTOR',
-                   'KPPLT-ENTR',
-                   'KPPLT-RWHGK',
-                   'EPBL',
-                   'EPBL-LT',
-                   'SMC',
-                   'SMCLT',
-                   'K-EPSILON-SG',
+                   'KPPLT-VR12',
+                   'KPPLT-LF17',
+                   'KPPLT-R16',
+                   'EPBL-RH18',
+                   'EPBL-RL19',
+                   'SMC-KC94',
+                   'SMCLT-H15',
+                   'SMC-C01A',
                    'OSMOSIS']
 # list of legend for turbulent methods
 legend_list = ['KPP-CVMix',
                'KPP-ROMS',
                'KPPLT-VR12',
                'KPPLT-LF17',
-               'KPPLT-RWHGK16',
+               'KPPLT-R16',
                'ePBL',
                'ePBL-LT',
                'SMC-KC94',
                'SMCLT-H15',
-               'k-epsilon',
+               'SMC-C01A',
                'OSMOSIS']
 tm_color = ['black',
             'blue',

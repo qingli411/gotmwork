@@ -3,14 +3,13 @@
 # list of turbulence closure methods (for reference to the paths)
 list_turbmethod = ['KPP-CVMix',
                    'KPP-ROMS',
-                   'KPPLT-EFACTOR',
-                   'KPPLT-ENTR',
-                   'KPPLT-RWHGK',
+                   'KPPLT-VR12',
+                   'KPPLT-LF17',
+                   'KPPLT-R16',
                    'EPBL-RH18',
                    'EPBL-RL19',
-                   'SMC',
-                   'SMCLT',
-                   'K-EPSILON-SG',
+                   'SMC-KC94',
+                   'SMCLT-H15',
                    'SMC-C01A',
                    'OSMOSIS']
 
@@ -24,7 +23,6 @@ list_tmname = ['KPP-CVMix',
                'ePBL-LT',
                'SMC-KC94',
                'SMCLT-H15',
-               '$k$-$\epsilon$-SG95',
                'SMC-C01A',
                'OSMOSIS']
 
