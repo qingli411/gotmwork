@@ -65,10 +65,7 @@ ddl=0
 dt=1800
 
 # name of the turbulence model
-turbmethod="OSMOSIS"
-# turbmethod="SMC"
-# turbmethod="KPP-CVMix"
-# turbmethod="KPP-GOTM"
+turbmethod="KPP-CVMix"
 
 # case name
 casename="${title}_${turbmethod}"

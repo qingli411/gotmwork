@@ -51,11 +51,6 @@ dateend="20090630"
 
 # name of the turbulence model
 turbmethod="KPP-CVMix"
-# turbmethod="KPPLT-ENTR"
-# turbmethod="OSMOSIS"
-# turbmethod="EPBL"
-# turbmethod="SMCLT"
-# turbmethod="SMC"
 
 # setup
 dz=$((maxdepth/nlev))

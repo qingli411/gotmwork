@@ -12,27 +12,27 @@ l_test="no"
 
 if [ ${l_test} == "yes" ]; then
     # name of the turbulence model
-    turblist=(SMCLT)
+    turblist=( "SMCLT-H15" )
     # vertical resolution
-    vrlist=(1m)
+    vrlist=( "1m" )
     # time step
-    dtlist=(60)
+    dtlist=( 60 )
 else
     # name of the turbulence model
-    turblist=(KPP-CVMix KPP-ROMS KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG EPBL-RH18 EPBL-RL19 SMC-C01A )
+    turblist=( "KPP-CVMix" "KPP-ROMS" "KPPLT-VR12" "KPPLT-LF17" "KPPLT-R16" "OSMOSIS" "SMC-KC94" "SMCLT-H15" "K-EPSILON-SG95" "EPBL-RH18" "EPBL-RL19" "SMC-C01A" )
     # vertical resolution
     #  1 m
     #  5 m
     #  10 m
     #  typical regional models (e.g., ROMS)
     #  typical GCMs (e.g., CESM)
-    vrlist=(1m 5m 10m)
+    vrlist=( "1m" "5m" "10m" )
     # time step
     #  1 min
     #  10 min
     #  30 min
     #  60 min
-    dtlist=(60 600 1800 3600)
+    dtlist=( 60 600 1800 3600 )
 fi
 
 # output file name

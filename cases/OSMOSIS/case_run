@@ -38,12 +38,7 @@ dt=1800
 nsave=6
 
 # name of the turbulence model
-# turbmethod="OSMOSIS"
-# turbmethod="SMC"
-# turbmethod="KPP-CVMix"
-# turbmethod="KPPLT-EFACTOR"
-turbmethod="KPPLT-ENTR"
-# turbmethod="EPBL"
+turbmethod="KPP-CVMix"
 
 # output file name
 outname="gotm_out"

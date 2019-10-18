@@ -39,14 +39,7 @@ nsave=3
 outname="gotm_out"
 
 # name of the turbulence model
-# turbmethod="KPPLT-EFACTOR"
-# turbmethod="KPPLT-ENTR"
 turbmethod="KPP-CVMix"
-# turbmethod="KPP-GOTM"
-# turbmethod="KPP-ROMS"
-# turbmethod="SMCLT"
-# turbmethod="SMC"
-# turbmethod="K-EPSILON-SG"
 
 # case name
 casename="${title}_${turbmethod}"

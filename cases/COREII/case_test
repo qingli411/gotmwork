@@ -51,8 +51,6 @@ datestart="20080601"
 dateend="20091231"
 
 # name of the turbulence model
-# turbmethod="KPPLT-ENTR"
-# turbmethod="KPP-Original"
 turbmethod="KPP-CVMix"
 
 # case name

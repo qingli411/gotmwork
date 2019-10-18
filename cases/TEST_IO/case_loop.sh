@@ -12,14 +12,14 @@ l_test="no"
 
 if [ ${l_test} == "yes" ]; then
     # name of the turbulence model
-    turblist=(SMCLT)
+    turblist=( "SMCLT-H15" )
     # relaxation time
-    vrelaxlist=(none)
+    vrelaxlist=( "none" )
 else
     # name of the turbulence model
-    turblist=(KPP-CVMix KPP-ROMS KPPLT-EFACTOR KPPLT-ENTR KPPLT-RWHGK OSMOSIS EPBL EPBL-LT SMC SMCLT K-EPSILON-SG)
+    turblist=( "KPP-CVMix" "KPP-ROMS" "KPPLT-VR12" "KPPLT-LF17" "KPPLT-R16" "OSMOSIS" "SMC-KC94" "SMCLT-H15" "K-EPSILON-SG95" "EPBL-RH18" "EPBL-RL19" "SMC-C01A" )
     # relaxation time
-    vrelaxlist=(1d 10d)
+    vrelaxlist=( "1d" "10d" )
 fi
 
 # output file name

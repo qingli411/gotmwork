@@ -44,11 +44,7 @@ datestart="20120101"
 dateend="20131231"
 
 # name of the turbulence model
-# turbmethod="KPPLT-EFACTOR"
-# turbmethod="KPPLT-ENTR"
 turbmethod="KPP-CVMix"
-# turbmethod="SMCLT"
-# turbmethod="SMC"
 
 # case name
 casename="${title}_${turbmethod}_${datestart}-${dateend}"

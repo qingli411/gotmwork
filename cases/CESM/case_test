@@ -37,7 +37,6 @@ dateend="20091231"
 
 # name of the turbulence model
 turbmethod="KPP-CVMix"
-# turbmethod="KPP-GOTM"
 
 # case name
 casename="${title}_LAT${lat}_LON${lon}_${turbmethod}_${datestart}-${dateend}"
