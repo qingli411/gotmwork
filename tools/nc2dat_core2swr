@@ -6,6 +6,7 @@
 import argparse
 import sys
 import numpy as np
+import pandas as pd
 from netCDF4 import Dataset
 from gotmtool import nctime_to_datetime, nctime_indices, write_ts
 
@@ -31,6 +32,9 @@ def main():
     parser.add_argument('-de', '--date_end', action='store', dest='date_end',
             metavar='ENDDATE',
             help='Ending date of input data, in the format of YYYYMMDD')
+    parser.add_argument('-ref', '--ref_file', action='store', dest='ref_file',
+            metavar='REFFILE',
+            help='Reference file for diurnal cycle')
     parser.add_argument('--version', action='version', version='%(prog)s: 1.1')
     # parsing arguments and save to args
     args=parser.parse_args()
@@ -47,6 +51,8 @@ def main():
     if rlat > 85.0 or rlat < -85.0 or rlon > 180.0 or rlon < -180.0:
         parser.print_help()
         sys.exit(1)
+
+    ref_file = args.ref_file
 
     # print out some message
     print('Converting {} to {}...'.format(fname_in, fname_out))
@@ -73,35 +79,50 @@ def main():
     # read daily averaged shortwave radiation
     swr = infile.variables['SWDN_MOD'][tidx_start:tidx_end+1,ind_lat,ind_lon]
 
-    # add idealized diurnal cycle according to
-    # factor[t] = np.sin(np.pi*(t-6.)/12.)**2 # t in [6, 18]
-    tdat = []
-    swr_hourly = np.zeros(ndays*24)
-    diurnal_factor = np.zeros(24)
-    for j in np.arange(6, 19):
-        if j == 6:
-            t1 = j
-            t2 = j+0.5
-        elif j == 18:
-            t1 = j-0.5
-            t2 = j
-        else:
-            t1 = j-0.5
-            t2 = j+0.5
-        diurnal_factor[j] = integral_dirunal_factor(t2)-integral_dirunal_factor(t1)
+    if ref_file is None:
+        # add idealized diurnal cycle according to
+        # factor[t] = np.sin(np.pi*(t-6.)/12.)**2 # t in [6, 18]
+        tdat = []
+        swr_hourly = np.zeros(ndays*24)
+        diurnal_factor = np.zeros(24)
+        for j in np.arange(6, 19):
+            if j == 6:
+                t1 = j
+                t2 = j+0.5
+            elif j == 18:
+                t1 = j-0.5
+                t2 = j
+            else:
+                t1 = j-0.5
+                t2 = j+0.5
+            diurnal_factor[j] = integral_dirunal_factor(t2)-integral_dirunal_factor(t1)
 
-    int_factor = np.sum(diurnal_factor)
-    diurnal_factor = 24./int_factor*diurnal_factor
+        int_factor = np.sum(diurnal_factor)
+        diurnal_factor = 24./int_factor*diurnal_factor
 
-    for i in np.arange(ndays):
-        for j in np.arange(24):
-            k = i*24+j
-            dttemp = dtday[i].replace(hour=j)
-            tdat.append(dttemp.strftime('%Y-%m-%d %H:%M:%S'))
-            swr_hourly[k] = swr[i]*diurnal_factor[j]
+        for i in np.arange(ndays):
+            for j in np.arange(24):
+                k = i*24+j
+                dttemp = dtday[i].replace(hour=j)
+                tdat.append(dttemp.strftime('%Y-%m-%d %H:%M:%S'))
+                swr_hourly[k] = swr[i]*diurnal_factor[j]
 
-    # variables
-    vdat = [swr_hourly]
+        # variables
+        vdat = [swr_hourly]
+    else:
+        tdat = []
+        vdatlist = []
+        # use diurnal cycle from the reference file
+        df = pd.read_table(ref_file, sep='\s+', header=None, names=["date", "time", "swr"])
+        for i in np.arange(ndays):
+            date_str = dtday[i].strftime('%Y-%m-%d')
+            inds = df['date'] == date_str
+            wgt = df['swr'][inds].values
+            tmp = daily_to_xhourly(8, swr[i], wgt)
+            for j in np.arange(wgt.size):
+                tdat.append(df['date'][inds].values[j]+' '+df['time'][inds].values[j])
+                vdatlist.append(tmp[j])
+        vdat = [np.array(vdatlist)]
 
     # write to output file
     write_ts(fname_out, tdat, vdat)
@@ -112,6 +133,14 @@ def integral_dirunal_factor(t):
     # whose integral is
     a=0.5*t+3./np.pi*np.sin(np.pi*t/6.)
     return a
+
+def daily_to_xhourly(nx, vd, vwgt):
+    # convert daily mean value to x-hourly mean
+    nx = np.minimum(nx, vwgt.size)
+    vsum = np.maximum(np.sum(vwgt), 1e-6)
+    wgt = vwgt/vsum
+    out = vd*wgt*nx
+    return out
 
 if __name__ == "__main__":
     main()

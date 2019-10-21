@@ -5,14 +5,14 @@
 # Qing Li, 20181101
 
 # flag for preprocessing data
-do_preproc_data=False
+do_preproc_data=True
 # flag for run multiple gotm cases
-do_run_multi=True
+do_run_multi=False
 
 # Note: for maximum efficiency, let ndate*nmodel%njob=0
 
 # number of parallel jobs
-njob=8
+njob=4
 
 # indices for dates
 # - start from 0
