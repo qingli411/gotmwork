@@ -61,6 +61,8 @@ if diagname == 'mld_deltaR_mean':
     fill_value = 499.5
 elif diagname == 'mld_deltaRp1_mean':
     fill_value = 499.5
+elif diagname == 'mld_deltaR_init':
+    fill_value = 499.5
 elif diagname == 'PE_delta':
     fill_value = None
 elif diagname == 'SST_mean':

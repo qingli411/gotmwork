@@ -1361,6 +1361,8 @@ class GOTMOutputDataMap(object):
             out = self.mean_state_timeseries(var='mld_deltaR', **kwargs)
         elif name == "mld_deltaRp1_mean":
             out = self.mean_state_timeseries(var='mld_deltaR', deltaR=0.1, **kwargs)
+        elif name == "mld_deltaR_init":
+            out = self.init_state_timeseries(var='mld_deltaR', **kwargs)
         elif name == "PE_delta":
             out = self.delta_timeseries(var='PE', **kwargs)
         elif name == "SST_mean":
@@ -1435,10 +1437,40 @@ class GOTMOutputDataMap(object):
         print('{:6.1f} %'.format(100.0))
         return out
 
+    def init_state_timeseries(self, var, fillvalue=None, tidx_start=0, tidx_end=1, **kwargs):
+        """Return the initial value of a timeseries variable
+
+        :var: (str) variable name
+        :fillvalue: (float) invalid value
+        :tidx_start: (int, optional) starting index
+        :tidx_end: (int, optional) ending index
+        :returns: (GOTMMap object) mean state
+
+        """
+        tmp = GOTMOutputData(self._paths[0], init_time_location=False)
+        ts_dat = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs).data
+        nt = ts_dat.shape[0]
+        dat = np.zeros([self.ncase, nt])
+        dat[0,:] = ts_dat
+        npcount = np.floor(self.ncase/20)
+        for i in np.arange(self.ncase-1)+1:
+            if np.mod(i, npcount) == 0:
+                print('{:6.1f} %'.format(i/self.ncase*100.0))
+            tmp = GOTMOutputData(self._paths[i], init_time_location=False)
+            dat[i,:] = tmp.read_timeseries(var, tidx_start=tidx_start, tidx_end=tidx_end, ignore_time=True, **kwargs).data
+        if fillvalue is not None:
+            dat[dat==fillvalue] = np.nan
+        mdat = dat[:,0]
+        # create GOTMMap object
+        out = GOTMMap(data=mdat, lon=self.lon, lat=self.lat, name=var)
+        print('{:6.1f} %'.format(100.0))
+        return out
+
     def delta_timeseries(self, var, fillvalue=None, tidx_start=None, tidx_end=None, **kwargs):
         """Return the net change of a timeseries variable
 
         :var: (str) variable name
+        :fillvalue: (float) invalid value
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
         :returns: (GOTMMap object) mean state
