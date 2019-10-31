@@ -21,7 +21,9 @@ parser = argparse.ArgumentParser(description="""
             PE_delta
             SST_mean
             SSS_mean
-            Nsqr_mld_mean""",
+            Nsqr_mld_mean
+            forcing_regime_BG12
+            forcing_regime_LF17""",
             formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('-c', '--casename', action='store', dest='casename',
         metavar='CASENAME', required=True, help='case name')
