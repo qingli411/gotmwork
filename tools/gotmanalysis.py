@@ -909,11 +909,15 @@ class GOTMOutputData(object):
         la = np.sqrt(ustar/np.sqrt(ussl**2.+vssl**2.))
         return la
 
-    def _get_bflux(self, tidx_start=None, tidx_end=None, radiative_heating=False):
+    def _get_bflux(self, tidx_start=None, tidx_end=None, radiative_heating=False, \
+                   alpha_0=1.65531e-4, beta_0=7.59494e-4):
         """Find the surface buoyancy flux
 
         :tidx_start: (int, optional) starting index
         :tidx_end: (int, optional) ending index
+        :radiative_heating: (bool) correction for penetrative solar radiation if True,
+        :alpha_0: (float, optional) constant thermal expansion coefficient (1/degC)
+        :beta_0: (float, optional) constant saline contraction coefficient (1/psu)
         :returns: (numpy array) surface buoyancy flux
 
         """
