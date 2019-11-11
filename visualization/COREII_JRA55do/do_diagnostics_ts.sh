@@ -93,6 +93,7 @@ for ((m=0; m<njob; m++)); do
             kk=${isetup_list[k]}
             echo "./diagnostics_mapts -c ${cname} -s ${setup_list[kk]} -m ${model_list[jj]} ${s1_flag}"
             echo "./diagnostics_mapts_langmuir -c ${cname} -s ${setup_list[kk]} -m ${model_list[jj]} ${s1_flag}"
+            echo "./diagnostics_mapts_airsea -c ${cname} -s ${setup_list[kk]} -m ${model_list[jj]} ${s1_flag}"
             j=$((j+1))
             if [[ ${j} -eq ${nmodel} ]]; then
                 k=$((k+1))
@@ -112,6 +113,7 @@ for ((m=0; m<njob; m++)); do
             kk=${k_list[ii]}
             ./diagnostics_mapts -c ${cname} -s ${setup_list[kk]} -m ${model_list[jj]} ${s1_flag} > log.${ii};
             ./diagnostics_mapts_langmuir -c ${cname} -s ${setup_list[kk]} -m ${model_list[jj]} ${s1_flag} > log.${ii};
+            ./diagnostics_mapts_airsea -c ${cname} -s ${setup_list[kk]} -m ${model_list[jj]} ${s1_flag} > log.${ii};
         fi
     done
     } &
