@@ -225,6 +225,27 @@ class GOTMMap(object):
         self.name = name
         self.units = units
 
+    def __add__(self, other):
+        """Return the sum of two GOTMMap objects
+
+        :other: (GOTMMap object) GOTMMap object to be added
+
+        """
+        assert type(other) == type(GOTMMap()), "Only GOTMMap object can be added to a GOTMMap object"
+        assert self.name == other.name, "GOTMMap object to be added has a different name."
+        assert self.units == other.units, "GOTMMap object to be added has a different unit."
+        data = np.zeros(self.data.size)
+        loc_self = list(zip(self.lon, self.lat))
+        loc_other = list(zip(other.lon, other.lat))
+        for idx, val in enumerate(loc_self):
+            if val in loc_other:
+                idx_other = loc_other.index(val)
+                data[idx] = self.data[idx] + other.data[idx_other]
+            else:
+                data[idx] = np.nan
+        out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        return out
+
     def __sub__(self, other):
         """Return the difference betweeen two GOTMMap objects
 
