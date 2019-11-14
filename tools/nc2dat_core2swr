@@ -8,7 +8,7 @@ import sys
 import numpy as np
 import pandas as pd
 from netCDF4 import Dataset
-from gotmtool import nctime_to_datetime, nctime_indices, write_ts
+from gotmtool import nctime_to_datetime, nctime_indices, write_ts, get_index_lat_lon_nearest
 
 def main():
     # process the input arguments
@@ -73,8 +73,14 @@ def main():
     lat = infile.variables['LAT'][:]
     lon = infile.variables['LON'][:]
 
-    ind_lat = np.argmin(np.abs(lat-rlat))
-    ind_lon = np.argmin(np.abs(lon-rlon))
+    # get index of target location
+    lon2d, lat2d = np.meshgrid(lon, lat)
+    ilat, ilon = get_index_lat_lon_nearest(lat2d, lon2d, rlat, rlon)
+    ind_lat = ilat[0]
+    ind_lon = ilon[0]
+
+    print('Target location ({}, {})'.format(rlon, rlat))
+    print('Interpolated location ({}, {})'.format(lon[ind_lon], lat[ind_lat]))
 
     # read daily averaged shortwave radiation
     swr = infile.variables['SWDN_MOD'][tidx_start:tidx_end+1,ind_lat,ind_lon]
@@ -113,7 +119,7 @@ def main():
         tdat = []
         vdatlist = []
         # use diurnal cycle from the reference file
-        df = pd.read_table(ref_file, sep='\s+', header=None, names=["date", "time", "swr"])
+        df = pd.read_csv(ref_file, sep='\s+', header=None, names=["date", "time", "swr"])
         for i in np.arange(ndays):
             date_str = dtday[i].strftime('%Y-%m-%d')
             inds = df['date'] == date_str
