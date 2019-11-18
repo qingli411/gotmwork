@@ -225,67 +225,113 @@ class GOTMMap(object):
         self.name = name
         self.units = units
 
-    def __add__(self, other):
-        """Return the sum of two GOTMMap objects
-
-        :other: (GOTMMap object) GOTMMap object to be added
+    def __neg__(self):
+        """Return the negated GOTMMap object
 
         """
-        assert type(other) == type(GOTMMap()), "Only GOTMMap object can be added to a GOTMMap object"
-        assert self.name == other.name, "GOTMMap object to be added has a different name."
-        assert self.units == other.units, "GOTMMap object to be added has a different unit."
-        data = np.zeros(self.data.size)
-        loc_self = list(zip(self.lon, self.lat))
-        loc_other = list(zip(other.lon, other.lat))
-        for idx, val in enumerate(loc_self):
-            if val in loc_other:
-                idx_other = loc_other.index(val)
-                data[idx] = self.data[idx] + other.data[idx_other]
-            else:
-                data[idx] = np.nan
-        out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        out = GOTMMap(data=-self.data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        return out
+
+    def __add__(self, other):
+        """Add 'other' to a GOTMMap object
+
+        :other: (float, int or GOTMMap object) object to be added
+
+        """
+        if isinstance(other, float) or isinstance(other, int):
+            out = GOTMMap(data=self.data+other, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        elif isinstance(other, GOTMMap):
+            assert self.name == other.name, "GOTMMap object to be added has a different name."
+            assert self.units == other.units, "GOTMMap object to be added has a different unit."
+            data = np.zeros(self.data.size)
+            loc_self = list(zip(self.lon, self.lat))
+            loc_other = list(zip(other.lon, other.lat))
+            for idx, val in enumerate(loc_self):
+                if val in loc_other:
+                    idx_other = loc_other.index(val)
+                    data[idx] = self.data[idx] + other.data[idx_other]
+                else:
+                    data[idx] = np.nan
+            out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        else:
+            raise TypeError('Addition is not defined between a GOTMMap object and a {} object'.format(type(other)))
         return out
 
     def __sub__(self, other):
-        """Return the difference betweeen two GOTMMap objects
+        """Subtract 'other' from a GOTMMap object
 
-        :other: (GOTMMap object) GOTMMap object to be subtracted
+        :other: (float, int, or GOTMMap object) object to be subtracted
 
         """
-        assert type(other) == type(GOTMMap()), "Only GOTMMap object can be subtracted from a GOTMMap object"
-        assert self.name == other.name, "GOTMMap object to be subtracted has a different name."
-        assert self.units == other.units, "GOTMMap object to be subtracted has a different unit."
-        data = np.zeros(self.data.size)
-        loc_self = list(zip(self.lon, self.lat))
-        loc_other = list(zip(other.lon, other.lat))
-        for idx, val in enumerate(loc_self):
-            if val in loc_other:
-                idx_other = loc_other.index(val)
-                data[idx] = self.data[idx] - other.data[idx_other]
-            else:
-                data[idx] = np.nan
-        out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        if isinstance(other, float) or isinstance(other, int):
+            out = GOTMMap(data=self.data-other, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        elif isinstance(other, GOTMMap):
+            assert self.name == other.name, "GOTMMap object to be subtracted has a different name."
+            assert self.units == other.units, "GOTMMap object to be subtracted has a different unit."
+            data = np.zeros(self.data.size)
+            loc_self = list(zip(self.lon, self.lat))
+            loc_other = list(zip(other.lon, other.lat))
+            for idx, val in enumerate(loc_self):
+                if val in loc_other:
+                    idx_other = loc_other.index(val)
+                    data[idx] = self.data[idx] - other.data[idx_other]
+                else:
+                    data[idx] = np.nan
+            out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        else:
+            raise TypeError('Subtraction is not defined between a GOTMMap object and a {} object'.format(type(other)))
+        return out
+
+    def __mul__(self, other):
+        """Multiply a GOTMMap object by 'other'
+
+        :other: (float, int, or GOTMMap object) object to be multiplied
+
+        """
+        if isinstance(other, float) or isinstance(other, int):
+            out = GOTMMap(data=self.data*other, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        elif isinstance(other, GOTMMap):
+            data = np.zeros(self.data.size)
+            loc_self = list(zip(self.lon, self.lat))
+            loc_other = list(zip(other.lon, other.lat))
+            for idx, val in enumerate(loc_self):
+                if val in loc_other:
+                    idx_other = loc_other.index(val)
+                    data[idx] = self.data[idx] - other.data[idx_other]
+                else:
+                    data[idx] = np.nan
+            out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name+' * '+other.name, units=self.units+' * '+other.units)
+        else:
+            raise TypeError('Multipication is not defined between a GOTMMap object and a {} object'.format(type(other)))
         return out
 
     def __truediv__(self, other):
-        """Return the ratio of two GOTMMap objects
+        """Divide a GOTMMap object by 'other'
 
-        :other: (GOTMMap object) GOTMMap object to divide self
+        :other: (float, int, or GOTMMap object) object to be divided
 
         """
-        assert type(other) == type(GOTMMap()), "Only GOTMMap object can divide a GOTMMap object"
-        assert self.name == other.name, "GOTMMap object has a different name."
-        assert self.units == other.units, "GOTMMap object has a different unit."
-        data = np.zeros(self.data.size)
-        loc_self = list(zip(self.lon, self.lat))
-        loc_other = list(zip(other.lon, other.lat))
-        for idx, val in enumerate(loc_self):
-            if val in loc_other:
-                idx_other = loc_other.index(val)
-                data[idx] = self.data[idx] / other.data[idx_other]
+        if isinstance(other, float) or isinstance(other, int):
+            out = GOTMMap(data=self.data/other, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+        elif isinstance(other, GOTMMap):
+            data = np.zeros(self.data.size)
+            loc_self = list(zip(self.lon, self.lat))
+            loc_other = list(zip(other.lon, other.lat))
+            for idx, val in enumerate(loc_self):
+                if val in loc_other:
+                    idx_other = loc_other.index(val)
+                    data[idx] = self.data[idx] / other.data[idx_other]
+                else:
+                    data[idx] = np.nan
+            if other.name == self.name:
+                name = 'Ratio of '+self.name
+                units = 'None'
             else:
-                data[idx] = np.nan
-        out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name, units=self.units)
+                name = self.name+' / '+other.name
+                units = self.units+' / '+other.units
+            out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=name, units=units)
+        else:
+            raise TypeError('Division is not defined between a GOTMMap object and a {} object'.format(type(other)))
         return out
 
     def save(self, path):
