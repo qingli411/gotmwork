@@ -302,7 +302,7 @@ class GOTMMap(object):
                     data[idx] = np.nan
             out = GOTMMap(data=data, lon=self.lon, lat=self.lat, name=self.name+' * '+other.name, units=self.units+' * '+other.units)
         else:
-            raise TypeError('Multipication is not defined between a GOTMMap object and a {} object'.format(type(other)))
+            raise TypeError('Multiplication is not defined between a GOTMMap object and a {} object'.format(type(other)))
         return out
 
     def __truediv__(self, other):
