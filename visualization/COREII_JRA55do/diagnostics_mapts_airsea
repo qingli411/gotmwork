@@ -1,0 +1,81 @@
+#!/usr/bin/env python3
+
+import sys
+import os
+import numpy as np
+import argparse
+sys.path.append(os.environ['GOTMWORK_ROOT']+'/tools')
+from gotmanalysis import GOTMOutputData, GOTMOutputDataMap
+from core2jra55do import list_turbmethod, list_setup
+
+# process the input arguments
+parser = argparse.ArgumentParser(description="""
+        Compute timeseries of diagnostics and save in data.\n""",
+            formatter_class=argparse.RawTextHelpFormatter)
+parser.add_argument('-c', '--casename', action='store', dest='casename',
+        metavar='CASENAME', required=True, help='case name')
+parser.add_argument('-s', '--setupname', action='store', dest='setupname',
+        metavar='SETUPNAME', required=True, help='name of the setup')
+parser.add_argument('-m', '--turbmethod', action='store', dest='turbmethod',
+        metavar='TURBMETHOD', required=True, help='name of turbulence closure method')
+parser.add_argument('-U', '--updatedata', action='store_true', dest='l_update_data',
+        help='Update data')
+# parsing arguments and save to args
+args=parser.parse_args()
+casename = args.casename
+setupname = args.setupname
+turbmethod = args.turbmethod
+update_data = args.l_update_data
+
+# check for input arguments
+if setupname not in list_setup:
+    raise ValueError('Simulation setup \'{}\' not supported.'.format(setupname))
+
+if turbmethod not in list_turbmethod:
+    raise ValueError('Turbulence closure method \'{}\' not supported.'.format(turbmethod))
+
+# generate surface forcing data
+s1data_root = os.environ['GOTMRUN_ROOT']+'/'+casename+'/'+setupname
+s2data_root = os.environ['GOTMFIG_ROOT']+'/data/'+casename+'/'+setupname
+os.makedirs(s2data_root, exist_ok=True)
+basepath = s1data_root+'/'+turbmethod
+s2data_name = s2data_root+'/data_mapts_air-sea_'+turbmethod+'.npz'
+# update data
+if update_data or not os.path.isfile(s2data_name):
+    print('Updating data for {} {} {}...'.format(casename, setupname, turbmethod))
+    loclist = sorted(os.listdir(basepath))
+    pathlist = [basepath+'/'+x+'/gotm_out_s1.nc' for x in loclist]
+    godmobj = GOTMOutputDataMap(pathlist)
+    u10 = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    v10 = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    tx = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    ty = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    u0_stokes = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    v0_stokes = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    I_0 = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    heat = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    precip = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    evap = np.zeros([godmobj.ncase, godmobj.ntime-1])
+    lat = godmobj.lat
+    lon = godmobj.lon
+    time = godmobj.time[1:]
+    for i in np.arange(godmobj.ncase):
+        if np.mod(i, 100) == 0:
+            print('{:6.2f} %'.format(i/godmobj.ncase*100.0))
+        tmp = GOTMOutputData(godmobj._paths[i], init_time_location=False)
+        u10[i,:] = tmp.read_timeseries('u10', ignore_time=True).data[1:]
+        v10[i,:] = tmp.read_timeseries('v10', ignore_time=True).data[1:]
+        tx[i,:] = tmp.read_timeseries('tx', ignore_time=True).data[1:]
+        ty[i,:] = tmp.read_timeseries('ty', ignore_time=True).data[1:]
+        u0_stokes[i,:] = tmp.read_timeseries('u0_stokes', ignore_time=True).data[1:]
+        v0_stokes[i,:] = tmp.read_timeseries('v0_stokes', ignore_time=True).data[1:]
+        I_0[i,:] = tmp.read_timeseries('I_0', ignore_time=True).data[1:]
+        heat[i,:] = tmp.read_timeseries('heat', ignore_time=True).data[1:]
+        precip[i,:] = tmp.read_timeseries('precip', ignore_time=True).data[1:]
+        evap[i,:] = tmp.read_timeseries('evap', ignore_time=True).data[1:]
+    # save data
+    np.savez(s2data_name, u10=u10, v10=v10, tx=tx, ty=ty, \
+            u0_stokes=u0_stokes, v0_stokes=v0_stokes, \
+            I_0=I_0, heat=heat, precip=precip, evap=evap, \
+            lon=lon, lat=lat, time=time)
+

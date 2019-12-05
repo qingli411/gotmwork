@@ -317,8 +317,27 @@ def get_value_lat_lon(indata, lat2d, lon2d, rlat, rlon, imethod='nearest'):
                                         latitude and longitude
 
     """
-    #  TODO: no wrapping of longitude at lon=360, can be done by expanding
-    #        lat2d and lon2d <07-03-18, Qing Li> #
+    # make sure lon2d and rlon are compatible
+    maxlon = np.max(lon2d)
+    minlon = np.min(lon2d)
+    maxlat = np.max(lat2d)
+    minlat = np.min(lat2d)
+    rlon = float(rlon)
+    rlat = float(rlat)
+    assert rlat <= maxlat and rlat >= minlat, \
+           'Value of rlat ({}) outside the range of lat2d ({} - {}). Stop.'.format( \
+           rlat, minlat, maxlat)
+    if rlon > maxlon:
+        rlon = rlon - 360.0
+    if rlon < minlon:
+        rlon = rlon + 360.0
+    assert rlon <= maxlon and rlon >= minlon, \
+           'Value of rlon ({}) outside the range of lon2d ({} - {}). Stop.'.format( \
+           rlon, minlon, maxlon)
+    if np.min(lon2d) < 0.0 and rlon > 180.0:
+        rlon = rlon - 360.0
+    if np.max(lon2d) > 180.0 and rlon < 0.0:
+        rlon = rlon + 360.0
     nsize = indata.ndim
     if imethod == 'nearest':
         ilat, ilon = get_index_lat_lon_nearest(lat2d, lon2d, rlat, rlon)
@@ -371,6 +390,23 @@ def get_index_lat_lon_nearest(lat2d, lon2d, rlat, rlon):
     :returns: indices
 
     """
+    # make sure lon2d and rlon are compatible
+    maxlon = np.max(lon2d)
+    minlon = np.min(lon2d)
+    maxlat = np.max(lat2d)
+    minlat = np.min(lat2d)
+    rlon = float(rlon)
+    rlat = float(rlat)
+    assert rlat <= maxlat and rlat >= minlat, \
+           'Value of rlat ({}) outside the range of lat2d ({} - {}). Stop.'.format( \
+           rlat, minlat, maxlat)
+    if rlon > maxlon:
+        rlon = rlon - 360.0
+    if rlon < minlon:
+        rlon = rlon + 360.0
+    assert rlon <= maxlon and rlon >= minlon, \
+           'Value of rlon ({}) outside the range of lon2d ({} - {}). Stop.'.format( \
+           rlon, minlon, maxlon)
     grid = (lat2d.flatten(),lon2d.flatten())
     rlon = np.asarray(rlon)
     rlat = np.asarray(rlat)

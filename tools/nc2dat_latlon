@@ -7,7 +7,7 @@ import argparse
 import datetime
 import numpy as np
 from netCDF4 import Dataset
-from gotmtool import nctime_to_datetime, nctime_indices, write_ts, write_pfl, get_value_lat_lon
+from gotmtool import nctime_to_datetime, nctime_indices, write_ts, write_pfl, get_value_lat_lon, get_index_lat_lon_nearest
 from scipy.interpolate import griddata
 
 def main():
@@ -123,10 +123,9 @@ def main():
     # --------
     # TEST
     if l_test:
-        ilat = 70
-        ilon = 48
-        lat_req = lat2d[ilat, ilon] + 0.005
-        lon_req = lon2d[ilat, ilon] - 0.005
+        lat_req = args.lat
+        lon_req = args.lon
+        ilat, ilon = get_index_lat_lon_nearest(lat2d, lon2d, lat_req, lon_req)
         dat = ncread(infile, args.vname_in[0], tidxstart=0, tidxend=11)
         lat_int = get_value_lat_lon(lat2d, lat2d, lon2d, lat_req, lon_req)
         lon_int = get_value_lat_lon(lon2d, lat2d, lon2d, lat_req, lon_req)
