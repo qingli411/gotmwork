@@ -1,0 +1,89 @@
+#!/usr/bin/env python3
+"""
+Qing Li, 20200315
+"""
+import sys
+import re
+import argparse
+import os
+from ruamel.yaml import YAML
+
+def main():
+    # add a space in front of the arguments starting with '-', and remove
+    # it later to resolve the bug that negative numbers in scientific
+    # notation are not recognized by argparse
+    for i, arg in enumerate(sys.argv):
+        if (arg[0] == '-') and arg[1].isdigit(): sys.argv[i] = ' ' + arg
+    # process the input arguments
+    parser = argparse.ArgumentParser(description="""
+            Change the value of an entry in a YAML file. If OUTFILE is not
+            set, modifications will be applied to the input namelist file.
+            FILENAME, ENTRYID and VALUE are required.""")
+    parser.add_argument('-f', '--file', action='store', dest='yaml_in',
+            metavar='FILENAME', required=True, help='Input YAML file name')
+    parser.add_argument('-e', '--entry', action='store', dest='yaml_entry',
+            metavar='ENTRYID', required=True, help='YAML entry ID in the form of branch[:twig][:leaf][:...]')
+    parser.add_argument('-v', '--value', action='store', dest='yaml_value',
+            metavar='VALUE', required=True, help='New value for entry ID')
+    parser.add_argument('-o','--output', action='store', dest='yaml_out',
+            metavar='OUTFILE', help='Output yaml file name, replace the input yaml file if not set')
+    parser.add_argument('-q', '--quiet', action='store_true', dest='yaml_quiet',
+            help='Suppress all messages, only returns exit code')
+    parser.add_argument('--version', action='version', version='%(prog)s: 1.0')
+    # parse arguments and save to args
+    args = parser.parse_args()
+
+    # check if namelist exists
+    if not os.path.isfile(args.yaml_in):
+        if not args.yaml_quiet:
+            print('YAML file \'{:s}\' not exist. Stop.'.format(args.yaml_in))
+        sys.exit(1)
+
+    # load and preprocess input YAML file
+    with open(args.yaml_in, 'r') as f:
+        fstring = f.read()
+        fstring = re.sub("\*", "\'*\'", fstring)
+
+    # read the preprocessed YAML file
+    yaml = YAML()
+    data = yaml.load(fstring)
+
+    # parse the yaml entry, in the format of branch[:twig][:leaf][:...]
+    entry = args.yaml_entry.split(':')
+
+    # check if entry exists
+    cmd_string = 'tmp = data'
+    tmp = data
+    for val in entry:
+        if val not in tmp:
+            if not args.yaml_quiet:
+                print('Entry \'{:s}\' does not exist.'.format(args.yaml_entry))
+            sys.exit(1)
+        tmp = tmp[val]
+
+    # update the value of entry
+    cmd_string = 'data'
+    for val in entry:
+        cmd_string += '[\''+val+'\']'
+    cmd_string += '= args.yaml_value'
+    exec(cmd_string)
+    if not args.yaml_quiet:
+        print('Set {:s} = {:s}'.format(args.yaml_entry, args.yaml_value))
+
+    # output YAML file
+    if args.yaml_out is None:
+        outfile = args.yaml_in
+        if not args.yaml_quiet:
+            print('Overwrite YAML file \'{:s}\''.format(args.yaml_in))
+    else:
+        outfile = args.yaml_out
+        if not args.yaml_quiet:
+            print('Output to YAML file \'{:s}\''.format(args.yaml_out))
+    with open(outfile, 'w') as stream_out:
+        yaml.dump(data, stream_out, transform=remove_quotes)
+
+def remove_quotes(s):
+    return s.replace('\'', '')
+
+if __name__ == "__main__":
+    main()
