@@ -1,0 +1,151 @@
+#!/bin/bash
+# Run GOTM using preprocessed data for JRA55
+# Adapted from Qing's code for OCS Papa
+# Require a base case which contains the preprocessed input data
+# and namelist, e.g., as a result of case_test
+#
+# Leah Johnson, 2018103
+#######################################################################
+#                              Set paths                              #
+#######################################################################
+
+# setup paths and tools
+source "../../set_tools.sh"
+
+# directory of base case
+basecase="${GOTMWORK_ROOT}/data/MISOBoBcases"
+########################################"
+datestart="20180605"
+dateend="20180619"
+start_time="${datestart:0:4}-${datestart:4:2}-${datestart:6:2} 18:00:00"
+stop_time="${dateend:0:4}-${dateend:4:2}-${dateend:6:2} 00:00:00"
+
+
+title="MISOBoBcases"
+
+# run parameters
+dt=600
+nsave=1
+depth=200
+nlev=200
+
+# name of the turbulence model
+
+#turbmethod="KPPLT-ENTR"
+#turb_method=99.13 #KPPLT - input stokes profile
+
+#turbmethod="KPPLT-EFACTOR"
+#turb_method=99.15 #- input stokes profile
+
+#turbmethod="KPPLT-RWHGK"
+#turb_method=99.16 #- input stokes profile
+
+# turbmethod="EPBL-LT"
+#turb_method=4.13 #- input stokes profile
+
+# turbmethod="SMCLT"
+# turb_method=3.33 #KPPLT - input stokes profile
+
+# turbmethod="SMC"
+# turbmethod="EPBL"
+turbmethod="EPBL-RL19"
+
+####################################################################\
+###
+#                        Preprocess input data                      \
+  #
+####################################################################\
+###
+
+# case name                                                         \
+
+casename="${title}"
+
+# create run directory                                               r
+# rundir="${GOTMRUN_ROOT}/${casename}"
+rundir="${GOTMRUN_ROOT}/${casename}/${turbmethod}"
+mkdir -p ${rundir}
+cd ${rundir}
+#echo "$rundir"
+#pwd
+# copy base case
+cp ${basecase}/* ./
+
+##################################
+#set run parameters
+#################################
+
+
+
+    thold="tprof_file.dat"
+    shold="sprof_file.dat"
+    swhold="swr_file.dat"
+    hfhold="heatflux_file.dat"
+    tauhold="tau_file.dat"
+    pmehold="pme_file.dat"
+    uhold="u10_file.dat"
+    usphold="usp_file2.dat"
+    echo "$shold"
+
+
+# output file name
+# outname="gotm_out_${turb_method}_eos"
+outname="gotm_out"
+
+${cmd_nmlchange} -f gotmrun.nml -e start -v "${start_time}"
+${cmd_nmlchange} -f gotmrun.nml -e stop -v "${stop_time}"
+${cmd_nmlchange} -f gotmrun.nml -e title -v ${title}
+${cmd_nmlchange} -f gotmrun.nml -e out_fn -v ${outname}
+${cmd_nmlchange} -f gotmrun.nml -e dt -v ${dt}
+${cmd_nmlchange} -f gotmrun.nml -e nsave -v ${nsave}
+${cmd_nmlchange} -f gotmrun.nml -e nlev -v ${nlev}
+${cmd_nmlchange} -f gotmrun.nml -e depth -v ${depth}
+
+${cmd_nmlchange} -f airsea.nml -e heatflux_file -v ${hfhold}
+${cmd_nmlchange} -f airsea.nml -e swr_file -v ${swhold}
+${cmd_nmlchange} -f airsea.nml -e momentumflux_file -v ${tauhold}
+${cmd_nmlchange} -f airsea.nml -e precip_file -v ${pmehold}
+${cmd_nmlchange} -f obs.nml -e s_prof_file -v ${shold}
+${cmd_nmlchange} -f obs.nml -e t_prof_file -v ${thold}
+
+${cmd_nmlchange} -f obs.nml -e s_prof_method -v 2
+${cmd_nmlchange} -f obs.nml -e t_prof_method -v 2
+${cmd_nmlchange} -f obs.nml -e vel_prof_method -v 0
+
+#for empirilcal wave spectrum
+#${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 1
+#${cmd_nmlchange} -f airsea.nml -e u10_file -v ${uhold}
+#${cmd_nmlchange} -f airsea.nml -e u10_method -v 2
+#${cmd_nmlchange} -f obs.nml -e ustokes_method -v 0
+
+#for input stokes profile
+${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
+${cmd_nmlchange} -f obs.nml -e us_prof_method -v 2
+${cmd_nmlchange} -f obs.nml -e us_prof_file -v ${usphold}
+${cmd_nmlchange} -f airsea.nml -e u10_method -v 2
+${cmd_nmlchange} -f airsea.nml -e u10_file -v ${uhold}
+${cmd_nmlchange} -f obs.nml -e ustokes_method -v 0
+
+#for gotm donelan spectrum
+#${cmd_nmlchange} -f langmuir.nml -e langmuir_number_method -v 4
+#${cmd_nmlchange} -f obs.nml -e us_prof_method -v 8
+#${cmd_nmlchange} -f obs.nml -e wave_age -v 1.2
+#${cmd_nmlchange} -f airsea.nml -e u10_method -v 2
+#${cmd_nmlchange} -f airsea.nml -e u10_file -v ${uhold}
+
+# set turbulence method
+ source ${scpt_case_turbmethod}
+
+
+
+
+####################################################################\
+###
+#                              Run GOTM                             \
+  #
+####################################################################\
+###
+${cmd_gotm} 2> log.${outname}
+
+###############################
+
