@@ -40,7 +40,7 @@ Here is a brief description of each step:
 - Step 6 sets up Python environment for [preprocess data ](#Preprocess-data) and [analysis & visualization](#Analysis-and-Visualization) using [Conda](https://docs.conda.io/en/latest/). It will create a new conda environment `gotm` from `gotm_env_*.yml` and activate it using `set_conda_env.sh`.
 
 
-### Comple CVMix and GOTM
+### Compile CVMix and GOTM
 
 In cases of compiling steps are skipped when [setting up](#Setup) the gotmwork environment or source code of CVMix and GOTM are changes, CVMix and GOTM can be compiled by
 ```
