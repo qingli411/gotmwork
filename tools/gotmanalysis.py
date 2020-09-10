@@ -350,7 +350,7 @@ class GOTMMap(object):
         :returns: (GOTMMap object)
 
         """
-        dat = np.load(path)
+        dat = np.load(path, allow_pickle=True)
         self.__init__(data=dat['data'], lon=dat['lon'], lat=dat['lat'],
                 name=str(dat['name']), units=str(dat['units']))
         return self
